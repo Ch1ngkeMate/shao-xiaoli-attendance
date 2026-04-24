@@ -1,0 +1,173 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum UserRole {
+  ADMIN
+  MINISTER
+  MEMBER
+}
+
+enum TaskStatus {
+  OPEN
+  CLOSED
+}
+
+enum ClaimStatus {
+  CLAIMED
+  CANCELLED
+}
+
+enum ReviewResult {
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  username     String   @unique
+  displayName  String
+  passwordHash String
+  role         UserRole @default(MEMBER)
+  isActive     Boolean  @default(true)
+
+  tasksPublished Task[]           @relation("TaskPublisher")
+  claims         TaskClaim[]
+  submissions    TaskSubmission[]
+  reviews        TaskReview[]     @relation("TaskReviewer")
+}
+
+model Task {
+  id        String     @id @default(cuid())
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  title     String
+  description String?
+  startTime DateTime
+  endTime   DateTime
+  points    Int
+  headcountHint Int?
+  status    TaskStatus @default(OPEN)
+
+  publisherId String
+  publisher   User       @relation("TaskPublisher", fields: [publisherId], references: [id])
+
+  images      TaskImage[]
+  claims      TaskClaim[]
+  submissions TaskSubmission[]
+
+  @@index([startTime, endTime])
+  @@index([status])
+  @@index([publisherId])
+}
+
+model TaskImage {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  taskId String
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  url   String
+  sort  Int    @default(0)
+
+  @@index([taskId, sort])
+}
+
+model TaskClaim {
+  id        String      @id @default(cuid())
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  taskId String
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  claimTime DateTime @default(now())
+  status    ClaimStatus @default(CLAIMED)
+
+  @@unique([taskId, userId])
+  @@index([userId, claimTime])
+  @@index([taskId, claimTime])
+}
+
+model TaskSubmission {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  taskId String
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  submitTime DateTime @default(now())
+  note       String?
+
+  evidenceImages EvidenceImage[]
+  review         TaskReview?
+
+  @@unique([taskId, userId])
+  @@index([userId, submitTime])
+  @@index([taskId, submitTime])
+}
+
+model EvidenceImage {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  submissionId String
+  submission   TaskSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  url  String
+  sort Int @default(0)
+
+  @@index([submissionId, sort])
+}
+
+model TaskReview {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  submissionId String @unique
+  submission   TaskSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  reviewerId String
+  reviewer   User   @relation("TaskReviewer", fields: [reviewerId], references: [id])
+
+  reviewTime DateTime @default(now())
+  result     ReviewResult
+  reason     String?
+
+  @@index([reviewerId, reviewTime])
+  @@index([result])
+}
+
+model MonthlyReport {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  month     String   @unique // YYYY-MM
+  generatedAt DateTime @default(now())
+  generatedBy String? // userId 或 null(自动)
+
+  statsJson String
+  exportPath String?
+}
