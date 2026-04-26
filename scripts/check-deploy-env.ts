@@ -32,7 +32,13 @@ if (!/^mysql:\/\//i.test(db) && !/^mariadb:\/\//i.test(db)) {
 }
 
 if (process.env.NODE_ENV === "production") {
-  ok("NODE_ENV=production（Cookie 将使用 Secure，需 HTTPS）");
+  ok("NODE_ENV=production");
+  const cookieSecure = process.env.SESSION_COOKIE_SECURE?.trim().toLowerCase();
+  if (cookieSecure === "false" || cookieSecure === "0") {
+    warn("SESSION_COOKIE_SECURE=false：会话 Cookie 可在 HTTP 下使用（仅建议内网/IP 调试，对外请改回并启用 HTTPS）");
+  } else {
+    warn("生产环境默认会话 Cookie 为 Secure：仅用 HTTP（如 IP 访问）时浏览器不会保存登录态，请配置 HTTPS 或在调试阶段设置 SESSION_COOKIE_SECURE=false");
+  }
 } else {
   warn("当前非 production：上线请设置 NODE_ENV=production");
 }

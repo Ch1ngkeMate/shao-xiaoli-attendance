@@ -4,6 +4,14 @@ import type { UserRole } from "@/generated/prisma/client";
 
 const SESSION_COOKIE = "sxlat_session";
 
+/** 是否对会话 Cookie 使用 Secure（仅 HTTPS 发送）。生产环境默认为 true；未上证书前用 HTTP+IP 调试时可设 SESSION_COOKIE_SECURE=false */
+function sessionCookieSecure(): boolean {
+  const v = process.env.SESSION_COOKIE_SECURE?.trim().toLowerCase();
+  if (v === "false" || v === "0") return false;
+  if (v === "true" || v === "1") return true;
+  return process.env.NODE_ENV === "production";
+}
+
 function getAuthSecret(): Uint8Array {
   const secret = process.env.AUTH_SECRET;
   if (!secret) {
@@ -30,7 +38,7 @@ export async function createSessionCookie(payload: SessionPayload) {
   jar.set(SESSION_COOKIE, token, {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: sessionCookieSecure(),
     path: "/",
     maxAge: 60 * 60 * 24 * 30,
   });
@@ -41,7 +49,7 @@ export async function clearSessionCookie() {
   jar.set(SESSION_COOKIE, "", {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: sessionCookieSecure(),
     path: "/",
     maxAge: 0,
   });
