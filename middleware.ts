@@ -8,6 +8,8 @@ function isPublicPath(pathname: string) {
   if (pathname.startsWith("/api/auth/")) return true;
   if (pathname.startsWith("/_next/")) return true;
   if (pathname === "/favicon.ico") return true;
+  // 登录页等未带会话时也要能加载 public 下的 Logo
+  if (pathname === "/dept-logo.png") return true;
   return false;
 }
 
