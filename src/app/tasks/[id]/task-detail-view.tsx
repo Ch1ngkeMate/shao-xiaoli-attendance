@@ -26,14 +26,32 @@ type Props = {
     description: string | null;
     publisher: { displayName: string };
     images: ImageItem[];
-    claimants: { id: string; displayName: string; username: string; avatarUrl: string | null }[];
+    claimantsBySlot: {
+      slotId: string;
+      sort: number;
+      startTime: string;
+      endTime: string;
+      headcountHint: number | null;
+      claimants: {
+        claimId: string;
+        id: string;
+        displayName: string;
+        username: string;
+        avatarUrl: string | null;
+      }[];
+    }[];
   };
   /** 所有已接取者提交均已被通过（顶栏与 CLOSED 一样显示已结束，避免只显示「名额已满」） */
   allClaimantsApproved: boolean;
   /** 多段/任务级名额已无可接 */
   slotsOrTaskFull: boolean;
   role: "ADMIN" | "MINISTER" | "MEMBER";
-  claimStatus: "CLAIMED" | "CANCELLED" | null;
+  /** 当前用户是否至少接取了本任务的一段 */
+  hasAnyClaim: boolean;
+  /** 是否还能再接新的时段（多段时可能已接部分） */
+  canClaimMore: boolean;
+  /** 当前用户已接的时段 id（多段任务展示用） */
+  myClaimedSlotIds: string[];
   mySubmission: {
     id: string;
     submitTime: string;
@@ -58,7 +76,9 @@ export default function TaskDetailView({
   allClaimantsApproved,
   slotsOrTaskFull,
   role,
-  claimStatus,
+  hasAnyClaim,
+  canClaimMore,
+  myClaimedSlotIds,
   mySubmission,
   submittedUserIds,
   submissionsForReview,
@@ -132,13 +152,13 @@ export default function TaskDetailView({
     }
   }
 
-  async function removeClaimantFromTask(targetUserId: string) {
-    setRemovingUserId(targetUserId);
+  async function removeClaimantFromTask(claimId: string) {
+    setRemovingUserId(claimId);
     try {
       const res = await fetch(`/api/tasks/${task.id}/remove-claim`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ userId: targetUserId }),
+        body: JSON.stringify({ claimId }),
       });
       const data = (await res.json().catch(() => ({}))) as { message?: string };
       if (!res.ok) {
@@ -248,45 +268,73 @@ export default function TaskDetailView({
           </Descriptions>
         </Card>
 
-        <Card title="已接取人员（所有人可见）" size="small">
-          {task.claimants.length === 0 ? (
+        <Card title="已接取人员（按时段，所有人可见）" size="small">
+          {task.claimantsBySlot.every((g) => g.claimants.length === 0) ? (
             <Typography.Text type="secondary">暂无人接取</Typography.Text>
           ) : (
-            <Space wrap>
-              {task.claimants.map((c) => {
-                const hasSub = submittedUserIds.includes(c.id);
-                const showRemove = canManage && task.status === "OPEN" && !timeEnded;
+            <Space orientation="vertical" size={16} style={{ width: "100%" }}>
+              {task.claimantsBySlot.map((group) => {
+                const hc =
+                  group.headcountHint != null && group.headcountHint > 0
+                    ? `限 ${group.headcountHint} 人`
+                    : "人数不限";
                 return (
-                  <div key={c.id} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                    <Tag>
-                      <Space size={6}>
-                        <AdminProfilePeekAvatar
-                          viewerRole={role}
-                          targetUserId={c.id}
-                          size={22}
-                          src={c.avatarUrl}
-                          displayName={c.displayName}
-                        />
-                        <span>{c.displayName}</span>
-                      </Space>
-                    </Tag>
-                    {showRemove &&
-                      (hasSub ? (
-                        <Button size="small" danger disabled title="已提交，无法直接移出">
-                          移出
-                        </Button>
+                  <div key={group.slotId}>
+                    <Typography.Text strong>
+                      第 {group.sort + 1} 段：{dayjs(group.startTime).format("MM/DD HH:mm")} ~{" "}
+                      {dayjs(group.endTime).format("MM/DD HH:mm")}
+                    </Typography.Text>
+                    <Typography.Text type="secondary" style={{ marginLeft: 8 }}>
+                      （{hc}）
+                    </Typography.Text>
+                    <div style={{ marginTop: 8 }}>
+                      {group.claimants.length === 0 ? (
+                        <Typography.Text type="secondary">该段暂无人接取</Typography.Text>
                       ) : (
-                        <Popconfirm
-                          title="移出后其接取作废、不计月报(参考)与接取相关口径。确定？"
-                          okText="确定"
-                          cancelText="取消"
-                          onConfirm={() => void removeClaimantFromTask(c.id)}
-                        >
-                          <Button size="small" danger loading={removingUserId === c.id}>
-                            移出
-                          </Button>
-                        </Popconfirm>
-                      ))}
+                        <Space wrap>
+                          {group.claimants.map((c) => {
+                            const hasSub = submittedUserIds.includes(c.id);
+                            const showRemove = canManage && task.status === "OPEN" && !timeEnded;
+                            return (
+                              <div
+                                key={c.claimId}
+                                style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+                              >
+                                <Tag>
+                                  <Space size={6}>
+                                    <AdminProfilePeekAvatar
+                                      viewerRole={role}
+                                      targetUserId={c.id}
+                                      size={22}
+                                      src={c.avatarUrl}
+                                      displayName={c.displayName}
+                                    />
+                                    <span>{c.displayName}</span>
+                                  </Space>
+                                </Tag>
+                                {showRemove &&
+                                  (hasSub ? (
+                                    <Button size="small" danger disabled title="已提交，无法直接移出">
+                                      移出
+                                    </Button>
+                                  ) : (
+                                    <Popconfirm
+                                      title="移出后该时段接取作废。确定？"
+                                      okText="确定"
+                                      cancelText="取消"
+                                      onConfirm={() => void removeClaimantFromTask(c.claimId)}
+                                    >
+                                      <Button size="small" danger loading={removingUserId === c.claimId}>
+                                        移出
+                                      </Button>
+                                    </Popconfirm>
+                                  ))}
+                              </div>
+                            );
+                          })}
+                        </Space>
+                      )}
+                    </div>
                   </div>
                 );
               })}
@@ -300,7 +348,9 @@ export default function TaskDetailView({
           endTime={effectiveEnd.toISOString()}
           timeSlots={task.timeSlots}
           role={role}
-          claimStatus={claimStatus}
+          hasAnyClaim={hasAnyClaim}
+          canClaimMore={canClaimMore}
+          myClaimedSlotIds={myClaimedSlotIds}
           isClaimFull={isClaimFull}
           allClaimantsApproved={allClaimantsApproved}
           mySubmission={mySubmission}

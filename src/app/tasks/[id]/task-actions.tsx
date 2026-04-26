@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Card, Form, Input, Modal, Select, Space, Tag, Upload, message } from "antd";
+import { Button, Card, Form, Input, Modal, Select, Space, Tag, Typography, Upload, message } from "antd";
 import type { UploadFile } from "antd";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -28,7 +28,9 @@ type Props = {
   endTime: string;
   timeSlots: { id: string; startTime: string; endTime: string; sort: number; headcountHint: number | null }[];
   role: "ADMIN" | "MINISTER" | "MEMBER";
-  claimStatus: "CLAIMED" | "CANCELLED" | null;
+  hasAnyClaim: boolean;
+  canClaimMore: boolean;
+  myClaimedSlotIds: string[];
   /** 与详情页顶栏一致：所有已接取者均已通过时视为已结束，不可再接 */
   allClaimantsApproved: boolean;
   /** 名额是否已满（未接取用户不可再点接取） */
@@ -128,10 +130,10 @@ export default function TaskActions(props: Props) {
 
   const multiSlot = (props.timeSlots?.length ?? 0) > 1;
   useEffect(() => {
-    if (props.timeSlots?.length) {
-      setTimeSlotId(props.timeSlots[0]!.id);
-    }
-  }, [props.timeSlots]);
+    if (!props.timeSlots?.length) return;
+    const firstOpen = props.timeSlots.find((s) => !props.myClaimedSlotIds.includes(s.id));
+    setTimeSlotId(firstOpen?.id ?? props.timeSlots[0]!.id);
+  }, [props.timeSlots, props.myClaimedSlotIds]);
 
   async function claim() {
     if (multiSlot && !timeSlotId) {
@@ -174,9 +176,20 @@ export default function TaskActions(props: Props) {
     <Space orientation="vertical" size={12} style={{ width: "100%" }}>
       {/* 部员/部长/管理员均可接取、提交；取消接取由部长/管理员在「已接取人员」中操作 */}
       <Card title="我的操作">
+          {multiSlot && props.hasAnyClaim && props.myClaimedSlotIds.length > 0 && (
+            <Typography.Paragraph type="secondary" style={{ marginBottom: 12 }}>
+              已接时段：
+              {props.myClaimedSlotIds
+                .map((id) => {
+                  const s = props.timeSlots.find((x) => x.id === id);
+                  return s ? `第${s.sort + 1}段` : id;
+                })
+                .join("、")}
+            </Typography.Paragraph>
+          )}
           {/* flex-end：按钮与下拉框底缘对齐，避免与「接取哪一段？」标题顶对齐显得错位 */}
           <Space wrap align="end" size={12}>
-            {props.taskStatus === "OPEN" && props.claimStatus !== "CLAIMED" && !cannotNewClaim && !props.isClaimFull && multiSlot && (
+            {props.taskStatus === "OPEN" && props.canClaimMore && !cannotNewClaim && multiSlot && (
               <div>
                 <div style={{ marginBottom: 6, fontSize: 12, color: "#666" }}>接取哪一段？</div>
                 <Select
@@ -185,23 +198,25 @@ export default function TaskActions(props: Props) {
                   onChange={(v) => setTimeSlotId(v)}
                   options={props.timeSlots.map((s) => {
                     const hc = s.headcountHint != null && s.headcountHint > 0 ? `限${s.headcountHint}人` : "人数不限";
+                    const claimed = props.myClaimedSlotIds.includes(s.id);
                     return {
                       value: s.id,
-                      label: `第${s.sort + 1}段 ${dayjs(s.startTime).format("MM/DD HH:mm")}~${dayjs(s.endTime).format("MM/DD HH:mm")}（${hc}）`,
+                      disabled: claimed,
+                      label: `${claimed ? "【已接】 " : ""}第${s.sort + 1}段 ${dayjs(s.startTime).format("MM/DD HH:mm")}~${dayjs(s.endTime).format("MM/DD HH:mm")}（${hc}）`,
                     };
                   })}
                 />
               </div>
             )}
-            {props.taskStatus === "OPEN" && props.claimStatus !== "CLAIMED" && !cannotNewClaim && !props.isClaimFull && (
+            {props.taskStatus === "OPEN" && props.canClaimMore && !cannotNewClaim && (
               <Button type="primary" onClick={claim}>
-                接取任务
+                {multiSlot ? "接取该时段" : "接取任务"}
               </Button>
             )}
-            {props.taskStatus === "OPEN" && props.claimStatus !== "CLAIMED" && !cannotNewClaim && props.isClaimFull && (
+            {props.taskStatus === "OPEN" && !props.canClaimMore && !props.hasAnyClaim && !cannotNewClaim && props.isClaimFull && (
               <Tag color="orange">接取人数已满</Tag>
             )}
-            {props.claimStatus === "CLAIMED" && (
+            {props.hasAnyClaim && (
               <Button
                 type="primary"
                 onClick={() => setSubmitOpen(true)}

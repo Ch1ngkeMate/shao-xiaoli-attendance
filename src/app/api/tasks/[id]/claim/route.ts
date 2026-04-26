@@ -11,6 +11,11 @@ const BodySchema = z.object({
   timeSlotId: z.string().optional(),
 });
 
+/** 与 claimsForSlot 一致：旧数据 timeSlotId 空时视为第一段 */
+function effectiveSlotId(timeSlotId: string | null, firstSlotId: string | null): string | null {
+  return timeSlotId ?? firstSlotId;
+}
+
 export async function POST(req: Request, ctx: { params: Promise<Params> }) {
   const session = await readSessionCookie();
   if (!session) return NextResponse.json({ message: "未登录" }, { status: 401 });
@@ -30,7 +35,6 @@ export async function POST(req: Request, ctx: { params: Promise<Params> }) {
   if (task.status !== "OPEN") return NextResponse.json({ message: "任务已结束" }, { status: 400 });
 
   const { end: tEnd } = getTaskTimeBoundsFromSlots(task);
-  // 发布后即可接取，无需等到各段开始时间
   if (new Date().getTime() > tEnd.getTime()) {
     return NextResponse.json({ message: "任务已结束，无法接取" }, { status: 400 });
   }
@@ -38,47 +42,91 @@ export async function POST(req: Request, ctx: { params: Promise<Params> }) {
   const slots = task.timeSlots;
   const firstId = slots[0]?.id ?? null;
   const claimRows = await prisma.taskClaim.findMany({ where: { taskId, status: "CLAIMED" } });
-  const self = await prisma.taskClaim.findUnique({
-    where: { taskId_userId: { taskId, userId: session.sub } },
+  const myActive = await prisma.taskClaim.findMany({
+    where: { taskId, userId: session.sub, status: "CLAIMED" },
   });
 
-  let targetSlotId: string | null = self?.timeSlotId ?? null;
+  const userId = session.sub;
 
-  if (slots.length > 0) {
-    if (slots.length > 1) {
-      const pick = parsed.data.timeSlotId;
-      if (!self && !pick) {
-        return NextResponse.json({ message: "该任务有多个时段，请指定要接取的时间段" }, { status: 400 });
-      }
-      if (!self) {
-        const sl = slots.find((s) => s.id === pick);
-        if (!sl) {
-          return NextResponse.json({ message: "无效的时间段" }, { status: 400 });
-        }
-        if (!slotCanAccept(firstId, sl, claimRows)) {
-          return NextResponse.json({ message: "该时段接取人数已满" }, { status: 400 });
-        }
-        targetSlotId = sl.id;
-      }
-    } else {
-      const sl = slots[0]!;
-      if (!self && !slotCanAccept(firstId, sl, claimRows)) {
-        return NextResponse.json({ message: "接取人数已满" }, { status: 400 });
-      }
-      if (!self) targetSlotId = sl.id;
+  // —— 多时段：每段独立一条接取，同一用户可接多段 ——
+  if (slots.length > 1) {
+    const pick = parsed.data.timeSlotId;
+    if (!pick) {
+      return NextResponse.json({ message: "该任务有多个时段，请指定要接取的时间段" }, { status: 400 });
     }
-  } else if (!self && task.headcountHint != null && task.headcountHint > 0) {
+    const sl = slots.find((s) => s.id === pick);
+    if (!sl) {
+      return NextResponse.json({ message: "无效的时间段" }, { status: 400 });
+    }
+    const already = myActive.some((c) => effectiveSlotId(c.timeSlotId, firstId) === sl.id);
+    if (already) {
+      return NextResponse.json({ message: "您已接取该时段" }, { status: 400 });
+    }
+    if (!slotCanAccept(firstId, sl, claimRows)) {
+      return NextResponse.json({ message: "该时段接取人数已满" }, { status: 400 });
+    }
+    const revived = await prisma.taskClaim.findFirst({
+      where: { taskId, userId, timeSlotId: sl.id, status: "CANCELLED" },
+    });
+    const claim = revived
+      ? await prisma.taskClaim.update({
+          where: { id: revived.id },
+          data: { status: "CLAIMED", claimTime: new Date() },
+        })
+      : await prisma.taskClaim.create({
+          data: { taskId, userId, status: "CLAIMED", timeSlotId: sl.id },
+        });
+    return NextResponse.json({ claim });
+  }
+
+  // —— 单时段（库里有且仅一段）——
+  if (slots.length === 1) {
+    const sl = slots[0]!;
+    if (myActive.length > 0) {
+      return NextResponse.json({ message: "您已接取本任务" }, { status: 400 });
+    }
+    if (!slotCanAccept(firstId, sl, claimRows)) {
+      return NextResponse.json({ message: "接取人数已满" }, { status: 400 });
+    }
+    const revived = await prisma.taskClaim.findFirst({
+      where: {
+        taskId,
+        userId,
+        OR: [{ timeSlotId: sl.id }, { timeSlotId: null }],
+        status: "CANCELLED",
+      },
+    });
+    const claim = revived
+      ? await prisma.taskClaim.update({
+          where: { id: revived.id },
+          data: { status: "CLAIMED", claimTime: new Date(), timeSlotId: sl.id },
+        })
+      : await prisma.taskClaim.create({
+          data: { taskId, userId, status: "CLAIMED", timeSlotId: sl.id },
+        });
+    return NextResponse.json({ claim });
+  }
+
+  // —— 无时段表：任务级名额，每用户至多一条 ——
+  if (myActive.length > 0) {
+    return NextResponse.json({ message: "您已接取本任务" }, { status: 400 });
+  }
+  if (task.headcountHint != null && task.headcountHint > 0) {
     const n = await prisma.taskClaim.count({ where: { taskId, status: "CLAIMED" } });
     if (n >= task.headcountHint) {
       return NextResponse.json({ message: "接取人数已满" }, { status: 400 });
     }
   }
-
-  const claim = await prisma.taskClaim.upsert({
-    where: { taskId_userId: { taskId, userId: session.sub } },
-    create: { taskId, userId: session.sub, status: "CLAIMED", timeSlotId: targetSlotId },
-    update: { status: "CLAIMED", claimTime: new Date(), timeSlotId: targetSlotId },
+  const revived = await prisma.taskClaim.findFirst({
+    where: { taskId, userId, timeSlotId: null, status: "CANCELLED" },
   });
-
+  const claim = revived
+    ? await prisma.taskClaim.update({
+        where: { id: revived.id },
+        data: { status: "CLAIMED", claimTime: new Date() },
+      })
+    : await prisma.taskClaim.create({
+        data: { taskId, userId, status: "CLAIMED", timeSlotId: null },
+      });
   return NextResponse.json({ claim });
 }

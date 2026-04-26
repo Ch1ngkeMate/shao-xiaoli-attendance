@@ -1,9 +1,10 @@
 import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { isAllClaimantsSubmittedAndApproved } from "@/lib/task-all-claimants-state";
-import { isTaskFullForClaim } from "@/lib/slot-claim-availability";
+import { isTaskFullForClaim, slotCanAccept } from "@/lib/slot-claim-availability";
 import { readSessionCookie } from "@/lib/auth";
 import { notFound, redirect } from "next/navigation";
+import { getTaskTimeBoundsFromSlots } from "@/lib/task-time-bounds";
 import AppShell from "@/components/AppShell";
 import TaskDetailView from "./task-detail-view";
 
@@ -88,7 +89,9 @@ export default async function TaskDetailPage({ params }: PageProps) {
     select: { avatarUrl: true },
   });
 
-  const myClaim = task.claims.find((c) => c.userId === userId) ?? null;
+  const myClaims = task.claims.filter((c) => c.userId === userId);
+  const myActiveClaims = myClaims.filter((c) => c.status === "CLAIMED");
+  const hasAnyClaim = myActiveClaims.length > 0;
   const claimedCount = task.claims.length;
   const firstSlotId = task.timeSlots[0]?.id ?? null;
   const claimRowsForFull = task.claims
@@ -103,6 +106,74 @@ export default async function TaskDetailPage({ params }: PageProps) {
 
   // 与任务大厅/自动关单一致：人人已提交且均已被通过
   const allClaimantsApproved = await isAllClaimantsSubmittedAndApproved(task.id);
+
+  const { end: effectiveEnd } = getTaskTimeBoundsFromSlots({
+    startTime: task.startTime,
+    endTime: task.endTime,
+    timeSlots: task.timeSlots,
+  });
+  const timeEnded = Date.now() > effectiveEnd.getTime();
+  const myClaimedSlotIds = [
+    ...new Set(
+      myActiveClaims.map((c) => c.timeSlotId ?? firstSlotId).filter((id): id is string => id != null),
+    ),
+  ];
+  const canClaimMore =
+    task.status === "OPEN" &&
+    !timeEnded &&
+    !allClaimantsApproved &&
+    (() => {
+      const slots = task.timeSlots;
+      if (slots.length > 1) {
+        return slots.some((slot) => {
+          if (myClaimedSlotIds.includes(slot.id)) return false;
+          return slotCanAccept(
+            firstSlotId,
+            { id: slot.id, headcountHint: slot.headcountHint, sort: slot.sort },
+            claimRowsForFull,
+          );
+        });
+      }
+      if (slots.length === 1) {
+        return myActiveClaims.length === 0 && !slotsOrTaskFull;
+      }
+      return myActiveClaims.length === 0 && !slotsOrTaskFull;
+    })();
+
+  const claimantsBySlot =
+    task.timeSlots.length > 0
+      ? task.timeSlots.map((slot) => ({
+          slotId: slot.id,
+          sort: slot.sort,
+          startTime: slot.startTime.toISOString(),
+          endTime: slot.endTime.toISOString(),
+          headcountHint: slot.headcountHint,
+          claimants: task.claims
+            .filter((c) => (c.timeSlotId ?? firstSlotId) === slot.id)
+            .map((c) => ({
+              claimId: c.id,
+              id: c.user.id,
+              displayName: c.user.displayName,
+              username: c.user.username,
+              avatarUrl: c.user.avatarUrl,
+            })),
+        }))
+      : [
+          {
+            slotId: "legacy",
+            sort: 0,
+            startTime: task.startTime.toISOString(),
+            endTime: task.endTime.toISOString(),
+            headcountHint: null as number | null,
+            claimants: task.claims.map((c) => ({
+              claimId: c.id,
+              id: c.user.id,
+              displayName: c.user.displayName,
+              username: c.user.username,
+              avatarUrl: c.user.avatarUrl,
+            })),
+          },
+        ];
 
   const mySub = task.submissions.find((s) => s.userId === userId) ?? null;
   const mySubmission = mySub
@@ -176,17 +247,14 @@ export default async function TaskDetailPage({ params }: PageProps) {
           description: task.description,
           publisher: { displayName: task.publisher.displayName },
           images: task.images.map((img) => ({ id: img.id, url: img.url })),
-          claimants: task.claims.map((c) => ({
-            id: c.userId,
-            displayName: c.user.displayName,
-            username: c.user.username,
-            avatarUrl: c.user.avatarUrl,
-          })),
+          claimantsBySlot,
         }}
         allClaimantsApproved={allClaimantsApproved}
         slotsOrTaskFull={slotsOrTaskFull}
         role={session.role}
-        claimStatus={myClaim?.status ?? null}
+        hasAnyClaim={hasAnyClaim}
+        canClaimMore={canClaimMore}
+        myClaimedSlotIds={myClaimedSlotIds}
         mySubmission={mySubmission}
         submittedUserIds={isMgr ? task.submissions.map((s) => s.userId) : []}
         submissionsForReview={submissionsForReview}

@@ -6,8 +6,8 @@ import { prisma } from "@/lib/prisma";
 type Params = { id: string };
 
 /**
- * 管理员/部长将指定**干事**的接取记为 CANCELLED；部员不可再自行 unclaim，须由此入口调整。
- * 与旧 unclaim 条件一致：任务进行中文、已接取、且该人尚未有提交时方可移出。
+ * 管理员/部长将指定接取记为 CANCELLED。
+ * 多时段任务须传 claimId；仅一段或无时段表时可只传 userId（兼容旧客户端）。
  */
 export async function POST(req: Request, ctx: { params: Promise<Params> }) {
   const session = await readSessionCookie();
@@ -16,13 +16,9 @@ export async function POST(req: Request, ctx: { params: Promise<Params> }) {
     return NextResponse.json({ message: "无权限" }, { status: 403 });
   }
 
-  let targetUserId: string;
+  let body: { userId?: string; claimId?: string };
   try {
-    const body = (await req.json()) as { userId?: string };
-    if (typeof body.userId !== "string" || !body.userId.trim()) {
-      return NextResponse.json({ message: "缺少被移出用户" }, { status: 400 });
-    }
-    targetUserId = body.userId.trim();
+    body = (await req.json()) as { userId?: string; claimId?: string };
   } catch {
     return NextResponse.json({ message: "请求体无效" }, { status: 400 });
   }
@@ -47,18 +43,39 @@ export async function POST(req: Request, ctx: { params: Promise<Params> }) {
     return NextResponse.json({ message: "任务已截止，无法移出" }, { status: 400 });
   }
 
-  const claim = await prisma.taskClaim.findUnique({
-    where: { taskId_userId: { taskId, userId: targetUserId } },
-  });
+  const multiSlot = task.timeSlots.length > 1;
+  let claim: { id: string; userId: string; status: string } | null = null;
+
+  if (typeof body.claimId === "string" && body.claimId.trim()) {
+    claim = await prisma.taskClaim.findFirst({
+      where: { id: body.claimId.trim(), taskId },
+      select: { id: true, userId: true, status: true },
+    });
+  } else if (typeof body.userId === "string" && body.userId.trim()) {
+    const targetUserId = body.userId.trim();
+    if (multiSlot) {
+      return NextResponse.json(
+        { message: "多时段任务请指定 claimId（在对应时段下点击移出）" },
+        { status: 400 },
+      );
+    }
+    claim = await prisma.taskClaim.findFirst({
+      where: { taskId, userId: targetUserId, status: "CLAIMED" },
+      select: { id: true, userId: true, status: true },
+    });
+  } else {
+    return NextResponse.json({ message: "缺少 claimId 或 userId" }, { status: 400 });
+  }
+
   if (!claim) {
-    return NextResponse.json({ message: "该人员未接取本任务" }, { status: 400 });
+    return NextResponse.json({ message: "未找到有效接取记录" }, { status: 400 });
   }
   if (claim.status !== "CLAIMED") {
     return NextResponse.json({ message: "无有效接取记录，无需移出" }, { status: 400 });
   }
 
   const sub = await prisma.taskSubmission.findUnique({
-    where: { taskId_userId: { taskId, userId: targetUserId } },
+    where: { taskId_userId: { taskId, userId: claim.userId } },
   });
   if (sub) {
     return NextResponse.json(
@@ -68,7 +85,7 @@ export async function POST(req: Request, ctx: { params: Promise<Params> }) {
   }
 
   await prisma.taskClaim.update({
-    where: { taskId_userId: { taskId, userId: targetUserId } },
+    where: { id: claim.id },
     data: { status: "CANCELLED" },
   });
 

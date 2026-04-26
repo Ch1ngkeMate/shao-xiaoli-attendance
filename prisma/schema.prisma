@@ -265,7 +265,8 @@ model TaskClaim {
   timeSlotId String?
   timeSlot   TaskTimeSlot? @relation(fields: [timeSlotId], references: [id], onDelete: SetNull)
 
-  @@unique([taskId, userId])
+  /// 同一用户可接多段：按 (任务, 用户, 时段) 唯一；无时段表时 timeSlotId 可为 null（每用户至多一条，由接口保证）
+  @@unique([taskId, userId, timeSlotId])
   @@index([userId, claimTime])
   @@index([taskId, claimTime])
   @@index([timeSlotId])

@@ -24,7 +24,7 @@ export async function isAllClaimantsSubmittedAndApproved(taskId: string): Promis
     where: { taskId, status: "CLAIMED" },
     select: { userId: true },
   });
-  const claimUserIds = claims.map((c) => c.userId);
+  const claimUserIds = [...new Set(claims.map((c) => c.userId))];
   if (claimUserIds.length === 0) return false;
   const subs = await prisma.taskSubmission.findMany({
     where: { taskId },
@@ -49,7 +49,7 @@ export async function batchAllClaimantsSubmittedAndApproved(taskIds: string[]): 
   const claimByTask = new Map<string, string[]>();
   for (const c of claims) {
     const a = claimByTask.get(c.taskId) ?? [];
-    a.push(c.userId);
+    if (!a.includes(c.userId)) a.push(c.userId);
     claimByTask.set(c.taskId, a);
   }
 

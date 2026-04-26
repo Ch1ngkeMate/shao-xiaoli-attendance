@@ -18,10 +18,10 @@ export async function POST(req: Request, ctx: { params: Promise<Params> }) {
   const task = await prisma.task.findUnique({ where: { id: taskId } });
   if (!task) return NextResponse.json({ message: "任务不存在" }, { status: 404 });
 
-  const claim = await prisma.taskClaim.findUnique({
-    where: { taskId_userId: { taskId, userId: session.sub } },
+  const claim = await prisma.taskClaim.findFirst({
+    where: { taskId, userId: session.sub, status: "CLAIMED" },
   });
-  if (!claim || claim.status !== "CLAIMED") {
+  if (!claim) {
     return NextResponse.json({ message: "请先接取任务再提交完成" }, { status: 400 });
   }
 

@@ -99,12 +99,14 @@ export async function GET() {
   const claimsStateByTask = new Map<string, { timeSlotId: string | null; status: "CLAIMED" }[]>();
   for (const c of claimRows) {
     const arr = claimantsByTask.get(c.taskId) ?? [];
-    arr.push({
-      id: c.user.id,
-      displayName: c.user.displayName,
-      username: c.user.username,
-      avatarUrl: c.user.avatarUrl,
-    });
+    if (!arr.some((x) => x.id === c.user.id)) {
+      arr.push({
+        id: c.user.id,
+        displayName: c.user.displayName,
+        username: c.user.username,
+        avatarUrl: c.user.avatarUrl,
+      });
+    }
     claimantsByTask.set(c.taskId, arr);
     const cr = claimsStateByTask.get(c.taskId) ?? [];
     cr.push({ timeSlotId: c.timeSlotId, status: "CLAIMED" });

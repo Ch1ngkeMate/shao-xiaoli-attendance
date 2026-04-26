@@ -91,7 +91,7 @@ export default function TaskListPage() {
           return (
             <Space size={4} wrap style={{ maxWidth: 200, fontSize: 12 }}>
               {list.map((c) => (
-                <Space key={c.username} size={4} style={{ display: "inline-flex" }}>
+                <Space key={c.id} size={4} style={{ display: "inline-flex" }}>
                   <AdminProfilePeekAvatar
                     viewerRole={(meRole ?? "MEMBER") as "ADMIN" | "MINISTER" | "MEMBER"}
                     targetUserId={c.id}
