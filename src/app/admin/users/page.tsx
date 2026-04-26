@@ -329,8 +329,9 @@ export default function AdminUsersPage() {
           <Typography.Paragraph type="secondary" style={{ marginTop: 12, marginBottom: 0 }}>
             第一行表头可用英文
             <code>username, displayName, role, password</code> 或中文
-            <code>账号、姓名、身份、密码</code>。Excel 中可只占 A 列，另存为
-            <strong>CSV UTF-8（逗号分隔）</strong> 后上传；角色可写
+            <code>账号、姓名、身份、密码</code>。Excel 中可只占 A 列；推荐另存为
+            <strong>CSV UTF-8（逗号分隔）</strong>。若误存为普通「CSV(逗号分隔)」（GBK），服务端也会尽量自动识别。
+            角色可写
             <code>MINISTER</code>/<code>MEMBER</code> 或 <code>部长</code>/<code>部员(干事)</code>。
           </Typography.Paragraph>
         </Card>

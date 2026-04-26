@@ -1,10 +1,33 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
+import iconv from "iconv-lite";
 import { prisma } from "@/lib/prisma";
 import { readSessionCookie } from "@/lib/auth";
 
 export const runtime = "nodejs";
+
+/**
+ * Excel 在简体中文 Windows 上「另存为 CSV(逗号分隔)」常为 GBK/GB18030；
+ * 若按 UTF-8 读会出现大量 U+FFFD（界面显示为乱码菱形）。
+ * 优先 UTF-8；检测到替换符时再尝试 GB18030。
+ */
+function decodeCsvBuffer(buf: ArrayBuffer): string {
+  const b = Buffer.from(buf);
+  const utf8 = new TextDecoder("utf-8", { fatal: false }).decode(b);
+  const utf8Repl = (utf8.match(/\uFFFD/g) || []).length;
+  if (utf8Repl === 0) return utf8;
+
+  const alt = iconv.decode(b, "gb18030");
+  const altRepl = (alt.match(/\uFFFD/g) || []).length;
+  const cjkUtf8 = (utf8.match(/[\u4e00-\u9fff]/g) || []).length;
+  const cjkAlt = (alt.match(/[\u4e00-\u9fff]/g) || []).length;
+
+  if (altRepl < utf8Repl || (utf8Repl >= 2 && cjkAlt > cjkUtf8)) {
+    return alt;
+  }
+  return utf8;
+}
 
 const RowSchema = z.object({
   username: z.string().min(1),
@@ -228,7 +251,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const text = new TextDecoder("utf-8", { fatal: false }).decode(new Uint8Array(buf));
+  const text = decodeCsvBuffer(buf);
   let rows: ParsedRow[] = [];
   try {
     rows = parseTable(text).rows;
