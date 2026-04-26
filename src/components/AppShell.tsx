@@ -1,14 +1,24 @@
 "use client";
 
-import { BarChartOutlined, DashboardOutlined, LogoutOutlined, TeamOutlined, UploadOutlined } from "@ant-design/icons";
-import { Avatar, Button, Layout, Menu, Space, Typography, theme } from "antd";
+import {
+  BarChartOutlined,
+  BellOutlined,
+  CalendarOutlined,
+  DashboardOutlined,
+  LogoutOutlined,
+  TeamOutlined,
+  UploadOutlined,
+  UserOutlined,
+} from "@ant-design/icons";
+import { Avatar, Badge, Button, Layout, Menu, Space, Typography, theme } from "antd";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
+import { userRoleLabel } from "@/lib/role-label";
 
 type Role = "ADMIN" | "MINISTER" | "MEMBER";
-type Me = { id: string; username: string; displayName: string; role: Role };
+type Me = { id: string; username: string; displayName: string; role: Role; avatarUrl?: string | null };
 
 type Props = {
   title?: string;
@@ -26,6 +36,7 @@ export default function AppShell({ title, initialMe, children }: Props) {
   // initialMe 为 null 时仍需拉取；仅当传入完整用户对象时视为“已由父级提供”
   const [me, setMe] = useState<Me | null>(initialMe ?? null);
   const [collapsed, setCollapsed] = useState(false);
+  const [unreadMsg, setUnreadMsg] = useState(0);
 
   const canManage = me?.role === "ADMIN" || me?.role === "MINISTER";
 
@@ -35,6 +46,27 @@ export default function AppShell({ title, initialMe, children }: Props) {
         key: "/tasks",
         icon: <DashboardOutlined />,
         label: <Link href="/tasks">任务大厅</Link>,
+      },
+      {
+        key: "/duty-and-meetings",
+        icon: <CalendarOutlined />,
+        label: <Link href="/duty-and-meetings">会议与值班</Link>,
+      },
+      {
+        key: "/messages",
+        icon: <BellOutlined />,
+        label: (
+          <Link href="/messages">
+            <Badge dot={unreadMsg > 0} size="medium" offset={[4, 0]}>
+              消息
+            </Badge>
+          </Link>
+        ),
+      },
+      {
+        key: "/profile",
+        icon: <UserOutlined />,
+        label: <Link href="/profile">个人主页</Link>,
       },
     ];
     if (canManage) {
@@ -64,32 +96,89 @@ export default function AppShell({ title, initialMe, children }: Props) {
       });
     }
     return items;
-  }, [canManage, me?.role]);
+  }, [canManage, me?.role, unreadMsg]);
 
   const selectedKeys = useMemo(() => {
     if (pathname.startsWith("/admin/users")) return ["/admin/users"];
     if (pathname.startsWith("/tasks")) return ["/tasks"];
+    if (pathname.startsWith("/duty-and-meetings")) return ["/duty-and-meetings"];
+    if (pathname.startsWith("/messages")) return ["/messages"];
     if (pathname.startsWith("/publish")) return ["/publish"];
     if (pathname.startsWith("/reports")) return ["/reports"];
     if (pathname.startsWith("/attendance")) return ["/attendance"];
+    if (pathname.startsWith("/profile")) return ["/profile"];
     return ["/tasks"];
   }, [pathname]);
 
-  // 父组件异步加载到用户后同步到本壳
+  useEffect(() => {
+    let cancelled = false;
+    function load() {
+      fetch("/api/notifications", { cache: "no-store" })
+        .then((r) => (r.ok ? r.json() : { unreadCount: 0 }))
+        .then((d: { unreadCount?: number }) => {
+          if (!cancelled) setUnreadMsg(typeof d.unreadCount === "number" ? d.unreadCount : 0);
+        })
+        .catch(() => {
+          if (!cancelled) setUnreadMsg(0);
+        });
+    }
+    if (me) {
+      load();
+    }
+    function onE() {
+      load();
+    }
+    if (typeof window !== "undefined") {
+      window.addEventListener("sxl-messages-updated", onE);
+    }
+    return () => {
+      cancelled = true;
+      if (typeof window !== "undefined") {
+        window.removeEventListener("sxl-messages-updated", onE);
+      }
+    };
+  }, [me]);
+
+  // 与 JWT 中缓存可能不同步，始终以数据库 /api/me 为准（含管理员改姓名/头像后）
   useEffect(() => {
     if (initialMe) setMe(initialMe);
   }, [initialMe]);
 
   useEffect(() => {
-    if (initialMe) return;
-    fetch("/api/me")
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((d) => setMe(d.user ?? null))
+    let cancelled = false;
+    fetch("/api/me", { cache: "no-store" })
+      .then((r) => r.json().then((d) => ({ ok: r.ok, status: r.status, d })))
+      .then(({ ok, status, d }) => {
+        if (cancelled) return;
+        if (ok && d.user) {
+          setMe(d.user);
+          return;
+        }
+        // 未认证：始终退出到登录，避免仅凭 JWT 里旧姓名顶栏
+        if (status === 401 || status === 403) {
+          setMe(null);
+          setTimeout(() => router.replace("/login"), 0);
+        }
+      })
       .catch(() => {
-        // 避免在路由尚未初始化（开发热更新时可能发生）就触发 replace 导致卡死
-        setTimeout(() => router.replace("/login"), 0);
+        if (cancelled) return;
+        // 仅网络/解析失败时不断线，保留首屏
       });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
+
+  // 个人主页修改头像/密码后刷新顶栏
+  useEffect(() => {
+    const onProfile = () => {
+      fetch("/api/me")
+        .then((r) => (r.ok ? r.json() : Promise.reject()))
+        .then((d) => setMe(d.user ?? null))
+        .catch(() => {});
+    };
+    window.addEventListener("sxl-profile-updated", onProfile);
+    return () => window.removeEventListener("sxl-profile-updated", onProfile);
   }, []);
 
   async function logout() {
@@ -146,13 +235,13 @@ export default function AppShell({ title, initialMe, children }: Props) {
 
           <Space>
             <Space size={8}>
-              <Avatar style={{ background: token.colorPrimary }}>
-                {(me?.displayName || "U").slice(0, 1)}
+              <Avatar src={me?.avatarUrl || undefined} style={{ background: token.colorPrimary }}>
+                {!me?.avatarUrl ? (me?.displayName || "U").slice(0, 1) : null}
               </Avatar>
               <div style={{ lineHeight: 1.2 }}>
                 <div style={{ fontWeight: 600 }}>{me?.displayName ?? "加载中..."}</div>
                 <div style={{ fontSize: 12, color: token.colorTextSecondary }}>
-                  {me?.role ?? ""}
+                  {userRoleLabel(me?.role)}
                 </div>
               </div>
             </Space>

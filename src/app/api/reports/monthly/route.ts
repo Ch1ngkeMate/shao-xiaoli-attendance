@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { readSessionCookie } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { computeMonthlyReportStats } from "@/lib/monthly-report";
+import { computeMonthlyReportStats, hydrateMonthlyReportPeopleFromDb } from "@/lib/monthly-report";
+import type { MonthlyReportStats } from "@/lib/monthly-report";
 
 export async function GET(req: Request) {
   const session = await readSessionCookie();
@@ -16,10 +17,12 @@ export async function GET(req: Request) {
 
   const snapshot = await prisma.monthlyReport.findUnique({ where: { month } });
   if (snapshot) {
+    const parsed = JSON.parse(snapshot.statsJson) as MonthlyReportStats;
+    const stats = await hydrateMonthlyReportPeopleFromDb(parsed);
     return NextResponse.json({
       month,
       snapshot: true,
-      stats: JSON.parse(snapshot.statsJson),
+      stats,
     });
   }
 

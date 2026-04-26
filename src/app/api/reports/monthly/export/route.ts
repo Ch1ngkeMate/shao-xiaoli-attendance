@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { readSessionCookie } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { computeMonthlyReportStats } from "@/lib/monthly-report";
+import { computeMonthlyReportStats, hydrateMonthlyReportPeopleFromDb } from "@/lib/monthly-report";
+import type { MonthlyReportStats } from "@/lib/monthly-report";
 
 function toCsvCell(v: string | number) {
   const s = String(v);
@@ -23,7 +24,10 @@ export async function GET(req: Request) {
   if (type !== "csv") return NextResponse.json({ message: "暂只支持 csv" }, { status: 400 });
 
   const snapshot = await prisma.monthlyReport.findUnique({ where: { month } });
-  const stats = snapshot ? (JSON.parse(snapshot.statsJson) as any) : await computeMonthlyReportStats(month);
+  const raw = snapshot
+    ? (JSON.parse(snapshot.statsJson) as MonthlyReportStats)
+    : await computeMonthlyReportStats(month);
+  const stats = await hydrateMonthlyReportPeopleFromDb(raw);
 
   const header = [
     "月份",

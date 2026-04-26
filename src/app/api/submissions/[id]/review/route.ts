@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { readSessionCookie } from "@/lib/auth";
+import { tryAutoCloseTaskIfAllClaimantsApproved } from "@/lib/task-auto-close";
 
 type Params = { id: string };
 
@@ -46,6 +47,10 @@ export async function POST(req: Request, ctx: { params: Promise<Params> }) {
       reviewTime: new Date(),
     },
   });
+
+  if (parsed.data.result === "APPROVED") {
+    await tryAutoCloseTaskIfAllClaimantsApproved(submission.taskId);
+  }
 
   return NextResponse.json({ review });
 }

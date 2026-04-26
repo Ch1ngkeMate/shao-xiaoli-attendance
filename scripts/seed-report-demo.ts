@@ -78,7 +78,11 @@ async function main() {
           points,
           headcountHint: 3,
           status: "OPEN",
+          excludeFromAttendance: false,
           publisherId: publisher.id,
+          timeSlots: {
+            create: [{ startTime: startT.toDate(), endTime: endT.toDate(), sort: 0 }],
+          },
         },
       });
 

@@ -24,7 +24,7 @@ function mimeFromExt(ext: string): string {
   return m[ext] ?? "application/octet-stream";
 }
 
-export type ImageUploadKind = "task" | "evidence";
+export type ImageUploadKind = "task" | "evidence" | "avatar";
 
 /**
  * 有 BLOB_READ_WRITE_TOKEN（Vercel 部署时自动注入或本地手动配置）时上传到 Vercel Blob；
@@ -38,7 +38,7 @@ export async function saveImageUpload(
   const filename = `${crypto.randomUUID()}${ext}`;
 
   if (process.env.BLOB_READ_WRITE_TOKEN) {
-    const folder = kind === "evidence" ? "evidence" : "task";
+    const folder = kind === "evidence" ? "evidence" : kind === "avatar" ? "avatar" : "task";
     const pathname = `shao-xiaoli-attendance/${folder}/${filename}`;
     const { url } = await put(pathname, buffer, {
       access: "public",
@@ -54,6 +54,13 @@ export async function saveImageUpload(
     await mkdir(uploadDir, { recursive: true });
     await writeFile(path.join(uploadDir, filename), buffer);
     return `/uploads/evidence/${filename}`;
+  }
+
+  if (kind === "avatar") {
+    const uploadDir = path.join(process.cwd(), "public", "uploads", "avatar");
+    await mkdir(uploadDir, { recursive: true });
+    await writeFile(path.join(uploadDir, filename), buffer);
+    return `/uploads/avatar/${filename}`;
   }
 
   const uploadDir = path.join(process.cwd(), "public", "uploads");

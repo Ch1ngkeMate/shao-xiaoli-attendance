@@ -25,6 +25,7 @@ export async function GET() {
       role: true,
       isActive: true,
       createdAt: true,
+      avatarUrl: true,
     },
   });
   return NextResponse.json({ users });

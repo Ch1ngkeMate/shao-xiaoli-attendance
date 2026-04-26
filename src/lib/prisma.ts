@@ -1,5 +1,5 @@
+import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 import { PrismaClient } from "../generated/prisma/client";
-import { PrismaLibSql } from "@prisma/adapter-libsql";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -7,12 +7,12 @@ declare global {
 }
 
 function createPrismaClient() {
-  const url = process.env.DATABASE_URL;
+  const url = process.env.DATABASE_URL?.trim();
   if (!url) {
-    throw new Error("缺少环境变量 DATABASE_URL");
+    throw new Error("缺少环境变量 DATABASE_URL（MySQL 示例：mysql://用户:密码@127.0.0.1:3306/数据库名）");
   }
-
-  const adapter = new PrismaLibSql({ url });
+  // Prisma 7：通过官方 MariaDB 驱动适配器连接 MySQL / MariaDB（连接串与 prisma migrate 使用同一 DATABASE_URL）
+  const adapter = new PrismaMariaDb(url);
   return new PrismaClient({ adapter });
 }
 

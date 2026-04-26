@@ -1,14 +1,23 @@
 "use client";
 
-import { Button, Card, Form, Input, Modal, Space, Tag, Upload, message } from "antd";
+import { Button, Card, Form, Input, Modal, Select, Space, Tag, Upload, message } from "antd";
 import type { UploadFile } from "antd";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import dayjs from "dayjs";
+import { AdminProfilePeekAvatar } from "@/components/AdminProfilePeekAvatar";
+
+/** 立即重拉 RSC 数据，Toast 并行展示；整页 reload 会打断提示且等完才变界面、观感卡 */
+function showSuccessWithRefresh(router: { refresh: () => void | Promise<void> }, text: string) {
+  void router.refresh();
+  message.success({ content: text, duration: 3.5 });
+}
 
 type ReviewableSubmission = {
   id: string;
   submitTime: string;
   note: string | null;
-  user: { displayName: string; username: string };
+  user: { id: string; displayName: string; username: string; avatarUrl: string | null };
   evidenceImages: { id: string; url: string }[];
   review: null | { result: "APPROVED" | "REJECTED"; reason: string | null; reviewTime: string };
 };
@@ -17,8 +26,13 @@ type Props = {
   taskId: string;
   taskStatus: "OPEN" | "CLOSED";
   endTime: string;
+  timeSlots: { id: string; startTime: string; endTime: string; sort: number; headcountHint: number | null }[];
   role: "ADMIN" | "MINISTER" | "MEMBER";
   claimStatus: "CLAIMED" | "CANCELLED" | null;
+  /** 与详情页顶栏一致：所有已接取者均已通过时视为已结束，不可再接 */
+  allClaimantsApproved: boolean;
+  /** 名额是否已满（未接取用户不可再点接取） */
+  isClaimFull?: boolean;
   mySubmission: null | {
     id: string;
     submitTime: string;
@@ -31,32 +45,12 @@ type Props = {
 
 type SubmitForm = { note?: string };
 
-export default function TaskActions(props: Props) {
-  const { taskId } = props;
-  const ended = useMemo(() => Date.now() > new Date(props.endTime).getTime(), [props.endTime]);
-  const [submitting, setSubmitting] = useState(false);
-  const [reviewingId, setReviewingId] = useState<string | null>(null);
-  const [rejectReason, setRejectReason] = useState("");
-
-  const [submitOpen, setSubmitOpen] = useState(false);
-  const [fileList, setFileList] = useState<UploadFile[]>([]);
+/** 仅在用户打开「提交完成」时挂载，避免未打开时即插入 ant-modal portal 导致 SSR 水合不一致 */
+function TaskSubmitModal({ taskId, onClose }: { taskId: string; onClose: () => void }) {
+  const router = useRouter();
   const [form] = Form.useForm<SubmitForm>();
-
-  async function claim() {
-    const res = await fetch(`/api/tasks/${taskId}/claim`, { method: "POST" });
-    const data = (await res.json().catch(() => ({}))) as { message?: string };
-    if (!res.ok) return message.error(data.message || "接取失败");
-    message.success("已接取任务");
-    location.reload();
-  }
-
-  async function unclaim() {
-    const res = await fetch(`/api/tasks/${taskId}/unclaim`, { method: "POST" });
-    const data = (await res.json().catch(() => ({}))) as { message?: string };
-    if (!res.ok) return message.error(data.message || "取消接取失败");
-    message.success("已取消接取");
-    location.reload();
-  }
+  const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const [submitting, setSubmitting] = useState(false);
 
   async function uploadEvidenceOne(file: File) {
     const fd = new FormData();
@@ -67,7 +61,7 @@ export default function TaskActions(props: Props) {
     return data.url;
   }
 
-  async function submit(values: SubmitForm) {
+  async function onFinish(values: SubmitForm) {
     try {
       setSubmitting(true);
       const evidenceUrls: string[] = [];
@@ -84,12 +78,74 @@ export default function TaskActions(props: Props) {
       });
       const data = (await res.json().catch(() => ({}))) as { message?: string };
       if (!res.ok) return message.error(data.message || "提交失败");
-      message.success("已提交，等待确认");
-      setSubmitOpen(false);
-      location.reload();
+      onClose();
+      showSuccessWithRefresh(router, "已提交，等待确认");
     } finally {
       setSubmitting(false);
     }
+  }
+
+  return (
+    <Modal
+      open
+      title="提交完成"
+      onCancel={onClose}
+      onOk={() => void form.submit()}
+      okText="提交"
+      confirmLoading={submitting}
+    >
+      <Form form={form} layout="vertical" onFinish={onFinish}>
+        <Form.Item label="说明（可选）" name="note">
+          <Input.TextArea rows={4} />
+        </Form.Item>
+        <Form.Item label="凭证图片（可选，多张）">
+          <Upload
+            multiple
+            listType="picture"
+            fileList={fileList}
+            beforeUpload={() => false}
+            onChange={(info) => setFileList(info.fileList)}
+          >
+            <Button>选择图片</Button>
+          </Upload>
+        </Form.Item>
+      </Form>
+    </Modal>
+  );
+}
+
+export default function TaskActions(props: Props) {
+  const { taskId } = props;
+  const router = useRouter();
+  const timeEnded = useMemo(() => Date.now() > new Date(props.endTime).getTime(), [props.endTime]);
+  // 与详情页：部长已全部确认通过 / 关单 / 过截止时间 均不可再接
+  const cannotNewClaim = props.taskStatus === "CLOSED" || timeEnded || props.allClaimantsApproved;
+  const [reviewingId, setReviewingId] = useState<string | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
+
+  const [submitOpen, setSubmitOpen] = useState(false);
+  const [timeSlotId, setTimeSlotId] = useState<string | null>(null);
+
+  const multiSlot = (props.timeSlots?.length ?? 0) > 1;
+  useEffect(() => {
+    if (props.timeSlots?.length) {
+      setTimeSlotId(props.timeSlots[0]!.id);
+    }
+  }, [props.timeSlots]);
+
+  async function claim() {
+    if (multiSlot && !timeSlotId) {
+      message.warning("请选择要接取的时间段");
+      return;
+    }
+    const res = await fetch(`/api/tasks/${taskId}/claim`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(multiSlot && timeSlotId ? { timeSlotId } : {}),
+    });
+    const data = (await res.json().catch(() => ({}))) as { message?: string };
+    if (!res.ok) return message.error(data.message || "接取失败");
+    showSuccessWithRefresh(router, "辛苦，邵小利因您的付出而更加美好！");
   }
 
   async function approve(submissionId: string) {
@@ -100,8 +156,7 @@ export default function TaskActions(props: Props) {
     });
     const data = (await res.json().catch(() => ({}))) as { message?: string };
     if (!res.ok) return message.error(data.message || "确认失败");
-    message.success("已确认通过");
-    location.reload();
+    showSuccessWithRefresh(router, "已确认通过");
   }
 
   async function reject(submissionId: string, reason: string) {
@@ -112,27 +167,46 @@ export default function TaskActions(props: Props) {
     });
     const data = (await res.json().catch(() => ({}))) as { message?: string };
     if (!res.ok) return message.error(data.message || "驳回失败");
-    message.success("已驳回");
-    location.reload();
+    showSuccessWithRefresh(router, "已驳回");
   }
 
   return (
     <Space orientation="vertical" size={12} style={{ width: "100%" }}>
-      {props.role === "MEMBER" && (
-        <Card title="我的操作">
-          <Space wrap>
-            {props.taskStatus === "OPEN" && props.claimStatus !== "CLAIMED" && !ended && (
+      {/* 部员/部长/管理员均可接取、提交；取消接取由部长/管理员在「已接取人员」中操作 */}
+      <Card title="我的操作">
+          {/* flex-end：按钮与下拉框底缘对齐，避免与「接取哪一段？」标题顶对齐显得错位 */}
+          <Space wrap align="end" size={12}>
+            {props.taskStatus === "OPEN" && props.claimStatus !== "CLAIMED" && !cannotNewClaim && !props.isClaimFull && multiSlot && (
+              <div>
+                <div style={{ marginBottom: 6, fontSize: 12, color: "#666" }}>接取哪一段？</div>
+                <Select
+                  style={{ minWidth: 260 }}
+                  value={timeSlotId ?? undefined}
+                  onChange={(v) => setTimeSlotId(v)}
+                  options={props.timeSlots.map((s) => {
+                    const hc = s.headcountHint != null && s.headcountHint > 0 ? `限${s.headcountHint}人` : "人数不限";
+                    return {
+                      value: s.id,
+                      label: `第${s.sort + 1}段 ${dayjs(s.startTime).format("MM/DD HH:mm")}~${dayjs(s.endTime).format("MM/DD HH:mm")}（${hc}）`,
+                    };
+                  })}
+                />
+              </div>
+            )}
+            {props.taskStatus === "OPEN" && props.claimStatus !== "CLAIMED" && !cannotNewClaim && !props.isClaimFull && (
               <Button type="primary" onClick={claim}>
                 接取任务
               </Button>
             )}
-            {props.claimStatus === "CLAIMED" && (
-              <Button onClick={unclaim} danger>
-                取消接取
-              </Button>
+            {props.taskStatus === "OPEN" && props.claimStatus !== "CLAIMED" && !cannotNewClaim && props.isClaimFull && (
+              <Tag color="orange">接取人数已满</Tag>
             )}
             {props.claimStatus === "CLAIMED" && (
-              <Button type="primary" onClick={() => setSubmitOpen(true)}>
+              <Button
+                type="primary"
+                onClick={() => setSubmitOpen(true)}
+                disabled={!!props.mySubmission || timeEnded}
+              >
                 提交完成
               </Button>
             )}
@@ -162,33 +236,10 @@ export default function TaskActions(props: Props) {
             </div>
           )}
 
-          <Modal
-            title="提交完成"
-            open={submitOpen}
-            onCancel={() => setSubmitOpen(false)}
-            onOk={() => form.submit()}
-            okText="提交"
-            confirmLoading={submitting}
-          >
-            <Form form={form} layout="vertical" onFinish={submit}>
-              <Form.Item label="说明（可选）" name="note">
-                <Input.TextArea rows={4} />
-              </Form.Item>
-              <Form.Item label="凭证图片（可选，多张）">
-                <Upload
-                  multiple
-                  listType="picture"
-                  fileList={fileList}
-                  beforeUpload={() => false}
-                  onChange={(info) => setFileList(info.fileList)}
-                >
-                  <Button>选择图片</Button>
-                </Upload>
-              </Form.Item>
-            </Form>
-          </Modal>
+          {submitOpen && (
+            <TaskSubmitModal taskId={taskId} onClose={() => setSubmitOpen(false)} />
+          )}
         </Card>
-      )}
 
       {(props.role === "ADMIN" || props.role === "MINISTER") && (
         <Card title="待审核/已审核列表">
@@ -198,7 +249,18 @@ export default function TaskActions(props: Props) {
               <Card
                 key={s.id}
                 type="inner"
-                title={`${s.user.displayName}（${s.user.username}）`}
+                title={
+                  <Space size={8}>
+                    <AdminProfilePeekAvatar
+                      viewerRole={props.role}
+                      targetUserId={s.user.id}
+                      size={24}
+                      src={s.user.avatarUrl}
+                      displayName={s.user.displayName}
+                    />
+                    <span>{s.user.displayName}</span>
+                  </Space>
+                }
                 extra={
                   <Space>
                     {s.review ? (
