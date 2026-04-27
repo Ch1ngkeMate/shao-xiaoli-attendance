@@ -64,6 +64,9 @@ if (process.env.BLOB_READ_WRITE_TOKEN?.trim()) {
 console.log(
   "\n若服务器内存较小、next build 在「Running TypeScript」被 Kill：可执行 NEXT_BUILD_LOW_MEM=1 npm run build，或在本机/CI 构建后上传 .next（详见 next.config.ts 注释）。",
 );
+console.log(
+  "若 npm ci 在 postinstall 阶段被 Kill：可先 SKIP_PRISMA_GENERATE=1 npm ci，再单独执行 npx prisma generate（见 scripts/postinstall-prisma.cjs）。",
+);
 console.log("\n以下须你在阿里云 / 域名 / 宝塔控制台自行完成，脚本无法代操作：");
 console.log("  · 安全组放行 TCP 80、443（及 SSH 22）");
 console.log("  · 域名 A 记录指向服务器公网 IP");
