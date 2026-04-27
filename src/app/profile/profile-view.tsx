@@ -105,7 +105,11 @@ export default function ProfileView(props: Props) {
       message.error(data.message || "保存头像失败");
       return;
     }
-    if (data.user) onSelfUserUpdated?.(data.user);
+    if (!data.user) {
+      message.error("保存成功但未返回用户信息，请刷新页面");
+      return;
+    }
+    onSelfUserUpdated?.(data.user);
     message.success("头像已更新");
     window.dispatchEvent(new Event("sxl-profile-updated"));
   }
@@ -150,7 +154,12 @@ export default function ProfileView(props: Props) {
         {displayUser && (
           <Space align="start" size={24} wrap>
             <Space orientation="vertical" align="center">
-              <Avatar size={96} src={displayUser.avatarUrl || undefined} icon={<UserOutlined />}>
+              <Avatar
+                key={displayUser.avatarUrl ?? "no-avatar"}
+                size={96}
+                src={displayUser.avatarUrl || undefined}
+                icon={<UserOutlined />}
+              >
                 {!displayUser.avatarUrl ? displayUser.displayName.slice(0, 1) : null}
               </Avatar>
               {mode === "self" && (
