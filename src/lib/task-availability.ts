@@ -23,6 +23,10 @@ export function getTaskClaimVisibility(args: {
   }
   const end = new Date(args.endTime).getTime();
   if (Number.isFinite(end) && Date.now() > end) {
+    /** 已截止但尚未全员提交并通过：部长未确认完或有人未提交，与滞留提醒条件一致 */
+    if (args.status === "OPEN" && args.claimedCount > 0 && !args.allClaimantsApproved) {
+      return { text: "待处理", color: "orange" };
+    }
     return { text: "已结束", color: "default" };
   }
   /** 由父级根据每段或任务级算好，true=无人可再接 */

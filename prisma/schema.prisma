@@ -204,6 +204,8 @@ model Task {
    * 为 false 时与自动全员确认结束的任务正常计考勤
    */
   excludeFromAttendance Boolean @default(false)
+  /** 任务截止满 12 小时仍滞留时，已向干事/管理人员推送过一次站内信的时间（幂等） */
+  stallNotifiedAt DateTime?
 
   publisherId String
   publisher   User       @relation("TaskPublisher", fields: [publisherId], references: [id])
@@ -217,6 +219,7 @@ model Task {
   @@index([startTime, endTime])
   @@index([status])
   @@index([publisherId])
+  @@index([stallNotifiedAt])
 }
 
 /** 单任务可配置多个进行时间段；列表/接取等仍用 Task.startTime/endTime 汇总边界 */

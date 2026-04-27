@@ -30,7 +30,7 @@ function messageTargetHref(m: Msg): string | null {
   if (m.type === "LEAVE_DECIDED") {
     return "/duty-and-meetings?tab=leave";
   }
-  if (m.type === "TASK_DONE") {
+  if (m.type === "TASK_DONE" || m.type === "TASK_STALL_MEMBER" || m.type === "TASK_STALL_MANAGER") {
     return m.taskId ? `/tasks/${encodeURIComponent(m.taskId)}` : "/tasks";
   }
   if (m.type === "MEETING_NEW") {
@@ -47,6 +47,7 @@ function typeLabel(t: string) {
   if (t === "MEETING_NEW") return { text: "新会议", color: "geekblue" as const };
   if (t === "MEETING_ABSENCE") return { text: "旷会", color: "red" as const };
   if (t === "TASK_DONE") return { text: "任务", color: "blue" as const };
+  if (t === "TASK_STALL_MEMBER" || t === "TASK_STALL_MANAGER") return { text: "任务滞留", color: "volcano" as const };
   if (t === "LEAVE_APPLY") return { text: "请假日志", color: "orange" as const };
   if (t === "LEAVE_DECIDED") return { text: "假条结果", color: "green" as const };
   return { text: t, color: "default" as const };

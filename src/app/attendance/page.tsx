@@ -28,6 +28,19 @@ export default function AttendancePage() {
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState<Row[]>([]);
 
+  /** 管理人员列表：部员按合计分（积分）从高到低 */
+  const memberRowsByPointsDesc = useMemo(
+    () =>
+      rows
+        .filter((r) => r.role === "MEMBER")
+        .sort((a, b) => {
+          if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints;
+          if (b.approvedPoints !== a.approvedPoints) return b.approvedPoints - a.approvedPoints;
+          return a.displayName.localeCompare(b.displayName, "zh-CN");
+        }),
+    [rows],
+  );
+
   const columns: ColumnsType<Row> = useMemo(
     () => [
       { title: "姓名", dataIndex: "displayName" },
@@ -97,7 +110,7 @@ export default function AttendancePage() {
             rowKey="userId"
             loading={loading}
             columns={columns}
-            dataSource={rows.filter((r) => r.role === "MEMBER")}
+            dataSource={memberRowsByPointsDesc}
             expandable={{
               expandedRowRender: (r) => {
                 const absences = r.meetingAbsences ?? [];
