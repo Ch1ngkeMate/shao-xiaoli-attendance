@@ -2,7 +2,19 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { Button, Card, Carousel, Descriptions, Modal, Popconfirm, Space, Tag, Typography, message } from "antd";
+import {
+  Button,
+  Card,
+  Carousel,
+  Descriptions,
+  Modal,
+  Popconfirm,
+  Space,
+  Tag,
+  Tooltip,
+  Typography,
+  message,
+} from "antd";
 import dayjs from "dayjs";
 import { getTaskClaimVisibility } from "@/lib/task-availability";
 import { getTaskTimeBoundsFromSlots } from "@/lib/task-time-bounds";
@@ -314,9 +326,22 @@ export default function TaskDetailView({
                                 </Tag>
                                 {showRemove &&
                                   (hasSub ? (
-                                    <Button size="small" danger disabled title="已提交，无法直接移出">
-                                      移出
-                                    </Button>
+                                    <Tooltip
+                                      title={
+                                        <>
+                                          该干事已在下方「待审核/已审核列表」提交过完成情况，不能直接移出（与管理员身份无关，是数据一致性规则）。
+                                          <br />
+                                          若需移出：请先对其提交点「驳回」，驳回后再点「移出」。
+                                        </>
+                                      }
+                                    >
+                                      {/* disabled 按钮不冒泡 hover，外包一层以便显示 Tooltip */}
+                                      <span style={{ display: "inline-block", cursor: "not-allowed" }}>
+                                        <Button size="small" danger disabled>
+                                          移出
+                                        </Button>
+                                      </span>
+                                    </Tooltip>
                                   ) : (
                                     <Popconfirm
                                       title="移出后该时段接取作废。确定？"
