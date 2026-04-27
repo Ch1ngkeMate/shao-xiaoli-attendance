@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { Button, Card, Form, Input, Space, Typography, message } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
@@ -45,13 +44,14 @@ function LoginFormInner() {
     >
       <Card style={{ width: "min(420px, 100%)" }}>
         <Space size={12} style={{ marginBottom: 12 }}>
-          <Image
-            src="/dept-logo.png"
+          {/* 使用仓库内随附的 SVG，避免缺少 png 导致裂图；若有正式 Logo 可替换为 public/dept-logo.png */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/dept-logo.svg"
             alt="部门 Logo"
             width={40}
             height={40}
-            style={{ borderRadius: 12, background: "#fff" }}
-            priority
+            style={{ borderRadius: 12, background: "#fff", display: "block" }}
           />
           <div>
             <Typography.Title level={3} style={{ marginTop: 0, marginBottom: 0 }}>

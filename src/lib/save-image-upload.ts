@@ -27,8 +27,18 @@ function mimeFromExt(ext: string): string {
 export type ImageUploadKind = "task" | "evidence" | "avatar";
 
 /**
+ * 本地上传根目录：未设置 LOCAL_UPLOADS_DIR 时为项目内 public/uploads（发版易被覆盖）；
+ * 生产建议设为项目外路径（如 /www/wwwdata/sxl-uploads），由 Nginx 对 /uploads/ 做 alias 指向该目录。
+ */
+export function getLocalUploadsRoot(): string {
+  const raw = process.env.LOCAL_UPLOADS_DIR?.trim();
+  if (raw) return path.resolve(raw);
+  return path.join(process.cwd(), "public", "uploads");
+}
+
+/**
  * 有 BLOB_READ_WRITE_TOKEN（Vercel 部署时自动注入或本地手动配置）时上传到 Vercel Blob；
- * 否则写入 public/uploads，便于本机开发。
+ * 否则写入本地上传目录（见 getLocalUploadsRoot）。
  */
 export async function saveImageUpload(
   kind: ImageUploadKind,
@@ -49,22 +59,23 @@ export async function saveImageUpload(
     return url;
   }
 
+  const base = getLocalUploadsRoot();
+
   if (kind === "evidence") {
-    const uploadDir = path.join(process.cwd(), "public", "uploads", "evidence");
+    const uploadDir = path.join(base, "evidence");
     await mkdir(uploadDir, { recursive: true });
     await writeFile(path.join(uploadDir, filename), buffer);
     return `/uploads/evidence/${filename}`;
   }
 
   if (kind === "avatar") {
-    const uploadDir = path.join(process.cwd(), "public", "uploads", "avatar");
+    const uploadDir = path.join(base, "avatar");
     await mkdir(uploadDir, { recursive: true });
     await writeFile(path.join(uploadDir, filename), buffer);
     return `/uploads/avatar/${filename}`;
   }
 
-  const uploadDir = path.join(process.cwd(), "public", "uploads");
-  await mkdir(uploadDir, { recursive: true });
-  await writeFile(path.join(uploadDir, filename), buffer);
+  await mkdir(base, { recursive: true });
+  await writeFile(path.join(base, filename), buffer);
   return `/uploads/${filename}`;
 }

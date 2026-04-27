@@ -43,10 +43,22 @@ if (process.env.NODE_ENV === "production") {
   warn("当前非 production：上线请设置 NODE_ENV=production");
 }
 
+const localUploadsDir = process.env.LOCAL_UPLOADS_DIR?.trim();
+
 if (process.env.BLOB_READ_WRITE_TOKEN?.trim()) {
   ok("已配置 BLOB_READ_WRITE_TOKEN（使用 Blob 存储）");
+} else if (localUploadsDir) {
+  ok(`已设置 LOCAL_UPLOADS_DIR（本机持久目录）：${localUploadsDir}`);
+  warn(
+    "请在 Nginx 中为 /uploads/ 配置 alias 指向该目录（与 URL 子路径一致），例如：location /uploads/ { alias /你的绝对路径/; }（注意末尾斜杠与目录权限）",
+  );
 } else {
   warn("未配置 BLOB_READ_WRITE_TOKEN：将使用本地上传目录（请确保服务器磁盘与备份策略）");
+  if (process.env.NODE_ENV === "production") {
+    warn(
+      "生产环境未配 Blob 且未设置 LOCAL_UPLOADS_DIR：默认写入项目内 public/uploads，整包覆盖部署易丢图；请设置 LOCAL_UPLOADS_DIR 指向项目外目录并配 Nginx alias，或改用 Blob",
+    );
+  }
 }
 
 console.log("\n以下须你在阿里云 / 域名 / 宝塔控制台自行完成，脚本无法代操作：");

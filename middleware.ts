@@ -9,7 +9,7 @@ function isPublicPath(pathname: string) {
   if (pathname.startsWith("/_next/")) return true;
   if (pathname === "/favicon.ico") return true;
   // 登录页等未带会话时也要能加载 public 下的 Logo
-  if (pathname === "/dept-logo.png") return true;
+  if (pathname === "/dept-logo.png" || pathname === "/dept-logo.svg") return true;
   return false;
 }
 
@@ -48,7 +48,9 @@ export function middleware(req: NextRequest) {
   }
 
   const isAdminArea = pathname.startsWith("/admin");
-  const isMinisterArea = pathname.startsWith("/publish") || pathname.startsWith("/reports");
+  /** 与 AppShell 中「管理人员」菜单一致：部员考勤仅部长/管理员可进，须与 /api/attendance 校验一致 */
+  const isMinisterArea =
+    pathname.startsWith("/publish") || pathname.startsWith("/reports") || pathname.startsWith("/attendance");
   if (isAdminArea && role !== "ADMIN") {
     return NextResponse.redirect(new URL("/", req.url));
   }
@@ -60,6 +62,7 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  // 不上传鉴权：/uploads 下为本地存储的公开静态资源（文件名随机）；避免部分环境对图片请求未带 Cookie 时被重定向导致裂图、Upload 卡死
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|uploads/).*)"],
 };
 

@@ -14,7 +14,6 @@ import { Avatar, Badge, Button, Layout, Menu, Space, Typography, theme } from "a
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import Image from "next/image";
 import { userRoleLabel } from "@/lib/role-label";
 
 type Role = "ADMIN" | "MINISTER" | "MEMBER";
@@ -197,13 +196,13 @@ export default function AppShell({ title, initialMe, children }: Props) {
       >
         <div style={{ padding: 16, borderBottom: `1px solid ${token.colorSplit}` }}>
           <Space size={10}>
-            <Image
-              src="/dept-logo.png"
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/dept-logo.svg"
               alt="部门 Logo"
               width={28}
               height={28}
-              style={{ borderRadius: 8, background: "#fff" }}
-              priority
+              style={{ borderRadius: 8, background: "#fff", display: "block" }}
             />
             <div style={{ lineHeight: 1.15 }}>
               <Typography.Text strong style={{ display: "block" }}>

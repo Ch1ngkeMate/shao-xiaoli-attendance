@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { readSessionCookie } from "@/lib/auth";
+import { createSessionCookie, readSessionCookie } from "@/lib/auth";
 
 const PatchMeSchema = z
   .object({
@@ -41,6 +41,20 @@ export async function GET() {
   });
   if (!dbUser || !dbUser.isActive) {
     return NextResponse.json({ user: null }, { status: 401 });
+  }
+
+  // 管理员在后台改角色/姓名/账号后，JWT 仍可能是旧值：刷新会话，避免「菜单能进管理页但接口 403」或与中间件不一致
+  if (
+    dbUser.role !== session.role ||
+    dbUser.displayName !== session.displayName ||
+    dbUser.username !== session.username
+  ) {
+    await createSessionCookie({
+      sub: dbUser.id,
+      role: dbUser.role,
+      displayName: dbUser.displayName,
+      username: dbUser.username,
+    });
   }
 
   return NextResponse.json({
