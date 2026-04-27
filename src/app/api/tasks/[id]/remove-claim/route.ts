@@ -76,12 +76,33 @@ export async function POST(req: Request, ctx: { params: Promise<Params> }) {
 
   const sub = await prisma.taskSubmission.findUnique({
     where: { taskId_userId: { taskId, userId: claim.userId } },
+    include: { review: true },
   });
+
   if (sub) {
-    return NextResponse.json(
-      { message: "该干事已提交，无法直接移出；可驳回后处理或等任务结项后再行调整" },
-      { status: 400 },
-    );
+    // 待审核：不能移出，避免与审核流冲突
+    if (!sub.review) {
+      return NextResponse.json(
+        { message: "该干事有待审核提交，请先「通过」或「驳回」后再移出" },
+        { status: 400 },
+      );
+    }
+    // 已通过：不能移出（已计入考勤口径）
+    if (sub.review.result === "APPROVED") {
+      return NextResponse.json(
+        { message: "该干事提交已被确认通过，无法移出" },
+        { status: 400 },
+      );
+    }
+    // 已驳回：允许移出，并删除提交记录（级联删审核与凭证），避免驳回后仍占「已提交」状态
+    await prisma.$transaction([
+      prisma.taskSubmission.delete({ where: { id: sub.id } }),
+      prisma.taskClaim.update({
+        where: { id: claim.id },
+        data: { status: "CANCELLED" },
+      }),
+    ]);
+    return NextResponse.json({ ok: true });
   }
 
   await prisma.taskClaim.update({

@@ -256,7 +256,17 @@ export default async function TaskDetailPage({ params }: PageProps) {
         canClaimMore={canClaimMore}
         myClaimedSlotIds={myClaimedSlotIds}
         mySubmission={mySubmission}
-        submittedUserIds={isMgr ? task.submissions.map((s) => s.userId) : []}
+        submittedUserIds={
+          isMgr
+            ? [
+                ...new Set(
+                  task.submissions
+                    .filter((s) => !s.review || s.review.result === "APPROVED")
+                    .map((s) => s.userId),
+                ),
+              ]
+            : []
+        }
         submissionsForReview={submissionsForReview}
       />
     </AppShell>

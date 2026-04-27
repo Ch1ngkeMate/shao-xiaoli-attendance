@@ -79,7 +79,7 @@ type Props = {
     evidenceImages: { id: string; url: string }[];
     review: null | { result: "APPROVED" | "REJECTED"; reason: string | null; reviewTime: string };
   }[];
-  /** 部长/管理端：已有任务提交的用户 id，用于在列表中禁止「移出」 */
+  /** 部长/管理端：有待审核或已通过提交的用户 id，禁止直接「移出」（已驳回不算） */
   submittedUserIds: string[];
 };
 
@@ -329,9 +329,11 @@ export default function TaskDetailView({
                                     <Tooltip
                                       title={
                                         <>
-                                          该干事已在下方「待审核/已审核列表」提交过完成情况，不能直接移出（与管理员身份无关，是数据一致性规则）。
+                                          该干事有待审核或「已通过」的提交记录，不能直接移出。
                                           <br />
-                                          若需移出：请先对其提交点「驳回」，驳回后再点「移出」。
+                                          待审核：请先「驳回」或「通过」；已通过则不可移出。
+                                          <br />
+                                          若已驳回仍见此提示，请刷新页面。
                                         </>
                                       }
                                     >
