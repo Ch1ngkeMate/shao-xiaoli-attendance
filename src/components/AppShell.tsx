@@ -6,11 +6,12 @@ import {
   CalendarOutlined,
   DashboardOutlined,
   LogoutOutlined,
+  MenuOutlined,
   TeamOutlined,
   UploadOutlined,
   UserOutlined,
 } from "@ant-design/icons";
-import { Avatar, Badge, Button, Layout, Menu, Space, Typography, theme } from "antd";
+import { Avatar, Badge, Button, Drawer, Layout, Menu, Space, Typography, theme } from "antd";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -37,6 +38,8 @@ export default function AppShell({ title, initialMe, children }: Props) {
   const [me, setMe] = useState<Me | null>(initialMe ?? null);
   const [collapsed, setCollapsed] = useState(false);
   const [unreadMsg, setUnreadMsg] = useState(0);
+  const [isMobileNav, setIsMobileNav] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   const canManage = me?.role === "ADMIN" || me?.role === "MINISTER";
 
@@ -189,9 +192,19 @@ export default function AppShell({ title, initialMe, children }: Props) {
   return (
     <Layout style={{ minHeight: "100vh", background: token.colorBgLayout }}>
       <Sider
-        collapsible
+        breakpoint="md"
+        onBreakpoint={(broken) => {
+          setIsMobileNav(broken);
+          if (broken) {
+            setCollapsed(true);
+            setMobileNavOpen(false);
+          }
+        }}
+        collapsible={!isMobileNav}
         collapsed={collapsed}
         onCollapse={setCollapsed}
+        collapsedWidth={isMobileNav ? 0 : 80}
+        trigger={isMobileNav ? null : undefined}
         width={220}
         style={{ background: token.colorBgContainer }}
       >
@@ -222,24 +235,44 @@ export default function AppShell({ title, initialMe, children }: Props) {
             borderBottom: `1px solid ${token.colorSplit}`,
           }}
         >
-          <Typography.Title level={4} style={{ margin: 0 }}>
-            {title ?? " "}
-          </Typography.Title>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, flex: 1 }}>
+            {isMobileNav ? (
+              <Button
+                aria-label="打开菜单"
+                icon={<MenuOutlined />}
+                onClick={() => setMobileNavOpen(true)}
+              />
+            ) : null}
+            <Typography.Title
+              level={4}
+              style={{
+                margin: 0,
+                minWidth: 0,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {title ?? " "}
+            </Typography.Title>
+          </div>
 
           <Space>
             <Space size={8}>
               <Avatar src={me?.avatarUrl || undefined} style={{ background: token.colorPrimary }}>
                 {!me?.avatarUrl ? (me?.displayName || "U").slice(0, 1) : null}
               </Avatar>
-              <div style={{ lineHeight: 1.2 }}>
-                <div style={{ fontWeight: 600 }}>{me?.displayName ?? "加载中..."}</div>
-                <div style={{ fontSize: 12, color: token.colorTextSecondary }}>
-                  {userRoleLabel(me?.role)}
+              {!isMobileNav ? (
+                <div style={{ lineHeight: 1.2 }}>
+                  <div style={{ fontWeight: 600 }}>{me?.displayName ?? "加载中..."}</div>
+                  <div style={{ fontSize: 12, color: token.colorTextSecondary }}>
+                    {userRoleLabel(me?.role)}
+                  </div>
                 </div>
-              </div>
+              ) : null}
             </Space>
             <Button icon={<LogoutOutlined />} onClick={logout}>
-              退出
+              {isMobileNav ? null : "退出"}
             </Button>
           </Space>
         </Header>
@@ -255,6 +288,35 @@ export default function AppShell({ title, initialMe, children }: Props) {
           </div>
         </Content>
       </Layout>
+
+      <Drawer
+        title={
+          <Space size={10}>
+            <DeptLogo size={28} />
+            <div style={{ lineHeight: 1.15 }}>
+              <Typography.Text strong style={{ display: "block" }}>
+                干事考勤系统
+              </Typography.Text>
+              <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                宣传部
+              </Typography.Text>
+            </div>
+          </Space>
+        }
+        placement="left"
+        width={240}
+        open={isMobileNav && mobileNavOpen}
+        onClose={() => setMobileNavOpen(false)}
+        bodyStyle={{ padding: 0 }}
+      >
+        <Menu
+          mode="inline"
+          selectedKeys={selectedKeys}
+          items={menuItems}
+          onClick={() => setMobileNavOpen(false)}
+          style={{ borderRight: 0 }}
+        />
+      </Drawer>
     </Layout>
   );
 }

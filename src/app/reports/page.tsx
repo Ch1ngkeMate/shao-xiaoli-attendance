@@ -154,6 +154,7 @@ export default function ReportsPage() {
             loading={loading}
             columns={columns}
             dataSource={rows}
+            scroll={{ x: "max-content" }}
             pagination={{ pageSize: 20 }}
           />
         </Card>

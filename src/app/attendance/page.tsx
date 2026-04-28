@@ -111,6 +111,7 @@ export default function AttendancePage() {
             loading={loading}
             columns={columns}
             dataSource={memberRowsByPointsDesc}
+            scroll={{ x: "max-content" }}
             expandable={{
               expandedRowRender: (r) => {
                 const absences = r.meetingAbsences ?? [];

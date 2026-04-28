@@ -287,6 +287,7 @@ function DutyAndMeetingsPageInner() {
                       rowKey="id"
                       size="small"
                       dataSource={meetings}
+                      scroll={{ x: "max-content" }}
                       pagination={false}
                       rowSelection={
                         isAdmin
@@ -340,6 +341,7 @@ function DutyAndMeetingsPageInner() {
                     size="small"
                     rowKey="id"
                     dataSource={leaveList}
+                    scroll={{ x: "max-content" }}
                     pagination={false}
                     title={() => "所有请假（部长/管理员在消息中也会收到，也可在此处理）"}
                     columns={[

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 import "./globals.css";
 
@@ -7,6 +7,12 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "干事考勤系统",
   description: "邵小利志愿服务队·宣传部",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({

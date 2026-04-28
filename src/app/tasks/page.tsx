@@ -4,7 +4,7 @@ import Link from "next/link";
 import type { Key } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Card, Popconfirm, Space, Table, Tag, message } from "antd";
+import { Button, Card, Popconfirm, Space, Table, Tag, Typography, message } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import dayjs from "dayjs";
 import AppShell from "@/components/AppShell";
@@ -31,6 +31,12 @@ type TaskItem = {
   publisher: { displayName: string };
 };
 
+function truncateTaskTitleForList(title: string) {
+  const chars = Array.from(title ?? "");
+  if (chars.length <= 5) return title;
+  return `${chars.slice(0, 2).join("")}…${chars.slice(-2).join("")}`;
+}
+
 export default function TaskListPage() {
   const router = useRouter();
   const [tasks, setTasks] = useState<TaskItem[]>([]);
@@ -54,11 +60,23 @@ export default function TaskListPage() {
             allClaimantsApproved: record.allClaimantsApproved,
             slotsOrTaskFull: record.slotsOrTaskFull,
           });
+          const chars = Array.from(title ?? "");
+          const show = truncateTaskTitleForList(title);
+          const tooltipTitle = chars.length > 5 ? title : undefined;
           return (
-            <Space>
-              <Link href={`/tasks/${record.id}`}>{title}</Link>
-              <Tag color={v.color}>{v.text}</Tag>
-            </Space>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, flexWrap: "nowrap" }}>
+              <Typography.Text
+                title={tooltipTitle}
+                style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+              >
+                <Link href={`/tasks/${record.id}`} style={{ whiteSpace: "nowrap" }}>
+                  {show}
+                </Link>
+              </Typography.Text>
+              <Tag color={v.color} style={{ flexShrink: 0 }}>
+                {v.text}
+              </Tag>
+            </div>
           );
         },
       },
@@ -85,6 +103,7 @@ export default function TaskListPage() {
       {
         title: "接取人",
         width: 200,
+        responsive: ["md"],
         render: (_: unknown, r) => {
           const list = r.claimants ?? [];
           if (list.length === 0) return <span style={{ color: "#999" }}>无</span>;
@@ -106,8 +125,8 @@ export default function TaskListPage() {
           );
         },
       },
-      { title: "积分", dataIndex: "points", width: 70 },
-      { title: "发布人", render: (_: unknown, r) => r.publisher.displayName, width: 160 },
+      { title: "积分", dataIndex: "points", width: 70, responsive: ["md"] },
+      { title: "发布人", render: (_: unknown, r) => r.publisher.displayName, width: 160, responsive: ["md"] },
       {
         title: "操作",
         render: (_: unknown, r) => <Link href={`/tasks/${r.id}`}>查看</Link>,
@@ -185,6 +204,7 @@ export default function TaskListPage() {
                 loading={loading}
                 columns={columns}
                 dataSource={tasks}
+                scroll={{ x: "max-content" }}
                 pagination={{ pageSize: 20 }}
                 rowSelection={{
                   selectedRowKeys: selectedTaskKeys,
@@ -198,6 +218,7 @@ export default function TaskListPage() {
               loading={loading}
               columns={columns}
               dataSource={tasks}
+              scroll={{ x: "max-content" }}
               pagination={{ pageSize: 20 }}
             />
           )}

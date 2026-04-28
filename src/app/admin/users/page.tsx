@@ -346,7 +346,7 @@ export default function AdminUsersPage() {
         </Card>
 
         <Card>
-          <Table<UserRow> rowKey="id" columns={columns} dataSource={rows} loading={loading} />
+          <Table<UserRow> rowKey="id" columns={columns} dataSource={rows} loading={loading} scroll={{ x: "max-content" }} />
         </Card>
 
         <Modal
