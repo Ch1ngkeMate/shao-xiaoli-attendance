@@ -224,15 +224,10 @@ export default function TaskActions(props: Props) {
                 >
                   {(props.timeSlots ?? []).map((s) => {
                     const claimedByMe = props.myClaimedSlotIds.includes(s.id);
-                    const meta = timeSlotMeta.get(s.id);
-                    const claimedCount = meta?.claimedCount ?? 0;
-                    const limit = meta?.limit ?? null;
-                    const quotaText = `（${claimedCount}/${limit != null ? limit : "不限"}）`;
-                    const shortLabel = `${claimedByMe ? "【已接】 " : ""}第${s.sort + 1}段 ${dayjs(s.startTime).format("MM/DD HH:mm")}~${dayjs(s.endTime).format("MM/DD HH:mm")} ${quotaText}`;
-                    const fullLabel = `${claimedByMe ? "【已接】 " : ""}第${s.sort + 1}段 ${dayjs(s.startTime).format("YYYY-MM-DD HH:mm")}~${dayjs(s.endTime).format("YYYY-MM-DD HH:mm")} ${quotaText}`;
+                    const base = `第${s.sort + 1}段 ${dayjs(s.startTime).format("MM/DD HH:mm")}~${dayjs(s.endTime).format("MM/DD HH:mm")}`;
                     return (
-                      <Select.Option key={s.id} value={s.id} disabled={claimedByMe} shortLabel={shortLabel}>
-                        {fullLabel}
+                      <Select.Option key={s.id} value={s.id} disabled={claimedByMe} shortLabel={base}>
+                        {base}
                       </Select.Option>
                     );
                   })}
