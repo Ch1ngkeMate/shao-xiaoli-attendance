@@ -25,6 +25,17 @@ export default function MessageDetailPage() {
 
   const [loading, setLoading] = useState(true);
   const [item, setItem] = useState<Msg | null>(null);
+  const [meRole, setMeRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/me", { cache: "no-store" })
+      .then((r) => r.json().catch(() => ({})))
+      .then((d: any) => {
+        if (d?.user?.role) setMeRole(String(d.user.role));
+      })
+      .catch(() => {});
+  }, []);
+  const canManage = meRole === "ADMIN" || meRole === "MINISTER";
 
   useEffect(() => {
     if (!id) return;
@@ -73,6 +84,38 @@ export default function MessageDetailPage() {
       <Space direction="vertical" size={12} style={{ width: "100%" }}>
         <Link href="/messages">← 返回消息列表</Link>
         <Spin spinning={loading}>
+          {item && item.type === "ANNOUNCEMENT" && !item.announcementId ? (
+            <Card size="small">
+              <Space direction="vertical" size={8} style={{ width: "100%" }}>
+                <Typography.Text type="secondary">
+                  这是旧版本公告（仅消息记录），暂不支持图片与已读统计。
+                </Typography.Text>
+                {canManage ? (
+                  <Button
+                    type="primary"
+                    onClick={async () => {
+                      const res = await fetch("/api/announcements/upgrade", {
+                        method: "POST",
+                        headers: { "content-type": "application/json" },
+                        body: JSON.stringify({ messageId: item.id }),
+                      });
+                      const d = (await res.json().catch(() => ({}))) as any;
+                      if (!res.ok || !d?.announcementId) {
+                        message.error(d?.message || "升级失败");
+                        return;
+                      }
+                      message.success(d.upgraded ? `已升级（关联 ${d.affected ?? 0} 条消息）` : "已关联公告");
+                      router.replace(`/announcements/${encodeURIComponent(String(d.announcementId))}`);
+                    }}
+                  >
+                    升级为公告详情（支持已读统计）
+                  </Button>
+                ) : (
+                  <Typography.Text type="secondary">仅部长/管理员可升级</Typography.Text>
+                )}
+              </Space>
+            </Card>
+          ) : null}
           <Card>
             {item ? (
               <Space direction="vertical" size={10} style={{ width: "100%" }}>
