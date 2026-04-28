@@ -127,17 +127,17 @@ export function AnnouncementEditor() {
 
         <Card size="small" type="inner" title="弹窗设置（可选）" style={{ marginBottom: 12 }}>
           <Space direction="vertical" size={10} style={{ width: "100%" }}>
-            <Form.Item name="popupEnabled" valuePropName="checked" style={{ marginBottom: 0 }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-                <div>
-                  <Typography.Text strong>每日首次进入弹窗</Typography.Text>
-                  <div style={{ fontSize: 12, color: token.colorTextSecondary, marginTop: 2 }}>
-                    开启后：用户每天首次进入站内时弹出本公告（按持续天数自动失效）
-                  </div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+              <div>
+                <Typography.Text strong>每日首次进入弹窗</Typography.Text>
+                <div style={{ fontSize: 12, color: token.colorTextSecondary, marginTop: 2 }}>
+                  开启后：用户每天首次进入站内时弹出本公告（按持续天数自动失效）
                 </div>
-                <Switch />
               </div>
-            </Form.Item>
+              <Form.Item name="popupEnabled" valuePropName="checked" noStyle>
+                <Switch />
+              </Form.Item>
+            </div>
 
             <Form.Item noStyle shouldUpdate={(prev, cur) => prev.popupEnabled !== cur.popupEnabled}>
               {({ getFieldValue }) => {

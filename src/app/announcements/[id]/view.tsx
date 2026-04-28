@@ -33,6 +33,11 @@ export default function AnnouncementDetailClient({ id }: { id: string }) {
   async function load() {
     setLoading(true);
     try {
+      // 角色从 /api/me 拿最稳，避免公告接口缓存/异常导致管理区不显示
+      const meRes = await fetch("/api/me", { cache: "no-store" });
+      const me = (await meRes.json().catch(() => ({}))) as any;
+      if (meRes.ok && me.user?.role) setMeRole(me.user.role);
+
       const res = await fetch(`/api/announcements/${encodeURIComponent(id)}`, { cache: "no-store" });
       const data = (await res.json().catch(() => ({}))) as { announcement?: Ann; meRole?: string; message?: string };
       if (!res.ok || !data.announcement) {
@@ -40,7 +45,7 @@ export default function AnnouncementDetailClient({ id }: { id: string }) {
         setAnn(null);
         return;
       }
-      if (data.meRole) setMeRole(String(data.meRole));
+      if (data.meRole && !meRole) setMeRole(String(data.meRole));
       setAnn(data.announcement);
     } finally {
       setLoading(false);

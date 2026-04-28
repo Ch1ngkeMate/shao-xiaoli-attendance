@@ -220,70 +220,7 @@ export default function ProfileView(props: Props) {
         </div>
       ) : null}
 
-      {/* 有封面时不再展示重复的「基本信息」卡片 */}
-      {!coverBgUrl ? (
-        <Card loading={loadingUser} title={mode === "self" ? "基本信息" : "成员基本信息"}>
-          {displayUser && (
-            <Space align="start" size={24} wrap>
-              <Space orientation="vertical" align="center">
-                <Avatar
-                  key={displayUser.avatarUrl ?? "no-avatar"}
-                  size={96}
-                  src={displayUser.avatarUrl || undefined}
-                  icon={<UserOutlined />}
-                >
-                  {!displayUser.avatarUrl ? displayUser.displayName.slice(0, 1) : null}
-                </Avatar>
-                {mode === "self" ? (
-                  <ImgCrop aspect={1} rotationSlider showReset showGrid modalTitle="裁切头像">
-                    <Upload
-                      accept="image/png,image/jpeg,image/webp,image/gif"
-                      showUploadList={false}
-                      disabled={avatarUploading}
-                      beforeUpload={async (file) => {
-                        setAvatarUploading(true);
-                        try {
-                          const fd = new FormData();
-                          fd.append("file", file);
-                          const res = await fetch("/api/upload/avatar", { method: "POST", body: fd });
-                          const data = (await res.json().catch(() => ({}))) as { url?: string; message?: string };
-                          if (!res.ok || !data.url) {
-                            message.error(data.message || "上传失败");
-                            return false;
-                          }
-                          await saveAvatarUrl(data.url);
-                          return false;
-                        } finally {
-                          setAvatarUploading(false);
-                        }
-                      }}
-                    >
-                      <Button loading={avatarUploading}>更换头像</Button>
-                    </Upload>
-                  </ImgCrop>
-                ) : null}
-              </Space>
-              <div>
-                <Typography.Paragraph style={{ marginBottom: 8 }}>
-                  <Typography.Text strong>姓名：</Typography.Text>
-                  {displayUser.displayName}
-                </Typography.Paragraph>
-                <Typography.Paragraph style={{ marginBottom: 8 }}>
-                  <Typography.Text strong>账号：</Typography.Text>
-                  {displayUser.username}
-                </Typography.Paragraph>
-                <Typography.Paragraph style={{ marginBottom: 0 }}>
-                  <Typography.Text strong>身份：</Typography.Text>
-                  {roleLabel(displayUser.role)}
-                  {mode === "peek" && displayUser.isActive === false ? (
-                    <Typography.Text type="danger">（已停用）</Typography.Text>
-                  ) : null}
-                </Typography.Paragraph>
-              </div>
-            </Space>
-          )}
-        </Card>
-      ) : null}
+      {/* 基本信息已在封面区展示，这里不再重复显示卡片 */}
 
       <Card title={mode === "self" ? "我的考勤" : "成员考勤"}>
         <Space orientation="vertical" size={12} style={{ width: "100%" }}>
