@@ -29,6 +29,12 @@ function LoginFormInner() {
       return;
     }
     message.success("登录成功");
+    // 某些部署为 HTTP+IP 且 Cookie 被设置为 Secure 时，浏览器不会保存会话，导致立即又被重定向回 /login
+    const meRes = await fetch("/api/me", { cache: "no-store" }).catch(() => null);
+    if (!meRes || !meRes.ok) {
+      message.error("登录态未生效：若你用的是 HTTP 访问，请在服务端设置环境变量 SESSION_COOKIE_SECURE=false 或改用 HTTPS");
+      return;
+    }
     router.replace(nextPath);
   }
 
