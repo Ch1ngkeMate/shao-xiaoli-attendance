@@ -18,6 +18,7 @@ import {
   Tabs,
   Tag,
   Typography,
+  theme,
   message,
 } from "antd";
 import type { Key } from "react";
@@ -517,6 +518,11 @@ function DutyGrid({
   onRemove: (id: string) => void;
 }) {
   const [weekday, setWeekday] = useState(0);
+  const { token } = theme.useToken();
+  const borderColor = token.colorBorder;
+  const headerBg = token.colorFillAlter;
+  const containerBg = token.colorBgContainer;
+  const subtleText = token.colorTextSecondary;
 
   if (isMobile) {
     return (
@@ -545,17 +551,17 @@ function DutyGrid({
               <div
                 key={pLabel}
                 style={{
-                  border: "1px solid #e8e8e8",
+                  border: `1px solid ${borderColor}`,
                   borderRadius: 10,
-                  background: "#fff",
+                  background: containerBg,
                   overflow: "hidden",
                 }}
               >
                 <div
                   style={{
                     padding: "8px 10px",
-                    background: "#e6f4ff",
-                    borderBottom: "1px solid #e8e8e8",
+                    background: headerBg,
+                    borderBottom: `1px solid ${borderColor}`,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
@@ -605,7 +611,7 @@ function DutyGrid({
                               }}
                             >
                               {a.user.displayName}
-                              {a.deptLabel ? <span style={{ color: "#888" }}>（{a.deptLabel}）</span> : null}
+                              {a.deptLabel ? <span style={{ color: subtleText }}>（{a.deptLabel}）</span> : null}
                             </div>
                           </div>
                           {isMgr ? (
@@ -636,15 +642,15 @@ function DutyGrid({
         style={{
           borderCollapse: "collapse",
           minWidth: 560,
-          background: "#fff",
+          background: containerBg,
         }}
       >
         <thead>
           <tr>
             <th
               style={{
-                border: "1px solid #e8e8e8",
-                background: "#e6f4ff",
+                border: `1px solid ${borderColor}`,
+                background: headerBg,
                 minWidth: 70,
                 padding: 6,
                 fontSize: 12,
@@ -654,8 +660,8 @@ function DutyGrid({
               <th
                 key={d}
                 style={{
-                  border: "1px solid #e8e8e8",
-                  background: "#e6f4ff",
+                  border: `1px solid ${borderColor}`,
+                  background: headerBg,
                   minWidth: 92,
                   padding: 6,
                   fontSize: 12,
@@ -671,8 +677,8 @@ function DutyGrid({
             <tr key={pLabel}>
               <th
                 style={{
-                  border: "1px solid #e8e8e8",
-                  background: "#e6f4ff",
+                  border: `1px solid ${borderColor}`,
+                  background: headerBg,
                   padding: 6,
                   fontSize: 12,
                   textAlign: "left",
@@ -686,7 +692,7 @@ function DutyGrid({
                 return (
                   <td
                     key={k}
-                    style={{ border: "1px solid #e8e8e8", verticalAlign: "top", padding: 6, minHeight: 70, width: 92 }}
+                    style={{ border: `1px solid ${borderColor}`, verticalAlign: "top", padding: 6, minHeight: 70, width: 92 }}
                   >
                     <Space orientation="vertical" size={4} style={{ width: "100%" }}>
                       {list.map((a) => (
@@ -703,7 +709,7 @@ function DutyGrid({
                           />
                           <span style={{ flex: 1 }}>
                             {a.user.displayName}
-                            {a.deptLabel ? <span style={{ color: "#888" }}>（{a.deptLabel}）</span> : null}
+                            {a.deptLabel ? <span style={{ color: subtleText }}>（{a.deptLabel}）</span> : null}
                           </span>
                           {isMgr && (
                             <Button type="text" danger size="small" icon={<DeleteOutlined />} onClick={() => onRemove(a.id)} />

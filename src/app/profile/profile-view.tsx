@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Alert,
   Avatar,
   Button,
   Card,
@@ -83,9 +82,7 @@ export default function ProfileView(props: Props) {
     coverBgUrl,
   } = props;
 
-  const [pwdForm] = Form.useForm<{ currentPassword: string; newPassword: string; confirm: string }>();
   const [avatarUploading, setAvatarUploading] = useState(false);
-  const [pwdSubmitting, setPwdSubmitting] = useState(false);
   const screens = Grid.useBreakpoint();
   const isMobile = !screens.md;
 
@@ -119,34 +116,6 @@ export default function ProfileView(props: Props) {
     onSelfUserUpdated?.(data.user);
     message.success("头像已更新");
     window.dispatchEvent(new Event("sxl-profile-updated"));
-  }
-
-  async function onPasswordFinish(values: { currentPassword: string; newPassword: string; confirm: string }) {
-    if (values.newPassword !== values.confirm) {
-      message.error("两次输入的新密码不一致");
-      return;
-    }
-    setPwdSubmitting(true);
-    try {
-      const res = await fetch("/api/me", {
-        method: "PATCH",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          currentPassword: values.currentPassword,
-          newPassword: values.newPassword,
-        }),
-      });
-      const data = (await res.json().catch(() => ({}))) as { message?: string };
-      if (!res.ok) {
-        message.error(data.message || "修改失败");
-        return;
-      }
-      message.success("密码已更新");
-      pwdForm.resetFields();
-      window.dispatchEvent(new Event("sxl-profile-updated"));
-    } finally {
-      setPwdSubmitting(false);
-    }
   }
 
   const inactivePeek = mode === "peek" && displayUser && displayUser.isActive === false;
@@ -248,10 +217,6 @@ export default function ProfileView(props: Props) {
           </div>
         </div>
       ) : null}
-
-      {mode === "peek" && (
-        <Alert type="info" showIcon title="您正以管理人员身份查看成员主页（只读），不含对方密码等敏感操作入口。" />
-      )}
 
       <Card loading={loadingUser} title={mode === "self" ? "基本信息" : "成员基本信息"}>
         {displayUser && (
@@ -398,44 +363,6 @@ export default function ProfileView(props: Props) {
           ) : null}
         </Space>
       </Card>
-
-      {mode === "self" && (
-        <Card title="修改密码">
-          <Form
-            form={pwdForm}
-            layout="vertical"
-            onFinish={onPasswordFinish}
-            style={{ maxWidth: 480, width: "100%", margin: "0 auto" }}
-          >
-            <Form.Item
-              label="当前密码"
-              name="currentPassword"
-              rules={[{ required: true, message: "请输入当前密码" }]}
-            >
-              <Input.Password autoComplete="current-password" />
-            </Form.Item>
-            <Form.Item
-              label="新密码"
-              name="newPassword"
-              rules={[{ required: true, message: "请输入新密码" }, { min: 6, message: "至少 6 位" }]}
-            >
-              <Input.Password autoComplete="new-password" />
-            </Form.Item>
-            <Form.Item
-              label="确认新密码"
-              name="confirm"
-              rules={[{ required: true, message: "请再次输入新密码" }]}
-            >
-              <Input.Password autoComplete="new-password" />
-            </Form.Item>
-            <Form.Item>
-              <Button type="primary" htmlType="submit" loading={pwdSubmitting}>
-                保存新密码
-              </Button>
-            </Form.Item>
-          </Form>
-        </Card>
-      )}
     </Space>
   );
 }

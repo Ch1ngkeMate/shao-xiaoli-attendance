@@ -2,7 +2,7 @@
 
 import AppShell from "@/components/AppShell";
 import { AnnouncementEditor } from "./announcement-editor";
-import { Button, Card, Empty, Grid, Space, Spin, Tag, Typography, message } from "antd";
+import { Button, Card, Empty, Grid, Space, Spin, Tag, Typography, message, theme } from "antd";
 import { useCallback, useEffect, useState } from "react";
 import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
@@ -26,7 +26,10 @@ type Msg = {
 /** 点击消息后跳转的处理页（无则不可点） */
 function messageTargetHref(m: Msg): string | null {
   if (m.type === "ANNOUNCEMENT") {
-    return m.announcementId ? `/announcements/${encodeURIComponent(m.announcementId)}` : null;
+    // 兼容旧消息：早期公告没有 announcementId，则仍可进入消息详情页查看内容
+    return m.announcementId
+      ? `/announcements/${encodeURIComponent(m.announcementId)}`
+      : `/messages/${encodeURIComponent(m.id)}`;
   }
   if (m.type === "LEAVE_APPLY" && m.leaveId) {
     return `/duty-and-meetings?tab=leave&leaveId=${encodeURIComponent(m.leaveId)}`;
@@ -61,6 +64,7 @@ export default function MessagesPage() {
   const router = useRouter();
   const screens = Grid.useBreakpoint();
   const isMobile = !screens.md;
+  const { token } = theme.useToken();
   const [me, setMe] = useState<Me>(null);
   const [list, setList] = useState<Msg[]>([]);
   const [loading, setLoading] = useState(false);
@@ -179,7 +183,7 @@ export default function MessagesPage() {
                       }
                     }}
                     style={{
-                      background: item.read ? undefined : "#f6f9ff",
+                      background: item.read ? undefined : token.colorFillAlter,
                       marginBottom: 8,
                       cursor: href ? "pointer" : undefined,
                     }}

@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Card, Form, Input, InputNumber, Space, Switch, Typography, Upload, message } from "antd";
+import { Button, Card, Form, Input, InputNumber, Space, Switch, Typography, Upload, message, theme } from "antd";
 import type { UploadFile, UploadProps } from "antd";
 import { useMemo, useState } from "react";
 
@@ -9,6 +9,7 @@ export function AnnouncementEditor() {
   const [form] = Form.useForm<{ title: string; body: string; popupEnabled: boolean; popupDays: number }>();
   const [publishing, setPublishing] = useState(false);
   const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const { token } = theme.useToken();
   const uploadedUrls = useMemo(
     () => fileList.map((f) => String((f.response as { url?: string } | undefined)?.url ?? f.url ?? "")).filter(Boolean),
     [fileList],
@@ -119,7 +120,7 @@ export function AnnouncementEditor() {
         <Form.Item label="图片（可选）" style={{ marginBottom: 12 }}>
           <Upload {...uploadProps}>
             <div style={{ padding: "4px 8px" }}>
-              <div style={{ fontSize: 12, color: "#666" }}>上传图片</div>
+              <div style={{ fontSize: 12, color: token.colorTextSecondary }}>上传图片</div>
             </div>
           </Upload>
         </Form.Item>
@@ -130,7 +131,7 @@ export function AnnouncementEditor() {
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                 <div>
                   <Typography.Text strong>每日首次进入弹窗</Typography.Text>
-                  <div style={{ fontSize: 12, color: "#666", marginTop: 2 }}>
+                  <div style={{ fontSize: 12, color: token.colorTextSecondary, marginTop: 2 }}>
                     开启后：用户每天首次进入站内时弹出本公告（按持续天数自动失效）
                   </div>
                 </div>
@@ -139,18 +140,20 @@ export function AnnouncementEditor() {
             </Form.Item>
 
             <Form.Item noStyle shouldUpdate={(prev, cur) => prev.popupEnabled !== cur.popupEnabled}>
-              {({ getFieldValue }) =>
-                getFieldValue("popupEnabled") ? (
+              {({ getFieldValue }) => {
+                const enabled = !!getFieldValue("popupEnabled");
+                return (
                   <Form.Item
                     name="popupDays"
                     label="弹窗持续天数"
-                    rules={[{ required: true, message: "请填写持续天数" }]}
+                    rules={enabled ? [{ required: true, message: "请填写持续天数" }] : []}
                     style={{ marginBottom: 0 }}
+                    extra={!enabled ? "先开启上面的开关，再设置持续天数" : undefined}
                   >
-                    <InputNumber min={1} max={365} style={{ width: 160 }} />
+                    <InputNumber min={1} max={365} style={{ width: 160 }} disabled={!enabled} />
                   </Form.Item>
-                ) : null
-              }
+                );
+              }}
             </Form.Item>
           </Space>
         </Card>
