@@ -277,7 +277,7 @@ export default function AppShell({ title, initialMe, children }: Props) {
           </Space>
         </Header>
 
-        <Content style={{ padding: 16 }}>
+        <Content style={{ padding: isMobileNav ? 12 : 16 }}>
           <div
             style={{
               maxWidth: 1100,

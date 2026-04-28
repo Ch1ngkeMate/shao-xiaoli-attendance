@@ -7,6 +7,7 @@ import {
   Card,
   Carousel,
   Descriptions,
+  Grid,
   Modal,
   Popconfirm,
   Space,
@@ -96,6 +97,8 @@ export default function TaskDetailView({
   submissionsForReview,
 }: Props) {
   const router = useRouter();
+  const screens = Grid.useBreakpoint();
+  const isMobile = !screens.md;
   const [closeLoading, setCloseLoading] = useState(false);
   const [closeOpen, setCloseOpen] = useState(false);
   const [settleOpen, setSettleOpen] = useState(false);
@@ -142,6 +145,10 @@ export default function TaskDetailView({
     task.timeSlots && task.timeSlots.length > 0
       ? task.timeSlots
       : [{ id: "legacy", startTime: task.startTime, endTime: task.endTime, sort: 0 }];
+
+  function fmt(s: string) {
+    return dayjs(s).format(isMobile ? "MM-DD HH:mm" : "YYYY-MM-DD HH:mm");
+  }
 
   async function earlyClose() {
     setCloseLoading(true);
@@ -256,19 +263,26 @@ export default function TaskDetailView({
         <Card>
           <Descriptions column={1} size="middle">
             <Descriptions.Item label="进行时间">
-              {timeSlotLines.map((s) => {
-                const hc = "headcountHint" in s && s.headcountHint != null && s.headcountHint > 0 ? s.headcountHint : null;
-                return (
-                  <div key={s.id} style={{ marginBottom: 4 }}>
-                    第 {s.sort + 1} 段：{dayjs(s.startTime).format("YYYY-MM-DD HH:mm")} ~{" "}
-                    {dayjs(s.endTime).format("YYYY-MM-DD HH:mm")}
-                    {hc != null ? <span>（本段限 {hc} 人）</span> : "（本段人数不限）"}
-                  </div>
-                );
-              })}
+              <Space direction="vertical" size={4} style={{ width: "100%" }}>
+                {timeSlotLines.map((s) => {
+                  const hc =
+                    "headcountHint" in s && s.headcountHint != null && s.headcountHint > 0 ? s.headcountHint : null;
+                  return (
+                    <div key={s.id} style={{ width: "100%" }}>
+                      <Typography.Text style={{ display: "block" }}>
+                        第 {s.sort + 1} 段：{fmt(s.startTime)} ~ {fmt(s.endTime)}
+                      </Typography.Text>
+                      <Typography.Text type="secondary" style={{ display: "block", fontSize: 12, lineHeight: 1.2 }}>
+                        {hc != null ? `本段限 ${hc} 人` : "本段人数不限"}
+                      </Typography.Text>
+                    </div>
+                  );
+                })}
+              </Space>
             </Descriptions.Item>
             <Descriptions.Item label="整体区间（接取/统计参考）">
-              {dayjs(effectiveStart).format("YYYY-MM-DD HH:mm")} ~ {dayjs(effectiveEnd).format("YYYY-MM-DD HH:mm")}
+              {dayjs(effectiveStart).format(isMobile ? "MM-DD HH:mm" : "YYYY-MM-DD HH:mm")} ~{" "}
+              {dayjs(effectiveEnd).format(isMobile ? "MM-DD HH:mm" : "YYYY-MM-DD HH:mm")}
             </Descriptions.Item>
             <Descriptions.Item label="积分">{task.points}</Descriptions.Item>
             <Descriptions.Item label="人数（参考）">
