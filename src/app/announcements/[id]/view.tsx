@@ -68,7 +68,7 @@ export default function AnnouncementDetailClient({ id }: { id: string }) {
       const res = await fetch(`/api/announcements/${encodeURIComponent(id)}/reads`, { cache: "no-store" });
       const data = (await res.json().catch(() => ({}))) as any;
       if (!res.ok) {
-        message.error(data.message || "加载已读名单失败");
+        message.error(data.message || (res.status === 403 ? "无权限查看已读名单" : "加载已读名单失败"));
         return;
       }
       setReadUsers(data.readUsers ?? []);
@@ -190,7 +190,9 @@ export default function AnnouncementDetailClient({ id }: { id: string }) {
       {ann ? (
         <Card title="管理" size="small">
           <Space direction="vertical" size={12} style={{ width: "100%" }}>
-            {!isMgr ? <Typography.Text type="secondary">仅部长/管理员可见</Typography.Text> : null}
+            <Typography.Text type="secondary">
+              当前角色：{meRole ? meRole : "未识别"}（权限以接口为准）
+            </Typography.Text>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
               <div>
                 <Typography.Text strong>每日首次进入弹窗</Typography.Text>
@@ -250,7 +252,6 @@ export default function AnnouncementDetailClient({ id }: { id: string }) {
                 </div>
               </div>
               <Button
-                disabled={!isMgr}
                 onClick={() => {
                   setReadsOpen(true);
                   void loadReads();

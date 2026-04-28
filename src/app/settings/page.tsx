@@ -62,10 +62,12 @@ export default function SettingsPage() {
   }, []);
 
   useEffect(() => {
-    try {
-      const id = (window as any).__NEXT_DATA__?.buildId;
-      if (id) setBuildId(String(id));
-    } catch {}
+    fetch("/api/version", { cache: "no-store" })
+      .then((r) => r.json().catch(() => ({})))
+      .then((d: { buildId?: string }) => {
+        if (d?.buildId) setBuildId(String(d.buildId));
+      })
+      .catch(() => {});
   }, []);
 
   const bgUploadProps: UploadProps = useMemo(
