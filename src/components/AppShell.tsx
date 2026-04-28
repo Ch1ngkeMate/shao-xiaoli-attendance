@@ -7,6 +7,7 @@ import {
   DashboardOutlined,
   LogoutOutlined,
   MenuOutlined,
+  SettingOutlined,
   TeamOutlined,
   UploadOutlined,
   UserOutlined,
@@ -73,6 +74,11 @@ export default function AppShell({ title, initialMe, children }: Props) {
         icon: <UserOutlined />,
         label: <Link href="/profile">个人主页</Link>,
       },
+      {
+        key: "/settings",
+        icon: <SettingOutlined />,
+        label: <Link href="/settings">设置</Link>,
+      },
     ];
     if (canManage) {
       items.push(
@@ -112,6 +118,7 @@ export default function AppShell({ title, initialMe, children }: Props) {
     if (pathname.startsWith("/reports")) return ["/reports"];
     if (pathname.startsWith("/attendance")) return ["/attendance"];
     if (pathname.startsWith("/profile")) return ["/profile"];
+    if (pathname.startsWith("/settings")) return ["/settings"];
     return ["/tasks"];
   }, [pathname]);
 

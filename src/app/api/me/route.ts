@@ -9,6 +9,7 @@ const PatchMeSchema = z
     currentPassword: z.string().optional(),
     newPassword: z.string().min(6, "新密码至少 6 位").optional(),
     avatarUrl: z.string().min(1).optional(),
+    username: z.string().min(1, "账号不能为空").optional(),
   })
   .superRefine((data, ctx) => {
     const hasPwd = data.newPassword !== undefined || data.currentPassword !== undefined;
@@ -20,7 +21,7 @@ const PatchMeSchema = z
         ctx.addIssue({ code: "custom", message: "请填写新密码", path: ["newPassword"] });
       }
     }
-    if (!hasPwd && data.avatarUrl === undefined) {
+    if (!hasPwd && data.avatarUrl === undefined && data.username === undefined) {
       ctx.addIssue({ code: "custom", message: "无有效更新字段" });
     }
   });
@@ -81,14 +82,14 @@ export async function PATCH(req: Request) {
     );
   }
 
-  const { currentPassword, newPassword, avatarUrl } = parsed.data;
+  const { currentPassword, newPassword, avatarUrl, username } = parsed.data;
 
   const user = await prisma.user.findUnique({ where: { id: session.sub } });
   if (!user || !user.isActive) {
     return NextResponse.json({ message: "用户不存在或已停用" }, { status: 403 });
   }
 
-  const data: { passwordHash?: string; avatarUrl?: string | null } = {};
+  const data: { passwordHash?: string; avatarUrl?: string | null; username?: string } = {};
 
   if (newPassword !== undefined && currentPassword !== undefined) {
     const ok = await bcrypt.compare(currentPassword, user.passwordHash);
@@ -105,10 +106,33 @@ export async function PATCH(req: Request) {
     data.avatarUrl = avatarUrl;
   }
 
+  if (username !== undefined) {
+    const next = username.trim();
+    if (!next) {
+      return NextResponse.json({ message: "账号不能为空" }, { status: 400 });
+    }
+    const exists = await prisma.user.findFirst({
+      where: { username: next, id: { not: user.id } },
+      select: { id: true },
+    });
+    if (exists) {
+      return NextResponse.json({ message: "该登录账号已被占用" }, { status: 400 });
+    }
+    data.username = next;
+  }
+
   const updated = await prisma.user.update({
     where: { id: session.sub },
     data,
     select: { id: true, username: true, displayName: true, role: true, avatarUrl: true },
+  });
+
+  // 刷新会话，避免中间件/顶栏仍显示旧账号
+  await createSessionCookie({
+    sub: updated.id,
+    role: updated.role,
+    displayName: updated.displayName,
+    username: updated.username,
   });
 
   return NextResponse.json({ user: updated });

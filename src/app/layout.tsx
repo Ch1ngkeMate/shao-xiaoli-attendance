@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 import "./globals.css";
+import ClientProviders from "@/components/ClientProviders";
 
 /** 不使用 next/font/google：构建时会请求 Google Fonts，国内服务器常失败 */
 
@@ -23,7 +24,9 @@ export default function RootLayout({
   return (
     <html lang="zh-CN">
       <body>
-        <AntdRegistry>{children}</AntdRegistry>
+        <AntdRegistry>
+          <ClientProviders>{children}</ClientProviders>
+        </AntdRegistry>
       </body>
     </html>
   );
