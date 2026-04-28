@@ -2,7 +2,7 @@
 
 import AppShell from "@/components/AppShell";
 import { AnnouncementEditor } from "./announcement-editor";
-import { Button, Card, Empty, Space, Spin, Tag, Typography, message } from "antd";
+import { Button, Card, Empty, Grid, Space, Spin, Tag, Typography, message } from "antd";
 import { useCallback, useEffect, useState } from "react";
 import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
@@ -59,6 +59,8 @@ function typeLabel(t: string) {
 
 export default function MessagesPage() {
   const router = useRouter();
+  const screens = Grid.useBreakpoint();
+  const isMobile = !screens.md;
   const [me, setMe] = useState<Me>(null);
   const [list, setList] = useState<Msg[]>([]);
   const [loading, setLoading] = useState(false);
@@ -149,7 +151,7 @@ export default function MessagesPage() {
             </Button>
           }
         >
-          任务完成提醒、假条审批、请假日志与部长/管理员公告均在此显示；未读在左侧「消息」处显示红点，阅读后消失。有可跳转目标的消息点击卡片即可进入对应页面（公告无跳转）。
+          任务完成提醒、假条审批、请假日志与部长/管理员公告均在此显示；未读在左侧「消息」处显示红点，阅读后消失。有可跳转目标的消息可点击卡片或「查看详情」进入对应页面（公告可进入详情页查看图片与已读情况）。
         </Card>
         <Spin spinning={loading}>
           {list.length === 0 && !loading ? (
@@ -159,6 +161,7 @@ export default function MessagesPage() {
               {list.map((item) => {
                 const lab = typeLabel(item.type);
                 const href = messageTargetHref(item);
+                const detailText = item.type === "ANNOUNCEMENT" ? "查看公告" : "查看详情";
                 return (
                   <Card
                     key={item.id}
@@ -180,36 +183,63 @@ export default function MessagesPage() {
                       marginBottom: 8,
                       cursor: href ? "pointer" : undefined,
                     }}
-                    extra={<Typography.Text type="secondary">{dayjs(item.createdAt).format("YYYY-MM-DD HH:mm")}</Typography.Text>}
                   >
-                    <Space wrap size={[0, 4]}>
-                      <Tag color={lab.color}>{lab.text}</Tag>
-                      {!item.read && <Tag color="blue">未读</Tag>}
-                      <span style={{ fontWeight: item.read ? 400 : 600 }}>{item.title}</span>
-                    </Space>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: isMobile ? "flex-start" : "center",
+                        justifyContent: "space-between",
+                        gap: 10,
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      <Space wrap size={[0, 4]}>
+                        <Tag color={lab.color}>{lab.text}</Tag>
+                        {!item.read && <Tag color="blue">未读</Tag>}
+                        <span style={{ fontWeight: item.read ? 400 : 600 }}>{item.title}</span>
+                      </Space>
+                      <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                        {dayjs(item.createdAt).format("YYYY-MM-DD HH:mm")}
+                      </Typography.Text>
+                    </div>
                     <div style={{ marginTop: 8 }}>
                       <p style={{ marginBottom: 0, whiteSpace: "pre-wrap" }}>{item.body}</p>
-                      {!item.read && (
-                        <Button
-                          type="link"
-                          size="small"
-                          style={{ paddingLeft: 0, marginTop: 8 }}
-                          onClick={async (e) => {
-                            e.stopPropagation();
-                            await fetch("/api/notifications", {
-                              method: "PATCH",
-                              headers: { "content-type": "application/json" },
-                              body: JSON.stringify({ id: item.id }),
-                            });
-                            load();
-                            if (typeof window !== "undefined") {
-                              window.dispatchEvent(new Event("sxl-messages-updated"));
-                            }
-                          }}
-                        >
-                          标为已读
-                        </Button>
-                      )}
+                      <Space wrap size={12} style={{ marginTop: 8 }}>
+                        {href && (
+                          <Button
+                            type="link"
+                            size="small"
+                            style={{ paddingLeft: 0 }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              void openMessageTarget(item);
+                            }}
+                          >
+                            {detailText}
+                          </Button>
+                        )}
+                        {!item.read && (
+                          <Button
+                            type="link"
+                            size="small"
+                            style={{ paddingLeft: 0 }}
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              await fetch("/api/notifications", {
+                                method: "PATCH",
+                                headers: { "content-type": "application/json" },
+                                body: JSON.stringify({ id: item.id }),
+                              });
+                              load();
+                              if (typeof window !== "undefined") {
+                                window.dispatchEvent(new Event("sxl-messages-updated"));
+                              }
+                            }}
+                          >
+                            标为已读
+                          </Button>
+                        )}
+                      </Space>
                     </div>
                   </Card>
                 );
