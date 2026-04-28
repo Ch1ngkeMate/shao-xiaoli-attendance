@@ -6,29 +6,15 @@ import type { UploadProps } from "antd";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 type Role = "ADMIN" | "MINISTER" | "MEMBER";
-type Me = { id: string; username: string; displayName: string; role: Role } | null;
+type Me = { id: string; username: string; displayName: string; role: Role; profileBgUrl?: string | null } | null;
 type ThemeMode = "light" | "dark" | "system";
 
 function themeLabel(v: ThemeMode) {
   return v === "system" ? "跟随系统" : v === "dark" ? "深色" : "浅色";
 }
 
-function getProfileBgKey(userId: string) {
-  return `sxl-profile-bg:${userId}`;
-}
-
-function readProfileBg(userId: string): string {
-  try {
-    return window.localStorage.getItem(getProfileBgKey(userId)) ?? "";
-  } catch {
-    return "";
-  }
-}
-
-function writeProfileBg(userId: string, v: string) {
-  try {
-    window.localStorage.setItem(getProfileBgKey(userId), v);
-  } catch {}
+function normalizeBg(v: string | null | undefined) {
+  return String(v ?? "").trim();
 }
 
 export default function SettingsPage() {
@@ -48,7 +34,7 @@ export default function SettingsPage() {
     setLoadingMe(true);
     try {
       const res = await fetch("/api/me", { cache: "no-store" });
-      const d = (await res.json().catch(() => ({}))) as { user?: { id: string; username: string; displayName: string; role: Role } };
+      const d = (await res.json().catch(() => ({}))) as { user?: Me extends null ? never : Exclude<Me, null> };
       if (!res.ok || !d.user) {
         message.error("加载用户信息失败");
         setMe(null);
@@ -56,7 +42,7 @@ export default function SettingsPage() {
       }
       setMe(d.user);
       accountForm.setFieldsValue({ username: d.user.username });
-      setBgValue(readProfileBg(d.user.id));
+      setBgValue(normalizeBg(d.user.profileBgUrl));
     } finally {
       setLoadingMe(false);
     }
@@ -90,8 +76,19 @@ export default function SettingsPage() {
             message.error(data.message || "上传失败");
             return false;
           }
-          setBgValue(data.url);
-          writeProfileBg(me.id, data.url);
+          const url = data.url;
+          const res2 = await fetch("/api/me", {
+            method: "PATCH",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ profileBgUrl: url }),
+          });
+          const d2 = (await res2.json().catch(() => ({}))) as { message?: string; user?: { profileBgUrl?: string | null } };
+          if (!res2.ok) {
+            message.error(d2.message || "保存背景失败");
+            return false;
+          }
+          setBgValue(normalizeBg(d2.user?.profileBgUrl ?? url));
+          window.dispatchEvent(new Event("sxl-profile-updated"));
           window.dispatchEvent(new Event("sxl-profile-bg-updated"));
           message.success("主页背景已更新");
           return false;
@@ -250,7 +247,7 @@ export default function SettingsPage() {
             <div>
               <Typography.Text strong>个人主页背景</Typography.Text>
               <Typography.Paragraph type="secondary" style={{ marginBottom: 8 }}>
-                仅对当前账号生效（保存在本机浏览器中）。
+                对当前账号生效（跨设备同步）。
               </Typography.Paragraph>
               <Space wrap size={12}>
                 <Upload {...bgUploadProps}>
@@ -260,10 +257,20 @@ export default function SettingsPage() {
                 </Upload>
                 <Button
                   disabled={!me || !bgValue}
-                  onClick={() => {
+                  onClick={async () => {
                     if (!me?.id) return;
-                    setBgValue("");
-                    writeProfileBg(me.id, "");
+                    const res = await fetch("/api/me", {
+                      method: "PATCH",
+                      headers: { "content-type": "application/json" },
+                      body: JSON.stringify({ profileBgUrl: "" }),
+                    });
+                    const d = (await res.json().catch(() => ({}))) as { message?: string; user?: { profileBgUrl?: string | null } };
+                    if (!res.ok) {
+                      message.error(d.message || "清除失败");
+                      return;
+                    }
+                    setBgValue(normalizeBg(d.user?.profileBgUrl));
+                    window.dispatchEvent(new Event("sxl-profile-updated"));
                     window.dispatchEvent(new Event("sxl-profile-bg-updated"));
                     message.success("已清除背景");
                   }}

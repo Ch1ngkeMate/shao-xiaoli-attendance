@@ -4,12 +4,18 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { createSessionCookie, readSessionCookie } from "@/lib/auth";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function userModel() {
+  return (prisma as { user?: any }).user;
+}
+
 const PatchMeSchema = z
   .object({
     currentPassword: z.string().optional(),
     newPassword: z.string().min(6, "新密码至少 6 位").optional(),
     avatarUrl: z.string().min(1).optional(),
     username: z.string().min(1, "账号不能为空").optional(),
+    profileBgUrl: z.string().optional(),
   })
   .superRefine((data, ctx) => {
     const hasPwd = data.newPassword !== undefined || data.currentPassword !== undefined;
@@ -21,7 +27,7 @@ const PatchMeSchema = z
         ctx.addIssue({ code: "custom", message: "请填写新密码", path: ["newPassword"] });
       }
     }
-    if (!hasPwd && data.avatarUrl === undefined && data.username === undefined) {
+    if (!hasPwd && data.avatarUrl === undefined && data.username === undefined && data.profileBgUrl === undefined) {
       ctx.addIssue({ code: "custom", message: "无有效更新字段" });
     }
   });
@@ -36,9 +42,21 @@ export async function GET() {
     return NextResponse.json({ user: null }, { status: 401 });
   }
 
-  const dbUser = await prisma.user.findUnique({
+  const U = userModel();
+  if (!U?.findUnique) {
+    return NextResponse.json({ user: null, _hint: "请执行 prisma migrate deploy + prisma generate" }, { status: 503 });
+  }
+  const dbUser = await U.findUnique({
     where: { id: session.sub },
-    select: { id: true, username: true, displayName: true, role: true, avatarUrl: true, isActive: true },
+    select: {
+      id: true,
+      username: true,
+      displayName: true,
+      role: true,
+      avatarUrl: true,
+      profileBgUrl: true,
+      isActive: true,
+    },
   });
   if (!dbUser || !dbUser.isActive) {
     return NextResponse.json({ user: null }, { status: 401 });
@@ -65,6 +83,7 @@ export async function GET() {
       displayName: dbUser.displayName,
       role: dbUser.role,
       avatarUrl: dbUser.avatarUrl,
+      profileBgUrl: dbUser.profileBgUrl,
     },
   });
 }
@@ -72,6 +91,11 @@ export async function GET() {
 export async function PATCH(req: Request) {
   const session = await readSessionCookie();
   if (!session) return NextResponse.json({ message: "未登录" }, { status: 401 });
+
+  const U = userModel();
+  if (!U?.findUnique || !U?.findFirst || !U?.update) {
+    return NextResponse.json({ message: "服务未就绪：请执行 prisma migrate deploy + prisma generate" }, { status: 503 });
+  }
 
   const json = await req.json().catch(() => null);
   const parsed = PatchMeSchema.safeParse(json);
@@ -82,14 +106,14 @@ export async function PATCH(req: Request) {
     );
   }
 
-  const { currentPassword, newPassword, avatarUrl, username } = parsed.data;
+  const { currentPassword, newPassword, avatarUrl, username, profileBgUrl } = parsed.data;
 
-  const user = await prisma.user.findUnique({ where: { id: session.sub } });
+  const user = await U.findUnique({ where: { id: session.sub } });
   if (!user || !user.isActive) {
     return NextResponse.json({ message: "用户不存在或已停用" }, { status: 403 });
   }
 
-  const data: { passwordHash?: string; avatarUrl?: string | null; username?: string } = {};
+  const data: { passwordHash?: string; avatarUrl?: string | null; username?: string; profileBgUrl?: string | null } = {};
 
   if (newPassword !== undefined && currentPassword !== undefined) {
     const ok = await bcrypt.compare(currentPassword, user.passwordHash);
@@ -106,12 +130,24 @@ export async function PATCH(req: Request) {
     data.avatarUrl = avatarUrl;
   }
 
+  if (profileBgUrl !== undefined) {
+    const v = String(profileBgUrl).trim();
+    if (!v) {
+      data.profileBgUrl = null;
+    } else {
+      if (!isAllowedAvatarUrl(v)) {
+        return NextResponse.json({ message: "背景图地址无效" }, { status: 400 });
+      }
+      data.profileBgUrl = v;
+    }
+  }
+
   if (username !== undefined) {
     const next = username.trim();
     if (!next) {
       return NextResponse.json({ message: "账号不能为空" }, { status: 400 });
     }
-    const exists = await prisma.user.findFirst({
+    const exists = await U.findFirst({
       where: { username: next, id: { not: user.id } },
       select: { id: true },
     });
@@ -121,10 +157,10 @@ export async function PATCH(req: Request) {
     data.username = next;
   }
 
-  const updated = await prisma.user.update({
+  const updated = await U.update({
     where: { id: session.sub },
     data,
-    select: { id: true, username: true, displayName: true, role: true, avatarUrl: true },
+    select: { id: true, username: true, displayName: true, role: true, avatarUrl: true, profileBgUrl: true },
   });
 
   // 刷新会话，避免中间件/顶栏仍显示旧账号

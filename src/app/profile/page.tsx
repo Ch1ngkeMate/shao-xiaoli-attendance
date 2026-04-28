@@ -6,18 +6,6 @@ import dayjs from "dayjs";
 import { useCallback, useEffect, useState } from "react";
 import ProfileView, { type AttendanceRow, type ProfileUser } from "./profile-view";
 
-function bgKey(userId: string) {
-  return `sxl-profile-bg:${userId}`;
-}
-
-function readBg(userId: string) {
-  try {
-    return window.localStorage.getItem(bgKey(userId)) ?? "";
-  } catch {
-    return "";
-  }
-}
-
 export default function ProfilePage() {
   const [me, setMe] = useState<ProfileUser | null>(null);
   const [month, setMonth] = useState(dayjs().format("YYYY-MM"));
@@ -30,13 +18,13 @@ export default function ProfilePage() {
     setLoadingMe(true);
     try {
       const res = await fetch("/api/me");
-      const data = (await res.json().catch(() => ({}))) as { user?: ProfileUser };
+      const data = (await res.json().catch(() => ({}))) as { user?: (ProfileUser & { profileBgUrl?: string | null }) | null };
       if (!res.ok || !data.user) {
         message.error("加载用户信息失败");
         return;
       }
       setMe(data.user);
-      setBg(readBg(data.user.id));
+      setBg(String(data.user.profileBgUrl ?? "").trim());
     } finally {
       setLoadingMe(false);
     }
@@ -64,12 +52,12 @@ export default function ProfilePage() {
 
   useEffect(() => {
     const onBg = () => {
-      if (!me?.id) return;
-      setBg(readBg(me.id));
+      // 通过 /api/me 最新数据同步背景（跨设备/跨标签页一致）
+      void loadMe();
     };
     window.addEventListener("sxl-profile-bg-updated", onBg);
     return () => window.removeEventListener("sxl-profile-bg-updated", onBg);
-  }, [me?.id]);
+  }, [loadMe]);
 
   useEffect(() => {
     if (!me) return;

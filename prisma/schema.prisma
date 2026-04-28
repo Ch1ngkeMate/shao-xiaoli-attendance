@@ -43,6 +43,8 @@ model User {
   passwordHash String
   // 头像：本地上传 /uploads/avatar/... 或 Blob 的 https URL
   avatarUrl    String?
+  // 个人主页背景图：本地上传 /uploads/avatar/... 或 Blob 的 https URL
+  profileBgUrl String?
   role         UserRole @default(MEMBER)
   isActive     Boolean  @default(true)
 
