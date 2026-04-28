@@ -31,7 +31,17 @@ type Props = {
     status: "OPEN" | "CLOSED";
     startTime: string;
     endTime: string;
-    timeSlots: { id: string; startTime: string; endTime: string; sort: number; headcountHint: number | null }[];
+    timeSlots: {
+      id: string;
+      startTime: string;
+      endTime: string;
+      sort: number;
+      headcountHint: number | null;
+      /** 本段已接取人数（CLAIMED） */
+      claimedCount: number;
+      /** 本段报名上限（空/<=0 为不限） */
+      limit: number | null;
+    }[];
     points: number;
     headcountHint: number | null;
     claimedCount: number;

@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Card, DatePicker, Form, Input, InputNumber, Space, Typography, Upload, message } from "antd";
+import { Button, Card, DatePicker, Form, Grid, Input, InputNumber, Space, Typography, Upload, message } from "antd";
 import type { UploadFile } from "antd";
 import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
@@ -16,8 +16,31 @@ type FormValues = {
   timeSlots: SlotValues[];
 };
 
+function MobileDateTimeLocal({
+  value,
+  onChange,
+}: {
+  value?: dayjs.Dayjs;
+  onChange?: (v: dayjs.Dayjs | null) => void;
+}) {
+  return (
+    <Input
+      type="datetime-local"
+      value={value ? value.format("YYYY-MM-DDTHH:mm") : ""}
+      onChange={(e) => {
+        const s = e.target.value;
+        if (!s) return onChange?.(null);
+        const d = dayjs(s);
+        onChange?.(d.isValid() ? d : null);
+      }}
+    />
+  );
+}
+
 export default function PublishPage() {
   const router = useRouter();
+  const screens = Grid.useBreakpoint();
+  const isMobile = !screens.md;
   const [form] = Form.useForm<FormValues>();
   const [fileList, setFileList] = useState<UploadFile[]>([]);
 
@@ -130,7 +153,11 @@ export default function PublishPage() {
                         rules={[{ required: true, message: "请选择" }]}
                         style={{ marginBottom: 0, flex: "1 1 200px" }}
                       >
-                        <DatePicker showTime style={{ width: "100%", minWidth: 180, maxWidth: 240 }} />
+                        {isMobile ? (
+                          <MobileDateTimeLocal />
+                        ) : (
+                          <DatePicker showTime style={{ width: "100%", minWidth: 180, maxWidth: 240 }} />
+                        )}
                       </Form.Item>
                       <Form.Item
                         name={[field.name, "endTime"]}
@@ -138,7 +165,11 @@ export default function PublishPage() {
                         rules={[{ required: true, message: "请选择" }]}
                         style={{ marginBottom: 0, flex: "1 1 200px" }}
                       >
-                        <DatePicker showTime style={{ width: "100%", minWidth: 180, maxWidth: 240 }} />
+                        {isMobile ? (
+                          <MobileDateTimeLocal />
+                        ) : (
+                          <DatePicker showTime style={{ width: "100%", minWidth: 180, maxWidth: 240 }} />
+                        )}
                       </Form.Item>
                       <Form.Item
                         name={[field.name, "headcountHint"]}

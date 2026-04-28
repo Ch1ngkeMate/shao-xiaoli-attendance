@@ -175,6 +175,11 @@ export default async function TaskDetailPage({ params }: PageProps) {
           },
         ];
 
+  const claimedCountBySlot = new Map<string, number>();
+  for (const g of claimantsBySlot) {
+    claimedCountBySlot.set(g.slotId, (g.claimants ?? []).length);
+  }
+
   const mySub = task.submissions.find((s) => s.userId === userId) ?? null;
   const mySubmission = mySub
     ? {
@@ -239,6 +244,8 @@ export default async function TaskDetailPage({ params }: PageProps) {
             endTime: s.endTime.toISOString(),
             sort: s.sort,
             headcountHint: s.headcountHint,
+            claimedCount: claimedCountBySlot.get(s.id) ?? 0,
+            limit: s.headcountHint != null && s.headcountHint > 0 ? s.headcountHint : task.headcountHint,
           })),
           points: task.points,
           headcountHint: task.headcountHint,

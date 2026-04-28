@@ -26,7 +26,17 @@ type Props = {
   taskId: string;
   taskStatus: "OPEN" | "CLOSED";
   endTime: string;
-  timeSlots: { id: string; startTime: string; endTime: string; sort: number; headcountHint: number | null }[];
+  timeSlots: {
+    id: string;
+    startTime: string;
+    endTime: string;
+    sort: number;
+    headcountHint: number | null;
+    /** 本段已接取人数（CLAIMED） */
+    claimedCount: number;
+    /** 本段报名上限（空/<=0 为不限） */
+    limit: number | null;
+  }[];
   role: "ADMIN" | "MINISTER" | "MEMBER";
   hasAnyClaim: boolean;
   canClaimMore: boolean;
@@ -128,6 +138,20 @@ export default function TaskActions(props: Props) {
   const [submitOpen, setSubmitOpen] = useState(false);
   const [timeSlotId, setTimeSlotId] = useState<string | null>(null);
 
+  const timeSlotMeta = useMemo(() => {
+    const m = new Map<string, { sort: number; claimedCount: number; limit: number | null; startTime: string; endTime: string }>();
+    for (const s of props.timeSlots ?? []) {
+      m.set(s.id, {
+        sort: s.sort,
+        claimedCount: s.claimedCount ?? 0,
+        limit: s.limit != null && s.limit > 0 ? s.limit : null,
+        startTime: s.startTime,
+        endTime: s.endTime,
+      });
+    }
+    return m;
+  }, [props.timeSlots]);
+
   const multiSlot = (props.timeSlots?.length ?? 0) > 1;
   useEffect(() => {
     if (!props.timeSlots?.length) return;
@@ -193,19 +217,26 @@ export default function TaskActions(props: Props) {
               <div>
                 <div style={{ marginBottom: 6, fontSize: 12, color: "#666" }}>接取哪一段？</div>
                 <Select
-                  style={{ minWidth: 260 }}
+                  style={{ minWidth: 260, width: 260 }}
                   value={timeSlotId ?? undefined}
                   onChange={(v) => setTimeSlotId(v)}
-                  options={props.timeSlots.map((s) => {
-                    const hc = s.headcountHint != null && s.headcountHint > 0 ? `限${s.headcountHint}人` : "人数不限";
-                    const claimed = props.myClaimedSlotIds.includes(s.id);
-                    return {
-                      value: s.id,
-                      disabled: claimed,
-                      label: `${claimed ? "【已接】 " : ""}第${s.sort + 1}段 ${dayjs(s.startTime).format("MM/DD HH:mm")}~${dayjs(s.endTime).format("MM/DD HH:mm")}（${hc}）`,
-                    };
+                  optionLabelProp="shortLabel"
+                >
+                  {(props.timeSlots ?? []).map((s) => {
+                    const claimedByMe = props.myClaimedSlotIds.includes(s.id);
+                    const meta = timeSlotMeta.get(s.id);
+                    const claimedCount = meta?.claimedCount ?? 0;
+                    const limit = meta?.limit ?? null;
+                    const quotaText = `（${claimedCount}/${limit != null ? limit : "不限"}）`;
+                    const shortLabel = `${claimedByMe ? "【已接】 " : ""}第${s.sort + 1}段 ${dayjs(s.startTime).format("MM/DD HH:mm")}~${dayjs(s.endTime).format("MM/DD HH:mm")} ${quotaText}`;
+                    const fullLabel = `${claimedByMe ? "【已接】 " : ""}第${s.sort + 1}段 ${dayjs(s.startTime).format("YYYY-MM-DD HH:mm")}~${dayjs(s.endTime).format("YYYY-MM-DD HH:mm")} ${quotaText}`;
+                    return (
+                      <Select.Option key={s.id} value={s.id} disabled={claimedByMe} shortLabel={shortLabel}>
+                        {fullLabel}
+                      </Select.Option>
+                    );
                   })}
-                />
+                </Select>
               </div>
             )}
             {props.taskStatus === "OPEN" && props.canClaimMore && !cannotNewClaim && (
