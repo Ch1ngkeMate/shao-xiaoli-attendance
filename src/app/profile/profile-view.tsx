@@ -7,6 +7,7 @@ import {
   Card,
   DatePicker,
   Form,
+  Grid,
   Input,
   Space,
   Table,
@@ -28,6 +29,7 @@ export type ProfileUser = {
   displayName: string;
   role: ProfileRole;
   avatarUrl: string | null;
+  profileBgUrl?: string | null;
   /** 管理人员查看他人时由接口返回 */
   isActive?: boolean;
 };
@@ -64,6 +66,8 @@ type Props = {
   onMonthChange: (month: string) => void;
   /** 本人模式下头像保存成功后回写 */
   onSelfUserUpdated?: (u: ProfileUser) => void;
+  /** 顶部大图封面背景（类似微信个人页） */
+  coverBgUrl?: string | null;
 };
 
 export default function ProfileView(props: Props) {
@@ -76,11 +80,14 @@ export default function ProfileView(props: Props) {
     month,
     onMonthChange,
     onSelfUserUpdated,
+    coverBgUrl,
   } = props;
 
   const [pwdForm] = Form.useForm<{ currentPassword: string; newPassword: string; confirm: string }>();
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [pwdSubmitting, setPwdSubmitting] = useState(false);
+  const screens = Grid.useBreakpoint();
+  const isMobile = !screens.md;
 
   const summaryColumns: ColumnsType<AttendanceRow> = useMemo(
     () => [
@@ -146,6 +153,102 @@ export default function ProfileView(props: Props) {
 
   return (
     <Space orientation="vertical" size={16} style={{ width: "100%" }}>
+      {displayUser && coverBgUrl ? (
+        <div
+          style={{
+            position: "relative",
+            height: isMobile ? 220 : 260,
+            borderRadius: 14,
+            overflow: "hidden",
+            border: "1px solid var(--ant-color-border, #f0f0f0)",
+            background: `center / cover no-repeat url(${coverBgUrl})`,
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background:
+                "linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.45) 65%, rgba(0,0,0,0.62))",
+            }}
+          />
+          <div style={{ position: "absolute", left: 14, right: 14, bottom: 14 }}>
+            <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 12 }}>
+              <div style={{ display: "flex", alignItems: "flex-end", gap: 12, minWidth: 0 }}>
+                <Avatar
+                  key={displayUser.avatarUrl ?? "no-avatar"}
+                  size={isMobile ? 72 : 88}
+                  src={displayUser.avatarUrl || undefined}
+                  icon={<UserOutlined />}
+                  style={{ border: "2px solid rgba(255,255,255,0.9)", flex: "0 0 auto" }}
+                >
+                  {!displayUser.avatarUrl ? displayUser.displayName.slice(0, 1) : null}
+                </Avatar>
+                <div style={{ minWidth: 0 }}>
+                  <div
+                    style={{
+                      color: "rgba(255,255,255,0.96)",
+                      fontWeight: 700,
+                      fontSize: isMobile ? 18 : 22,
+                      lineHeight: 1.2,
+                      textShadow: "0 2px 10px rgba(0,0,0,0.35)",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                    title={displayUser.displayName}
+                  >
+                    {displayUser.displayName}
+                  </div>
+                  <div
+                    style={{
+                      marginTop: 4,
+                      color: "rgba(255,255,255,0.85)",
+                      fontSize: 12,
+                      textShadow: "0 2px 10px rgba(0,0,0,0.35)",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                    title={`${displayUser.username} · ${roleLabel(displayUser.role)}`}
+                  >
+                    {displayUser.username} · {roleLabel(displayUser.role)}
+                    {mode === "peek" && displayUser.isActive === false ? "（已停用）" : ""}
+                  </div>
+                </div>
+              </div>
+
+              {mode === "self" ? (
+                <Upload
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  showUploadList={false}
+                  disabled={avatarUploading}
+                  beforeUpload={async (file) => {
+                    setAvatarUploading(true);
+                    try {
+                      const fd = new FormData();
+                      fd.append("file", file);
+                      const res = await fetch("/api/upload/avatar", { method: "POST", body: fd });
+                      const data = (await res.json().catch(() => ({}))) as { url?: string; message?: string };
+                      if (!res.ok || !data.url) {
+                        message.error(data.message || "上传失败");
+                        return false;
+                      }
+                      await saveAvatarUrl(data.url);
+                      return false;
+                    } finally {
+                      setAvatarUploading(false);
+                    }
+                  }}
+                >
+                  <Button loading={avatarUploading}>更换头像</Button>
+                </Upload>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       {mode === "peek" && (
         <Alert type="info" showIcon title="您正以管理人员身份查看成员主页（只读），不含对方密码等敏感操作入口。" />
       )}
@@ -162,7 +265,7 @@ export default function ProfileView(props: Props) {
               >
                 {!displayUser.avatarUrl ? displayUser.displayName.slice(0, 1) : null}
               </Avatar>
-              {mode === "self" && (
+              {mode === "self" && !coverBgUrl && (
                 <Upload
                   accept="image/png,image/jpeg,image/webp,image/gif"
                   showUploadList={false}

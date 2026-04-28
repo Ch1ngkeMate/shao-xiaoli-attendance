@@ -66,28 +66,17 @@ export default function ProfilePage() {
 
   return (
     <AppShell title="个人主页">
-      <div
-        style={{
-          borderRadius: 14,
-          overflow: "hidden",
-          background: bg ? `center / cover no-repeat url(${bg})` : undefined,
-          border: bg ? "1px solid var(--ant-color-border, #f0f0f0)" : undefined,
-        }}
-      >
-        {bg ? <div style={{ height: 120, background: "linear-gradient(to bottom, rgba(0,0,0,0.25), rgba(0,0,0,0))" }} /> : null}
-        <div style={{ padding: bg ? 12 : 0 }}>
-          <ProfileView
-            mode="self"
-            displayUser={me}
-            loadingUser={loadingMe}
-            attendance={attendance}
-            loadingAttendance={loadingAtt}
-            month={month}
-            onMonthChange={setMonth}
-            onSelfUserUpdated={setMe}
-          />
-        </div>
-      </div>
+      <ProfileView
+        mode="self"
+        displayUser={me}
+        loadingUser={loadingMe}
+        attendance={attendance}
+        loadingAttendance={loadingAtt}
+        month={month}
+        onMonthChange={setMonth}
+        onSelfUserUpdated={setMe}
+        coverBgUrl={bg || null}
+      />
     </AppShell>
   );
 }

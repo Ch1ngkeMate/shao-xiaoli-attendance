@@ -6,6 +6,11 @@ import type { UserRole } from "@/generated/prisma/client";
 
 type Params = { id: string };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function userModel() {
+  return (prisma as { user?: any }).user;
+}
+
 /**
  * 部长/管理员查看他人「个人主页」用：基本信息 + 指定月份考勤（口径同 /api/me/attendance）
  */
@@ -23,7 +28,11 @@ export async function GET(req: Request, ctx: { params: Promise<Params> }) {
     return NextResponse.json({ message: "缺少或无效的 month（格式 YYYY-MM）" }, { status: 400 });
   }
 
-  const user = await prisma.user.findFirst({
+  const U = userModel();
+  if (!U?.findFirst) {
+    return NextResponse.json({ message: "服务未就绪：请执行 prisma migrate deploy + prisma generate" }, { status: 503 });
+  }
+  const user = await U.findFirst({
     where: { id },
     select: {
       id: true,
@@ -31,6 +40,7 @@ export async function GET(req: Request, ctx: { params: Promise<Params> }) {
       displayName: true,
       role: true,
       avatarUrl: true,
+      profileBgUrl: true,
       isActive: true,
     },
   });
@@ -45,6 +55,7 @@ export async function GET(req: Request, ctx: { params: Promise<Params> }) {
       displayName: user.displayName,
       role: user.role,
       avatarUrl: user.avatarUrl,
+      profileBgUrl: user.profileBgUrl,
       isActive: user.isActive,
     },
     row,

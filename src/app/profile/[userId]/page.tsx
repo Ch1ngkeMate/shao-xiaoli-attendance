@@ -45,7 +45,7 @@ export default function OtherUserProfilePage() {
         `/api/admin/users/${encodeURIComponent(targetId)}/profile?month=${encodeURIComponent(month)}`,
       );
       const data = (await res.json().catch(() => ({}))) as {
-        user?: ProfileUser & { isActive?: boolean };
+        user?: (ProfileUser & { isActive?: boolean; profileBgUrl?: string | null }) | null;
         row?: AttendanceRow | null;
         message?: string;
       };
@@ -132,6 +132,7 @@ export default function OtherUserProfilePage() {
           loadingAttendance={loadingPeek}
           month={month}
           onMonthChange={setMonth}
+          coverBgUrl={String((target as unknown as { profileBgUrl?: string | null } | null)?.profileBgUrl ?? "").trim() || null}
         />
       </Space>
     </AppShell>
