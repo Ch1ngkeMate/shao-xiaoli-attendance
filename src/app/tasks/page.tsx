@@ -4,7 +4,7 @@ import Link from "next/link";
 import type { Key } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Card, Popconfirm, Space, Table, Tag, Typography, message } from "antd";
+import { Button, Card, Grid, Popconfirm, Space, Table, Tag, Typography, message } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import dayjs from "dayjs";
 import AppShell from "@/components/AppShell";
@@ -37,8 +37,17 @@ function truncateTaskTitleForList(title: string) {
   return `${chars.slice(0, 2).join("")}…${chars.slice(-2).join("")}`;
 }
 
+function formatTaskTimeForMobile(r: TaskItem) {
+  if (r.timeSlots && r.timeSlots.length > 1) {
+    return `共${r.timeSlots.length}段 ${dayjs(r.startTime).format("MM-DD HH:mm")} ~ ${dayjs(r.endTime).format("MM-DD HH:mm")}`;
+  }
+  return `${dayjs(r.startTime).format("MM-DD HH:mm")} ~ ${dayjs(r.endTime).format("MM-DD HH:mm")}`;
+}
+
 export default function TaskListPage() {
   const router = useRouter();
+  const screens = Grid.useBreakpoint();
+  const isMobile = !screens.md;
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [meRole, setMeRole] = useState<string | null>(null);
@@ -47,93 +56,144 @@ export default function TaskListPage() {
   const isAdmin = meRole === "ADMIN";
 
   const columns: ColumnsType<TaskItem> = useMemo(
-    () => [
-      {
-        title: "标题",
-        dataIndex: "title",
-        render: (title: string, record) => {
-          const v = getTaskClaimVisibility({
-            status: record.status,
-            endTime: record.endTime,
-            headcountHint: record.headcountHint,
-            claimedCount: record.claimedCount ?? 0,
-            allClaimantsApproved: record.allClaimantsApproved,
-            slotsOrTaskFull: record.slotsOrTaskFull,
-          });
-          const chars = Array.from(title ?? "");
-          const show = truncateTaskTitleForList(title);
-          const tooltipTitle = chars.length > 5 ? title : undefined;
-          return (
-            <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, flexWrap: "nowrap" }}>
-              <Typography.Text
-                title={tooltipTitle}
-                style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
-              >
-                <Link href={`/tasks/${record.id}`} style={{ whiteSpace: "nowrap" }}>
-                  {show}
-                </Link>
-              </Typography.Text>
-              <Tag color={v.color} style={{ flexShrink: 0 }}>
-                {v.text}
-              </Tag>
-            </div>
-          );
-        },
-      },
-      {
-        title: "时间",
-        width: 220,
-        render: (_: unknown, r) => {
-          if (r.timeSlots && r.timeSlots.length > 1) {
-            return (
-              <span style={{ fontSize: 12 }}>
-                共 {r.timeSlots.length} 段
-                <br />
-                {dayjs(r.startTime).format("MM/DD HH:mm")} ~ {dayjs(r.endTime).format("MM/DD HH:mm")}
-              </span>
-            );
-          }
-          return (
-            <span style={{ fontSize: 12 }}>
-              {dayjs(r.startTime).format("YYYY-MM-DD HH:mm")} ~ {dayjs(r.endTime).format("MM-DD HH:mm")}
-            </span>
-          );
-        },
-      },
-      {
-        title: "接取人",
-        width: 200,
-        responsive: ["md"],
-        render: (_: unknown, r) => {
-          const list = r.claimants ?? [];
-          if (list.length === 0) return <span style={{ color: "#999" }}>无</span>;
-          return (
-            <Space size={4} wrap style={{ maxWidth: 200, fontSize: 12 }}>
-              {list.map((c) => (
-                <Space key={c.id} size={4} style={{ display: "inline-flex" }}>
-                  <AdminProfilePeekAvatar
-                    viewerRole={(meRole ?? "MEMBER") as "ADMIN" | "MINISTER" | "MEMBER"}
-                    targetUserId={c.id}
-                    size={20}
-                    src={c.avatarUrl}
-                    displayName={c.displayName}
-                  />
-                  <span>{c.displayName}</span>
-                </Space>
-              ))}
-            </Space>
-          );
-        },
-      },
-      { title: "积分", dataIndex: "points", width: 70, responsive: ["md"] },
-      { title: "发布人", render: (_: unknown, r) => r.publisher.displayName, width: 160, responsive: ["md"] },
-      {
-        title: "操作",
-        render: (_: unknown, r) => <Link href={`/tasks/${r.id}`}>查看</Link>,
-        width: 90,
-      },
-    ],
-    [meRole],
+    () =>
+      isMobile
+        ? [
+            {
+              title: "任务",
+              dataIndex: "title",
+              render: (title: string, record) => {
+                const v = getTaskClaimVisibility({
+                  status: record.status,
+                  endTime: record.endTime,
+                  headcountHint: record.headcountHint,
+                  claimedCount: record.claimedCount ?? 0,
+                  allClaimantsApproved: record.allClaimantsApproved,
+                  slotsOrTaskFull: record.slotsOrTaskFull,
+                });
+                const chars = Array.from(title ?? "");
+                const show = truncateTaskTitleForList(title);
+                const tooltipTitle = chars.length > 5 ? title : undefined;
+                const timeLine = formatTaskTimeForMobile(record);
+                return (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        minWidth: 0,
+                      }}
+                    >
+                      <Typography.Text
+                        title={tooltipTitle}
+                        style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                      >
+                        <Link href={`/tasks/${record.id}`} style={{ whiteSpace: "nowrap" }}>
+                          {show}
+                        </Link>
+                      </Typography.Text>
+                      <Tag color={v.color} style={{ flexShrink: 0 }}>
+                        {v.text}
+                      </Tag>
+                      <span style={{ marginLeft: "auto", flexShrink: 0 }}>
+                        <Link href={`/tasks/${record.id}`}>详情</Link>
+                      </span>
+                    </div>
+                    <Typography.Text type="secondary" style={{ fontSize: 12, lineHeight: 1.2 }}>
+                      {timeLine}
+                    </Typography.Text>
+                  </div>
+                );
+              },
+            },
+          ]
+        : [
+            {
+              title: "标题",
+              dataIndex: "title",
+              render: (title: string, record) => {
+                const v = getTaskClaimVisibility({
+                  status: record.status,
+                  endTime: record.endTime,
+                  headcountHint: record.headcountHint,
+                  claimedCount: record.claimedCount ?? 0,
+                  allClaimantsApproved: record.allClaimantsApproved,
+                  slotsOrTaskFull: record.slotsOrTaskFull,
+                });
+                const chars = Array.from(title ?? "");
+                const show = truncateTaskTitleForList(title);
+                const tooltipTitle = chars.length > 5 ? title : undefined;
+                return (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, flexWrap: "nowrap" }}>
+                    <Typography.Text
+                      title={tooltipTitle}
+                      style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                    >
+                      <Link href={`/tasks/${record.id}`} style={{ whiteSpace: "nowrap" }}>
+                        {show}
+                      </Link>
+                    </Typography.Text>
+                    <Tag color={v.color} style={{ flexShrink: 0 }}>
+                      {v.text}
+                    </Tag>
+                  </div>
+                );
+              },
+            },
+            {
+              title: "时间",
+              width: 220,
+              render: (_: unknown, r) => {
+                if (r.timeSlots && r.timeSlots.length > 1) {
+                  return (
+                    <span style={{ fontSize: 12 }}>
+                      共 {r.timeSlots.length} 段
+                      <br />
+                      {dayjs(r.startTime).format("MM/DD HH:mm")} ~ {dayjs(r.endTime).format("MM/DD HH:mm")}
+                    </span>
+                  );
+                }
+                return (
+                  <span style={{ fontSize: 12 }}>
+                    {dayjs(r.startTime).format("YYYY-MM-DD HH:mm")} ~ {dayjs(r.endTime).format("MM-DD HH:mm")}
+                  </span>
+                );
+              },
+            },
+            {
+              title: "接取人",
+              width: 200,
+              render: (_: unknown, r) => {
+                const list = r.claimants ?? [];
+                if (list.length === 0) return <span style={{ color: "#999" }}>无</span>;
+                return (
+                  <Space size={4} wrap style={{ maxWidth: 200, fontSize: 12 }}>
+                    {list.map((c) => (
+                      <Space key={c.id} size={4} style={{ display: "inline-flex" }}>
+                        <AdminProfilePeekAvatar
+                          viewerRole={(meRole ?? "MEMBER") as "ADMIN" | "MINISTER" | "MEMBER"}
+                          targetUserId={c.id}
+                          size={20}
+                          src={c.avatarUrl}
+                          displayName={c.displayName}
+                        />
+                        <span>{c.displayName}</span>
+                      </Space>
+                    ))}
+                  </Space>
+                );
+              },
+            },
+            { title: "积分", dataIndex: "points", width: 70 },
+            { title: "发布人", render: (_: unknown, r) => r.publisher.displayName, width: 160 },
+            {
+              title: "操作",
+              render: (_: unknown, r) => <Link href={`/tasks/${r.id}`}>查看</Link>,
+              width: 90,
+            },
+          ],
+    [isMobile, meRole],
   );
 
   async function load() {
@@ -204,7 +264,7 @@ export default function TaskListPage() {
                 loading={loading}
                 columns={columns}
                 dataSource={tasks}
-                scroll={{ x: "max-content" }}
+                scroll={isMobile ? undefined : { x: "max-content" }}
                 pagination={{ pageSize: 20 }}
                 rowSelection={{
                   selectedRowKeys: selectedTaskKeys,
@@ -218,7 +278,7 @@ export default function TaskListPage() {
               loading={loading}
               columns={columns}
               dataSource={tasks}
-              scroll={{ x: "max-content" }}
+              scroll={isMobile ? undefined : { x: "max-content" }}
               pagination={{ pageSize: 20 }}
             />
           )}
