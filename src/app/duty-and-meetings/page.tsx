@@ -7,6 +7,7 @@ import {
   Card,
   DatePicker,
   Form,
+  Grid,
   Input,
   Modal,
   Popconfirm,
@@ -74,6 +75,8 @@ function groupAssignments(rows: As[]) {
 function DutyAndMeetingsPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const screens = Grid.useBreakpoint();
+  const isMobile = !screens.md;
   const [me, setMe] = useState<{ id: string; role: string } | null>(null);
   const [assignments, setAssignments] = useState<As[]>([]);
   const [userOpts, setUserOpts] = useState<{ value: string; label: string }[]>([]);
@@ -225,6 +228,7 @@ function DutyAndMeetingsPageInner() {
                 children: (
                   <DutyGrid
                     byCell={byCell}
+                    isMobile={isMobile}
                     isMgr={!!isMgr}
                     viewerRole={(me?.role ?? "MEMBER") as "ADMIN" | "MINISTER" | "MEMBER"}
                     onAdd={(w, p) => {
@@ -499,23 +503,139 @@ export default function DutyAndMeetingsPage() {
 
 function DutyGrid({
   byCell,
+  isMobile,
   isMgr,
   viewerRole,
   onAdd,
   onRemove,
 }: {
   byCell: Map<string, As[]>;
+  isMobile: boolean;
   isMgr: boolean;
   viewerRole: "ADMIN" | "MINISTER" | "MEMBER";
   onAdd: (w: number, p: number) => void;
   onRemove: (id: string) => void;
 }) {
+  const [weekday, setWeekday] = useState(0);
+
+  if (isMobile) {
+    return (
+      <div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+          <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+            选择星期：
+          </Typography.Text>
+          <Select
+            size="middle"
+            value={weekday}
+            onChange={(v) => setWeekday(v)}
+            options={WEEKDAYS.map((d, i) => ({ value: i, label: d }))}
+            style={{ width: 140 }}
+          />
+          <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+            仅展示一天，避免横向滑动卡顿
+          </Typography.Text>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {PERIODS.map((pLabel, p) => {
+            const k = `${weekday}-${p}`;
+            const list = byCell.get(k) ?? [];
+            return (
+              <div
+                key={pLabel}
+                style={{
+                  border: "1px solid #e8e8e8",
+                  borderRadius: 10,
+                  background: "#fff",
+                  overflow: "hidden",
+                }}
+              >
+                <div
+                  style={{
+                    padding: "8px 10px",
+                    background: "#e6f4ff",
+                    borderBottom: "1px solid #e8e8e8",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 8,
+                  }}
+                >
+                  <Typography.Text strong style={{ fontSize: 13 }}>
+                    {pLabel}
+                  </Typography.Text>
+                  {isMgr ? (
+                    <Button size="small" type="dashed" onClick={() => onAdd(weekday, p)} icon={<PlusOutlined />}>
+                      加人
+                    </Button>
+                  ) : null}
+                </div>
+
+                <div style={{ padding: 10 }}>
+                  {list.length === 0 ? (
+                    <Typography.Text type="secondary">暂无安排</Typography.Text>
+                  ) : (
+                    <Space direction="vertical" size={8} style={{ width: "100%" }}>
+                      {list.map((a) => (
+                        <div
+                          key={a.id}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 8,
+                            minWidth: 0,
+                          }}
+                        >
+                          <AdminProfilePeekAvatar
+                            viewerRole={viewerRole}
+                            targetUserId={a.user.id}
+                            size={22}
+                            src={a.user.avatarUrl}
+                            displayName={a.user.displayName}
+                          />
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <div
+                              style={{
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                                fontSize: 13,
+                                lineHeight: 1.25,
+                              }}
+                            >
+                              {a.user.displayName}
+                              {a.deptLabel ? <span style={{ color: "#888" }}>（{a.deptLabel}）</span> : null}
+                            </div>
+                          </div>
+                          {isMgr ? (
+                            <Button
+                              type="text"
+                              danger
+                              size="small"
+                              icon={<DeleteOutlined />}
+                              onClick={() => onRemove(a.id)}
+                            />
+                          ) : null}
+                        </div>
+                      ))}
+                    </Space>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div style={{ overflow: "auto" }}>
+    <div style={{ overflowX: "auto", overflowY: "hidden", WebkitOverflowScrolling: "touch" }}>
       <table
         style={{
           borderCollapse: "collapse",
-          minWidth: 600,
+          minWidth: 560,
           background: "#fff",
         }}
       >
@@ -525,7 +645,7 @@ function DutyGrid({
               style={{
                 border: "1px solid #e8e8e8",
                 background: "#e6f4ff",
-                minWidth: 64,
+                minWidth: 70,
                 padding: 6,
                 fontSize: 12,
               }}
@@ -536,7 +656,7 @@ function DutyGrid({
                 style={{
                   border: "1px solid #e8e8e8",
                   background: "#e6f4ff",
-                  minWidth: 100,
+                  minWidth: 92,
                   padding: 6,
                   fontSize: 12,
                 }}
@@ -553,7 +673,7 @@ function DutyGrid({
                 style={{
                   border: "1px solid #e8e8e8",
                   background: "#e6f4ff",
-                  padding: 4,
+                  padding: 6,
                   fontSize: 12,
                   textAlign: "left",
                 }}
@@ -566,7 +686,7 @@ function DutyGrid({
                 return (
                   <td
                     key={k}
-                    style={{ border: "1px solid #e8e8e8", verticalAlign: "top", padding: 4, minHeight: 72, width: 100 }}
+                    style={{ border: "1px solid #e8e8e8", verticalAlign: "top", padding: 6, minHeight: 70, width: 92 }}
                   >
                     <Space orientation="vertical" size={4} style={{ width: "100%" }}>
                       {list.map((a) => (
