@@ -187,9 +187,10 @@ export default function AnnouncementDetailClient({ id }: { id: string }) {
         </Card>
       )}
 
-      {ann && isMgr && (
+      {ann ? (
         <Card title="管理" size="small">
           <Space direction="vertical" size={12} style={{ width: "100%" }}>
+            {!isMgr ? <Typography.Text type="secondary">仅部长/管理员可见</Typography.Text> : null}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
               <div>
                 <Typography.Text strong>每日首次进入弹窗</Typography.Text>
@@ -199,6 +200,7 @@ export default function AnnouncementDetailClient({ id }: { id: string }) {
               </div>
               <Switch
                 checked={ann.popupEnabled}
+                disabled={!isMgr}
                 onChange={(checked) => void savePopupSetting(checked, checked ? Math.max(1, ann.popupDays || 1) : 0)}
               />
             </div>
@@ -209,6 +211,7 @@ export default function AnnouncementDetailClient({ id }: { id: string }) {
                   min={1}
                   max={365}
                   value={ann.popupDays || 1}
+                  disabled={!isMgr}
                   onChange={(v) => void savePopupSetting(true, typeof v === "number" ? v : 1)}
                 />
               </div>
@@ -228,9 +231,11 @@ export default function AnnouncementDetailClient({ id }: { id: string }) {
                   fileList={imgFileList}
                   onChange={(info) => setImgFileList(info.fileList)}
                   showUploadList={false}
-                  disabled={imgUploading}
+                  disabled={imgUploading || !isMgr}
                 >
-                  <Button loading={imgUploading}>上传图片</Button>
+                  <Button loading={imgUploading} disabled={!isMgr}>
+                    上传图片
+                  </Button>
                 </Upload>
               </div>
             </div>
@@ -245,6 +250,7 @@ export default function AnnouncementDetailClient({ id }: { id: string }) {
                 </div>
               </div>
               <Button
+                disabled={!isMgr}
                 onClick={() => {
                   setReadsOpen(true);
                   void loadReads();
@@ -255,7 +261,7 @@ export default function AnnouncementDetailClient({ id }: { id: string }) {
             </div>
           </Space>
         </Card>
-      )}
+      ) : null}
 
       <Modal
         title="已读名单"

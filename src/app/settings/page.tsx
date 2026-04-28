@@ -30,6 +30,7 @@ export default function SettingsPage() {
 
   const [themeMode, setThemeMode] = useState<ThemeMode>("system");
   const [bgValue, setBgValue] = useState<string>("");
+  const [buildId, setBuildId] = useState<string>("");
 
   const loadMe = useCallback(async () => {
     setLoadingMe(true);
@@ -57,6 +58,13 @@ export default function SettingsPage() {
     try {
       const v = window.localStorage.getItem("sxl-theme-mode");
       if (v === "light" || v === "dark" || v === "system") setThemeMode(v);
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    try {
+      const id = (window as any).__NEXT_DATA__?.buildId;
+      if (id) setBuildId(String(id));
     } catch {}
   }, []);
 
@@ -241,6 +249,15 @@ export default function SettingsPage() {
                   <Radio.Button value="dark">{themeLabel("dark")}</Radio.Button>
                 </Radio.Group>
               </div>
+            </div>
+
+            <div style={{ height: 1, background: "var(--ant-color-split, #f0f0f0)" }} />
+
+            <div>
+              <Typography.Text strong>版本</Typography.Text>
+              <Typography.Paragraph type="secondary" style={{ marginBottom: 0 }}>
+                {buildId ? `buildId：${buildId}` : "buildId：加载中…"}
+              </Typography.Paragraph>
             </div>
 
             <div style={{ height: 1, background: "var(--ant-color-split, #f0f0f0)" }} />
