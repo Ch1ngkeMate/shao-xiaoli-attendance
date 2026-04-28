@@ -11,7 +11,7 @@ import {
   UploadOutlined,
   UserOutlined,
 } from "@ant-design/icons";
-import { Avatar, Badge, Button, Drawer, Layout, Menu, Space, Typography, theme } from "antd";
+import { Avatar, Badge, Button, Drawer, Layout, Menu, Modal, Space, Typography, theme } from "antd";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -40,6 +40,8 @@ export default function AppShell({ title, initialMe, children }: Props) {
   const [unreadMsg, setUnreadMsg] = useState(0);
   const [isMobileNav, setIsMobileNav] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [popupOpen, setPopupOpen] = useState(false);
+  const [popupAnn, setPopupAnn] = useState<null | { id: string; title: string; body: string; images: { id: string; url: string }[] }>(null);
 
   const canManage = me?.role === "ADMIN" || me?.role === "MINISTER";
 
@@ -171,6 +173,33 @@ export default function AppShell({ title, initialMe, children }: Props) {
       cancelled = true;
     };
   }, [router]);
+
+  // 每日首次进入：尝试弹出公告（站内）
+  useEffect(() => {
+    const dayKey = (() => {
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const dd = String(d.getDate()).padStart(2, "0");
+      return `${y}-${m}-${dd}`;
+    })();
+    const k = "sxl-ann-popup-day";
+    try {
+      const last = window.localStorage.getItem(k);
+      if (last === dayKey) return;
+      window.localStorage.setItem(k, dayKey);
+    } catch {
+      // localStorage 不可用也不阻断
+    }
+    fetch("/api/announcements/popup", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!d?.announcement) return;
+        setPopupAnn(d.announcement);
+        setPopupOpen(true);
+      })
+      .catch(() => {});
+  }, []);
 
   // 个人主页修改头像/密码后刷新顶栏
   useEffect(() => {
@@ -317,6 +346,38 @@ export default function AppShell({ title, initialMe, children }: Props) {
           style={{ borderRight: 0 }}
         />
       </Drawer>
+
+      <Modal
+        title={popupAnn?.title ?? "通知"}
+        open={popupOpen}
+        onCancel={() => setPopupOpen(false)}
+        okText="查看详情"
+        cancelText="我知道了"
+        onOk={() => {
+          if (!popupAnn?.id) return setPopupOpen(false);
+          setPopupOpen(false);
+          router.push(`/announcements/${encodeURIComponent(popupAnn.id)}`);
+        }}
+      >
+        {popupAnn ? (
+          <div>
+            <div style={{ whiteSpace: "pre-wrap" }}>{popupAnn.body}</div>
+            {popupAnn.images?.length ? (
+              <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {popupAnn.images.slice(0, 6).map((img) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    key={img.id}
+                    src={img.url}
+                    alt="通知图片"
+                    style={{ width: 96, height: 96, objectFit: "cover", borderRadius: 8 }}
+                  />
+                ))}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+      </Modal>
     </Layout>
   );
 }

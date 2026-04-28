@@ -57,6 +57,8 @@ model User {
   inAppMessages          InAppMessage[]
   attendanceAdjusts      AttendanceAdjust[]
   meetingAbsencesRecorded Meeting[]         @relation("MeetingRecorder")
+  announcementsCreated   Announcement[]
+  announcementPopupsShown AnnouncementPopupShown[]
 }
 
 // --- 值班表：周一=0..周五=4，第一节=0..第五节=4，每个格子可安排多人 ---
@@ -145,6 +147,61 @@ model LeaveRequest {
   @@index([status])
 }
 
+model Announcement {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  title String
+  body  String @db.Text
+
+  /** 是否在用户每日首次进入首页时弹窗展示 */
+  popupEnabled Boolean @default(false)
+  /** 弹窗持续天数（从创建日算起）；<=0 表示不弹 */
+  popupDays    Int     @default(0)
+
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  images   AnnouncementImage[]
+  messages InAppMessage[]
+  popupShown AnnouncementPopupShown[]
+
+  @@index([createdAt])
+  @@index([popupEnabled, createdAt])
+}
+
+model AnnouncementImage {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  announcementId String
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+
+  url  String
+  sort Int @default(0)
+
+  @@index([announcementId, sort])
+}
+
+/** 记录“某用户某天是否已弹过某公告”（每日首次进入时幂等） */
+model AnnouncementPopupShown {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  announcementId String
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /** YYYY-MM-DD */
+  day String
+
+  @@unique([announcementId, userId, day])
+  @@index([userId, day])
+}
+
 model InAppMessage {
   id         String   @id @default(cuid())
   createdAt  DateTime @default(now())
@@ -154,6 +211,9 @@ model InAppMessage {
   title      String
   body       String @db.Text
   read       Boolean  @default(false)
+  /** 公告类消息：指向公告详情页，用于聚合已读统计/图片展示 */
+  announcementId String?
+  announcement   Announcement? @relation(fields: [announcementId], references: [id], onDelete: SetNull)
   leaveId    String?
   leave      LeaveRequest? @relation(fields: [leaveId], references: [id], onDelete: SetNull)
   /// 会议类消息跳转用（新会议通知、旷会提醒等）
@@ -165,6 +225,7 @@ model InAppMessage {
 
   @@index([toUserId, read])
   @@index([createdAt])
+  @@index([announcementId])
   @@index([meetingId])
   @@index([taskId])
 }

@@ -6,6 +6,8 @@ import { prisma } from "@/lib/prisma";
 const Body = z.object({
   title: z.string().min(1, "请填写标题").max(200),
   body: z.string().min(1, "请填写正文").max(8000),
+  popupEnabled: z.boolean().optional(),
+  popupDays: z.number().int().min(0).max(365).optional(),
 });
 
 /** 部长/管理员向全体在册用户发布站内公告（每人一条 InAppMessage，未读在侧栏显示红点） */
@@ -21,7 +23,7 @@ export async function POST(req: Request) {
   if (!parsed.success) {
     return NextResponse.json({ message: "标题与正文需填写（标题≤200 字、正文≤8000 字）" }, { status: 400 });
   }
-  const { title, body: text } = parsed.data;
+  const { title, body: text, popupEnabled, popupDays } = parsed.data;
 
   const users = await prisma.user.findMany({
     where: { isActive: true },
@@ -40,6 +42,25 @@ export async function POST(req: Request) {
     );
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const Ann = (prisma as { announcement?: { create: (a: any) => Promise<{ id: string }> } }).announcement;
+  if (!Ann?.create) {
+    return NextResponse.json(
+      { message: "服务未就绪：请在部署机执行 prisma migrate deploy + prisma generate" },
+      { status: 503 },
+    );
+  }
+
+  const ann = await Ann.create({
+    data: {
+      title,
+      body: text,
+      popupEnabled: popupEnabled ?? false,
+      popupDays: popupEnabled ? (popupDays ?? 0) : 0,
+      createdById: session.sub,
+    },
+  });
+
   const { count } = await m.createMany({
     data: users.map((u) => ({
       toUserId: u.id,
@@ -47,8 +68,9 @@ export async function POST(req: Request) {
       title,
       body: text,
       read: false,
+      announcementId: ann.id,
     })),
   });
 
-  return NextResponse.json({ ok: true, created: count });
+  return NextResponse.json({ ok: true, created: count, announcementId: ann.id });
 }

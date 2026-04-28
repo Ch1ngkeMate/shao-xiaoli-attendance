@@ -17,6 +17,7 @@ type Msg = {
   body: string;
   read: boolean;
   createdAt: string;
+  announcementId?: string | null;
   leaveId?: string | null;
   meetingId?: string | null;
   taskId?: string | null;
@@ -24,6 +25,9 @@ type Msg = {
 
 /** 点击消息后跳转的处理页（无则不可点） */
 function messageTargetHref(m: Msg): string | null {
+  if (m.type === "ANNOUNCEMENT") {
+    return m.announcementId ? `/announcements/${encodeURIComponent(m.announcementId)}` : null;
+  }
   if (m.type === "LEAVE_APPLY" && m.leaveId) {
     return `/duty-and-meetings?tab=leave&leaveId=${encodeURIComponent(m.leaveId)}`;
   }

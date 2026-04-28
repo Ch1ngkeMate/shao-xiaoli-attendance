@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { batchAllClaimantsSubmittedAndApproved } from "@/lib/task-all-claimants-state";
 import { readSessionCookie } from "@/lib/auth";
 import { isTaskFullForClaim } from "@/lib/slot-claim-availability";
+import { getTaskClaimVisibility } from "@/lib/task-availability";
 
 const CreateTaskSchema = z
   .object({
@@ -57,17 +58,39 @@ const taskIncludeWithoutSlots = {
   images: { orderBy: { sort: "asc" } as const },
 } as const;
 
-export async function GET() {
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const q = url.searchParams.get("q")?.trim() ?? "";
+  const ended = url.searchParams.get("ended"); // true/false
+  const sort = url.searchParams.get("sort"); // createdDesc | endTimeAsc
+  const status = url.searchParams.get("status"); // OPEN | CLOSED
+  const visibility = url.searchParams.get("visibility"); // CLAIMABLE | FULL | PENDING | ENDED
+
+  const where: any = {};
+  if (q) {
+    where.title = { contains: q };
+  }
+  if (status === "OPEN" || status === "CLOSED") {
+    where.status = status;
+  }
+  if (ended === "true") {
+    where.endTime = { lt: new Date() };
+  } else if (ended === "false") {
+    where.endTime = { gt: new Date() };
+  }
+
   let tasks: Awaited<ReturnType<typeof prisma.task.findMany>>;
   try {
     tasks = await prisma.task.findMany({
-      orderBy: { createdAt: "desc" },
+      where,
+      orderBy: sort === "endTimeAsc" ? ({ endTime: "asc" } as const) : ({ createdAt: "desc" } as const),
       include: taskIncludeWithSlots,
       take: 200,
     });
   } catch {
     tasks = await prisma.task.findMany({
-      orderBy: { createdAt: "desc" },
+      where,
+      orderBy: sort === "endTimeAsc" ? ({ endTime: "asc" } as const) : ({ createdAt: "desc" } as const),
       include: taskIncludeWithoutSlots,
       take: 200,
     });
@@ -134,7 +157,26 @@ export async function GET() {
       slotsOrTaskFull: full,
     };
   });
-  return NextResponse.json({ tasks: tasksWithCount });
+
+  const filteredByVisibility =
+    visibility === "CLAIMABLE" || visibility === "FULL" || visibility === "PENDING" || visibility === "ENDED"
+      ? tasksWithCount.filter((t) => {
+          const v = getTaskClaimVisibility({
+            status: t.status,
+            endTime: t.endTime,
+            headcountHint: t.headcountHint,
+            claimedCount: t.claimedCount ?? 0,
+            allClaimantsApproved: t.allClaimantsApproved,
+            slotsOrTaskFull: t.slotsOrTaskFull,
+          }).text;
+          if (visibility === "CLAIMABLE") return v === "可接取";
+          if (visibility === "FULL") return v === "名额已满";
+          if (visibility === "PENDING") return v === "待处理";
+          return v === "已结束";
+        })
+      : tasksWithCount;
+
+  return NextResponse.json({ tasks: filteredByVisibility });
 }
 
 export async function POST(req: Request) {
