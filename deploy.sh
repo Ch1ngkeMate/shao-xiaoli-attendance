@@ -15,6 +15,16 @@ NODE_HEAP_MB="${NODE_HEAP_MB:-4096}"
 
 cd "$APP_DIR"
 
+echo "== 0) 环境自检 =="
+command -v node >/dev/null && node -v || true
+command -v npm >/dev/null && npm -v || true
+free -m || true
+df -h . || true
+swapon --show || true
+
+# npm / prisma / next 都跑在 node 上，提前设置能减少“npm ci 被 kill”的概率
+export NODE_OPTIONS="--max-old-space-size=${NODE_HEAP_MB}"
+
 echo "== 1) git pull（要求工作区干净） =="
 if [ -n "$(git status --porcelain)" ]; then
   echo "工作区有改动，先 stash -u"
@@ -24,9 +34,10 @@ git pull
 
 echo "== 2) 安装依赖（可复现） =="
 if [ -f package-lock.json ]; then
-  npm ci
+  # 关闭审计/进度条，减少额外开销
+  npm ci --no-audit --fund=false --progress=false
 else
-  npm i
+  npm i --no-audit --fund=false --progress=false
 fi
 
 echo "== 3) Prisma（必须） =="
@@ -34,7 +45,6 @@ npx prisma migrate deploy
 npx prisma generate
 
 echo "== 4) 构建 =="
-export NODE_OPTIONS="--max-old-space-size=${NODE_HEAP_MB}"
 npm run build
 
 echo "== 5) 重启 PM2 =="
