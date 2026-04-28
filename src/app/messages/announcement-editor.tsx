@@ -1,12 +1,18 @@
 "use client";
 
-import { Button, Card, Form, Input, InputNumber, Space, Switch, Typography, message } from "antd";
-import { useState } from "react";
+import { Button, Card, Form, Input, InputNumber, Space, Switch, Typography, Upload, message } from "antd";
+import type { UploadFile, UploadProps } from "antd";
+import { useMemo, useState } from "react";
 
 /** 仅在 mount 时创建 useForm，避免「无 Form 连接」警告（父级条件渲染时） */
 export function AnnouncementEditor() {
   const [form] = Form.useForm<{ title: string; body: string; popupEnabled: boolean; popupDays: number }>();
   const [publishing, setPublishing] = useState(false);
+  const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const uploadedUrls = useMemo(
+    () => fileList.map((f) => String((f.response as { url?: string } | undefined)?.url ?? f.url ?? "")).filter(Boolean),
+    [fileList],
+  );
 
   async function onPublish() {
     try {
@@ -22,13 +28,39 @@ export function AnnouncementEditor() {
           popupDays: v.popupEnabled ? Math.max(1, Number(v.popupDays || 1)) : 0,
         }),
       });
-      const data = (await res.json().catch(() => ({}))) as { message?: string; created?: number };
+      const data = (await res.json().catch(() => ({}))) as {
+        message?: string;
+        created?: number;
+        announcementId?: string;
+      };
       if (!res.ok) {
         message.error(data.message || "发布失败");
         return;
       }
+      const annId = String(data.announcementId ?? "").trim();
+      if (annId && uploadedUrls.length > 0) {
+        const results = await Promise.allSettled(
+          uploadedUrls.map((url) =>
+            fetch(`/api/announcements/${encodeURIComponent(annId)}/images`, {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ url }),
+            }).then(async (r) => {
+              if (!r.ok) {
+                const j = (await r.json().catch(() => ({}))) as { message?: string };
+                throw new Error(j.message || "绑定图片失败");
+              }
+            }),
+          ),
+        );
+        const failed = results.filter((r) => r.status === "rejected").length;
+        if (failed > 0) {
+          message.warning(`公告已发布，但有 ${failed} 张图片绑定失败（可到公告详情页继续上传）`);
+        }
+      }
       message.success(`已发送，共 ${data.created ?? 0} 人收到`);
       form.resetFields();
+      setFileList([]);
       if (typeof window !== "undefined") {
         window.dispatchEvent(new Event("sxl-messages-updated"));
         window.dispatchEvent(new Event("sxl-announcement-sent"));
@@ -39,6 +71,30 @@ export function AnnouncementEditor() {
       setPublishing(false);
     }
   }
+
+  const uploadProps: UploadProps = {
+    accept: "image/*",
+    multiple: true,
+    listType: "picture-card",
+    fileList,
+    disabled: publishing,
+    onChange: (info) => setFileList(info.fileList),
+    customRequest: async (options) => {
+      const file = options.file as File;
+      const formData = new FormData();
+      formData.append("file", file);
+      try {
+        const res = await fetch("/api/upload", { method: "POST", body: formData });
+        const data = (await res.json().catch(() => ({}))) as { url?: string; message?: string };
+        if (!res.ok || !data.url) {
+          throw new Error(data.message || "上传失败");
+        }
+        options.onSuccess?.({ url: data.url }, file as unknown as XMLHttpRequest);
+      } catch (e) {
+        options.onError?.(e as Error);
+      }
+    },
+  };
 
   return (
     <Card size="small" title="发布公告">
@@ -58,6 +114,14 @@ export function AnnouncementEditor() {
           style={{ marginBottom: 12 }}
         >
           <Input.TextArea rows={4} maxLength={8000} showCount placeholder="向全体在册用户广播；每人一条站内消息" />
+        </Form.Item>
+
+        <Form.Item label="图片（可选）" style={{ marginBottom: 12 }}>
+          <Upload {...uploadProps}>
+            <div style={{ padding: "4px 8px" }}>
+              <div style={{ fontSize: 12, color: "#666" }}>上传图片</div>
+            </div>
+          </Upload>
         </Form.Item>
 
         <Card size="small" type="inner" title="弹窗设置（可选）" style={{ marginBottom: 12 }}>
