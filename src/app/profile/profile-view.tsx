@@ -12,6 +12,7 @@ import {
   Typography,
   Upload,
   message,
+  theme,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { UserOutlined } from "@ant-design/icons";
@@ -85,6 +86,7 @@ export default function ProfileView(props: Props) {
   const [avatarUploading, setAvatarUploading] = useState(false);
   const screens = Grid.useBreakpoint();
   const isMobile = !screens.md;
+  const { token } = theme.useToken();
 
   const summaryColumns: ColumnsType<AttendanceRow> = useMemo(
     () => [
@@ -119,28 +121,31 @@ export default function ProfileView(props: Props) {
   }
 
   const inactivePeek = mode === "peek" && displayUser && displayUser.isActive === false;
+  const hasCover = Boolean(displayUser && coverBgUrl);
 
   return (
     <Space orientation="vertical" size={16} style={{ width: "100%" }}>
-      {displayUser && coverBgUrl ? (
+      {displayUser ? (
         <div
           style={{
             position: "relative",
             height: isMobile ? 220 : 260,
             borderRadius: 14,
             overflow: "hidden",
-            border: "1px solid var(--ant-color-border, #f0f0f0)",
-            background: `center / cover no-repeat url(${coverBgUrl})`,
+            border: `1px solid ${token.colorBorder}`,
+            background: hasCover ? `center / cover no-repeat url(${coverBgUrl})` : "transparent",
           }}
         >
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              background:
-                "linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.45) 65%, rgba(0,0,0,0.62))",
-            }}
-          />
+          {hasCover ? (
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background:
+                  "linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.45) 65%, rgba(0,0,0,0.62))",
+              }}
+            />
+          ) : null}
           <div style={{ position: "absolute", left: 14, right: 14, bottom: 14 }}>
             <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 12 }}>
               <div style={{ display: "flex", alignItems: "flex-end", gap: 12, minWidth: 0 }}>
@@ -149,18 +154,22 @@ export default function ProfileView(props: Props) {
                   size={isMobile ? 72 : 88}
                   src={displayUser.avatarUrl || undefined}
                   icon={<UserOutlined />}
-                  style={{ border: "2px solid rgba(255,255,255,0.9)", flex: "0 0 auto" }}
+                  style={{
+                    border: hasCover ? "2px solid rgba(255,255,255,0.9)" : `2px solid ${token.colorBorder}`,
+                    flex: "0 0 auto",
+                    background: hasCover ? undefined : token.colorFillAlter,
+                  }}
                 >
                   {!displayUser.avatarUrl ? displayUser.displayName.slice(0, 1) : null}
                 </Avatar>
                 <div style={{ minWidth: 0 }}>
                   <div
                     style={{
-                      color: "rgba(255,255,255,0.96)",
+                      color: hasCover ? "rgba(255,255,255,0.96)" : token.colorText,
                       fontWeight: 700,
                       fontSize: isMobile ? 18 : 22,
                       lineHeight: 1.2,
-                      textShadow: "0 2px 10px rgba(0,0,0,0.35)",
+                      textShadow: hasCover ? "0 2px 10px rgba(0,0,0,0.35)" : undefined,
                       overflow: "hidden",
                       textOverflow: "ellipsis",
                       whiteSpace: "nowrap",
@@ -172,9 +181,9 @@ export default function ProfileView(props: Props) {
                   <div
                     style={{
                       marginTop: 4,
-                      color: "rgba(255,255,255,0.85)",
+                      color: hasCover ? "rgba(255,255,255,0.85)" : token.colorTextSecondary,
                       fontSize: 12,
-                      textShadow: "0 2px 10px rgba(0,0,0,0.35)",
+                      textShadow: hasCover ? "0 2px 10px rgba(0,0,0,0.35)" : undefined,
                       overflow: "hidden",
                       textOverflow: "ellipsis",
                       whiteSpace: "nowrap",
@@ -211,7 +220,9 @@ export default function ProfileView(props: Props) {
                       }
                     }}
                   >
-                    <Button loading={avatarUploading}>更换头像</Button>
+                    <Button loading={avatarUploading} style={hasCover ? undefined : { background: token.colorBgContainer }}>
+                      更换头像
+                    </Button>
                   </Upload>
                 </ImgCrop>
               ) : null}
