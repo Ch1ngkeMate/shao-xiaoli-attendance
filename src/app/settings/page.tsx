@@ -4,6 +4,7 @@ import AppShell from "@/components/AppShell";
 import { Button, Card, Form, Input, Radio, Space, Typography, Upload, message } from "antd";
 import type { UploadProps } from "antd";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import ImgCrop from "antd-img-crop";
 
 type Role = "ADMIN" | "MINISTER" | "MEMBER";
 type Me = { id: string; username: string; displayName: string; role: Role; profileBgUrl?: string | null } | null;
@@ -250,11 +251,13 @@ export default function SettingsPage() {
                 对当前账号生效（跨设备同步）。
               </Typography.Paragraph>
               <Space wrap size={12}>
-                <Upload {...bgUploadProps}>
-                  <Button loading={bgUploading} disabled={!me}>
-                    上传背景图片
-                  </Button>
-                </Upload>
+                <ImgCrop aspect={16 / 9} rotationSlider showReset showGrid modalTitle="裁切背景图">
+                  <Upload {...bgUploadProps}>
+                    <Button loading={bgUploading} disabled={!me}>
+                      上传背景图片
+                    </Button>
+                  </Upload>
+                </ImgCrop>
                 <Button
                   disabled={!me || !bgValue}
                   onClick={async () => {

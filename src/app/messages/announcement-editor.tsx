@@ -142,16 +142,25 @@ export function AnnouncementEditor() {
             <Form.Item noStyle shouldUpdate={(prev, cur) => prev.popupEnabled !== cur.popupEnabled}>
               {({ getFieldValue }) => {
                 const enabled = !!getFieldValue("popupEnabled");
-                return (
+                // 不用 disabled，避免悬浮出现“禁用”提示；关闭时用只读展示
+                return enabled ? (
                   <Form.Item
                     name="popupDays"
                     label="弹窗持续天数"
-                    rules={enabled ? [{ required: true, message: "请填写持续天数" }] : []}
+                    rules={[{ required: true, message: "请填写持续天数" }]}
                     style={{ marginBottom: 0 }}
-                    extra={!enabled ? "先开启上面的开关，再设置持续天数" : undefined}
                   >
-                    <InputNumber min={1} max={365} style={{ width: 160 }} disabled={!enabled} />
+                    <InputNumber min={1} max={365} style={{ width: 160 }} />
                   </Form.Item>
+                ) : (
+                  <div>
+                    <Typography.Text strong>弹窗持续天数</Typography.Text>
+                    <div style={{ marginTop: 6, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                      <Typography.Text type="secondary">当前：</Typography.Text>
+                      <Typography.Text>{Math.max(1, Number(getFieldValue("popupDays") || 3))} 天</Typography.Text>
+                      <Typography.Text type="secondary">（开启上面的开关后可修改）</Typography.Text>
+                    </div>
+                  </div>
                 );
               }}
             </Form.Item>

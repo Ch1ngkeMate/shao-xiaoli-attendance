@@ -53,6 +53,7 @@ export async function GET(_req: Request, ctx: { params: Promise<Params> }) {
   }
 
   return NextResponse.json({
+    meRole: session.role,
     announcement: {
       id: a.id,
       title: a.title,

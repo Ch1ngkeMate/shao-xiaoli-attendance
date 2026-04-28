@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Card, Divider, Image, InputNumber, Modal, Space, Switch, Typography, Upload, message } from "antd";
+import { Button, Card, Divider, Image, InputNumber, Modal, Space, Switch, Typography, Upload, message, theme } from "antd";
 import type { UploadFile } from "antd";
 import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from "react";
@@ -20,6 +20,7 @@ type ReadUser = { id: string; displayName: string; username: string; avatarUrl: 
 
 export default function AnnouncementDetailClient({ id }: { id: string }) {
   const router = useRouter();
+  const { token } = theme.useToken();
   const [loading, setLoading] = useState(true);
   const [ann, setAnn] = useState<Ann | null>(null);
   const [meRole, setMeRole] = useState<string | null>(null);
@@ -32,17 +33,14 @@ export default function AnnouncementDetailClient({ id }: { id: string }) {
   async function load() {
     setLoading(true);
     try {
-      const meRes = await fetch("/api/me", { cache: "no-store" });
-      const me = (await meRes.json().catch(() => ({}))) as any;
-      if (meRes.ok && me.user?.role) setMeRole(me.user.role);
-
       const res = await fetch(`/api/announcements/${encodeURIComponent(id)}`, { cache: "no-store" });
-      const data = (await res.json().catch(() => ({}))) as { announcement?: Ann; message?: string };
+      const data = (await res.json().catch(() => ({}))) as { announcement?: Ann; meRole?: string; message?: string };
       if (!res.ok || !data.announcement) {
         message.error(data.message || "加载通知失败");
         setAnn(null);
         return;
       }
+      if (data.meRole) setMeRole(String(data.meRole));
       setAnn(data.announcement);
     } finally {
       setLoading(false);
@@ -190,7 +188,7 @@ export default function AnnouncementDetailClient({ id }: { id: string }) {
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
               <div>
                 <Typography.Text strong>每日首次进入弹窗</Typography.Text>
-                <div style={{ fontSize: 12, color: "#666", marginTop: 4 }}>
+                <div style={{ fontSize: 12, color: token.colorTextSecondary, marginTop: 4 }}>
                   仅站内弹窗；开启后会在公告创建日起持续 N 天尝试弹出（每人每天最多一次）。
                 </div>
               </div>
@@ -237,7 +235,7 @@ export default function AnnouncementDetailClient({ id }: { id: string }) {
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
               <div>
                 <Typography.Text strong>已读统计</Typography.Text>
-                <div style={{ fontSize: 12, color: "#666", marginTop: 4 }}>
+                <div style={{ fontSize: 12, color: token.colorTextSecondary, marginTop: 4 }}>
                   {readsSummary ?? "打开后加载"}
                 </div>
               </div>
@@ -270,7 +268,15 @@ export default function AnnouncementDetailClient({ id }: { id: string }) {
           </Typography.Text>
           <Divider style={{ margin: "8px 0" }} />
           <Typography.Text strong>已读</Typography.Text>
-          <div style={{ maxHeight: 220, overflow: "auto", border: "1px solid #f0f0f0", borderRadius: 8, padding: 8 }}>
+          <div
+            style={{
+              maxHeight: 220,
+              overflow: "auto",
+              border: `1px solid ${token.colorBorder}`,
+              borderRadius: 8,
+              padding: 8,
+            }}
+          >
             {readUsers.length === 0 ? (
               <Typography.Text type="secondary">无</Typography.Text>
             ) : (
@@ -284,7 +290,15 @@ export default function AnnouncementDetailClient({ id }: { id: string }) {
           <Typography.Text strong style={{ marginTop: 8 }}>
             未读
           </Typography.Text>
-          <div style={{ maxHeight: 220, overflow: "auto", border: "1px solid #f0f0f0", borderRadius: 8, padding: 8 }}>
+          <div
+            style={{
+              maxHeight: 220,
+              overflow: "auto",
+              border: `1px solid ${token.colorBorder}`,
+              borderRadius: 8,
+              padding: 8,
+            }}
+          >
             {unreadUsers.length === 0 ? (
               <Typography.Text type="secondary">无</Typography.Text>
             ) : (
