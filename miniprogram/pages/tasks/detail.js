@@ -21,8 +21,6 @@ Page({
     reviewSubmissionId: "",
     reviewResult: "APPROVED",
     reviewReason: "",
-
-    showRemoveSheet: false,
   },
 
   onLoad(options) {
@@ -65,7 +63,30 @@ Page({
     }
   },
 
-  // ========== 接取 ==========
+  // ========== 管理员移除接取 ==========
+  onRemoveTap(e) {
+    const userId = e.currentTarget.dataset.userId;
+    const that = this;
+    wx.showModal({
+      title: "移出接取人员",
+      content: "确定移除此人的接取记录吗？",
+      success(res) {
+        if (res.confirm) {
+          that.confirmRemove(userId);
+        }
+      },
+    });
+  },
+
+  async confirmRemove(userId) {
+    try {
+      await api.removeClaim(this.taskId, userId);
+      wx.showToast({ title: "已移出", icon: "success" });
+      this.loadDetail();
+    } catch (err) {
+      wx.showToast({ title: err.message || "操作失败", icon: "none" });
+    }
+  },
   async onClaim(e) {
     const timeSlotId = e.currentTarget.dataset.slotId || undefined;
     try {
@@ -74,21 +95,6 @@ Page({
       this.loadDetail();
     } catch (err) {
       wx.showToast({ title: err.message || "接取失败", icon: "none" });
-    }
-  },
-
-  onCancelClaimTap() {
-    this.setData({ showRemoveSheet: true });
-  },
-
-  async onCancelClaim() {
-    try {
-      await api.removeClaim(this.taskId);
-      wx.showToast({ title: "已取消接取", icon: "success" });
-      this.setData({ showRemoveSheet: false });
-      this.loadDetail();
-    } catch (err) {
-      wx.showToast({ title: err.message || "操作失败", icon: "none" });
     }
   },
 

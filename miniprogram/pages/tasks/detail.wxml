@@ -87,6 +87,7 @@
           <image wx:if="{{item.user.avatarUrl}}" src="{{item.user.avatarUrl}}" class="avatar-xs" mode="aspectFill" />
           <view wx:else class="avatar-xs avatar-placeholder-xs">👤</view>
           <text class="claimant-tag-name">{{item.user.displayName}}</text>
+          <text wx:if="{{isAdminOrMinister && task.status === 'OPEN'}}" class="remove-claimant" data-user-id="{{item.user.id}}" bindtap="onRemoveTap">✕</text>
         </view>
       </view>
     </view>
@@ -108,7 +109,6 @@
               </view>
             </view>
             <view wx:else class="hint">已接取任务</view>
-            <button class="btn-link" bindtap="onCancelClaimTap" data-claim-id="{{c.id}}">取消接取</button>
           </view>
           <button class="btn-primary mt-12" bindtap="onOpenSubmit" style="width:100%">提交完成凭证</button>
         </view>
@@ -194,17 +194,6 @@
     <view class="sheet-actions mt-24">
       <button class="btn-ghost" bindtap="onCloseCloseConfirm" style="flex:1">取消</button>
       <button class="btn-danger" bindtap="onConfirmClose" style="flex:2">确认</button>
-    </view>
-  </view>
-</view>
-
-<view wx:if="{{showRemoveSheet}}" class="sheet-overlay" bindtap="onCloseRemoveSheet">
-  <view class="sheet-content" catchtap="onSheetStop">
-    <view class="sheet-title">确认移除</view>
-    <view class="mt-16">确定要取消此接取吗？</view>
-    <view class="sheet-actions mt-24">
-      <button class="btn-ghost" bindtap="onCloseRemoveSheet" style="flex:1">取消</button>
-      <button class="btn-danger" bindtap="onCancelClaim" style="flex:2">确认</button>
     </view>
   </view>
 </view>
