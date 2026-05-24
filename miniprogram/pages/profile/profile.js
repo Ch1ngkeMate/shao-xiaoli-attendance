@@ -19,10 +19,31 @@ Page({
   onShow() {
     if (!getApp().checkLogin()) return;
     this.setData({
-      user: getApp().globalData.user,
       isAdminOrMinister: getApp().hasRole("ADMIN", "MINISTER"),
     });
+    this.loadUser();
     this.loadAttendance();
+  },
+
+  async loadUser() {
+    try {
+      const res = await api.getMe();
+      const base = getApp().globalData.apiBase;
+      const user = res.user || res;
+      // 补全相对路径图片
+      if (user.avatarUrl && !user.avatarUrl.startsWith('http')) {
+        user.avatarUrl = base + (user.avatarUrl.startsWith('/') ? '' : '/') + user.avatarUrl;
+      }
+      if (user.profileBgUrl && !user.profileBgUrl.startsWith('http')) {
+        user.profileBgUrl = base + (user.profileBgUrl.startsWith('/') ? '' : '/') + user.profileBgUrl;
+      }
+      getApp().globalData.user = user;
+      wx.setStorageSync('sxl_user', user);
+      this.setData({ user });
+    } catch (err) {
+      // 回退到缓存数据
+      this.setData({ user: getApp().globalData.user });
+    }
   },
 
   async loadAttendance() {
