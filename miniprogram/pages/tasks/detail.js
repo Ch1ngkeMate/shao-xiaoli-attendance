@@ -37,6 +37,7 @@ Page({
     try {
       const res = await api.getTaskDetail(this.taskId);
       const task = res.task;
+      const me = getApp().globalData.user;
       const base = getApp().globalData.apiBase;
 
       // 补全图片 URL
@@ -45,24 +46,18 @@ Page({
         return (!url.startsWith('http')) ? base + (url.startsWith('/')?'':'/') + url : url;
       };
       if (task.images) task.images.forEach((img) => { img.url = fixUrl(img.url); });
-      if (task.claimantsBySlot) task.claimantsBySlot.forEach((slot) => {
-        if (slot.claimants) slot.claimants.forEach((c) => { c.avatarUrl = fixUrl(c.avatarUrl); });
-      });
+      if (task.claims) task.claims.forEach((c) => { if (c.user) c.user.avatarUrl = fixUrl(c.user.avatarUrl); });
 
-      // 处理 submissionsForReview 头像
-      const sfr = (res.submissionsForReview || []).map((s) => {
-        if (s.user) s.user.avatarUrl = fixUrl(s.user.avatarUrl);
-        return s;
-      });
+      const hasClaimed = me && task.claims
+        ? task.claims.some((c) => c.user && c.user.id === me.id)
+        : false;
 
       this.setData({
         task,
         loading: false,
+        hasClaimed,
         isMEMBER: getApp().hasRole("MEMBER"),
         isAdminOrMinister: getApp().hasRole("ADMIN", "MINISTER"),
-        myClaimedSlotIds: res.myClaimedSlotIds || [],
-        mySubmission: res.mySubmission || null,
-        submissionsForReview: sfr,
       });
     } catch (err) {
       this.setData({ loading: false });

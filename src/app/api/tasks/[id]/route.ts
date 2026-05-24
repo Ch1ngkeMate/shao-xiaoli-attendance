@@ -14,7 +14,7 @@ export async function GET(_req: Request, ctx: { params: Promise<Params> }) {
       claims: {
         where: { status: "CLAIMED" },
         orderBy: { claimTime: "asc" },
-        include: { user: { select: { id: true, displayName: true, username: true } } },
+        include: { user: { select: { id: true, displayName: true, username: true, avatarUrl: true } } },
       },
     },
   });

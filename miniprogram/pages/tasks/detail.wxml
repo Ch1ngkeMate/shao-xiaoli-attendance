@@ -64,21 +64,29 @@
     </view>
   </view>
 
-  <!-- 已接取人员 — claimantsBySlot -->
+  <!-- 已接取人员 — task.claims -->
   <view class="card">
     <view class="card-title">已接取人员</view>
-    <view wx:if="{{task.claimantsBySlot && task.claimantsBySlot.length > 0}}">
-      <view wx:for="{{task.claimantsBySlot}}" wx:key="slotId" class="slot-claim-group">
-        <view class="slot-label">{{utils.formatTime(item.startTime)}} — {{utils.formatTime(item.endTime)}}</view>
-        <view class="claimant-tags">
-          <view wx:if="{{item.claimants && item.claimants.length > 0}}">
-            <view wx:for="{{item.claimants}}" wx:for-item="c" wx:key="id" class="claimant-tag">
-              <image wx:if="{{c.avatarUrl}}" src="{{c.avatarUrl}}" class="avatar-xs" mode="aspectFill" />
-              <view wx:else class="avatar-xs avatar-placeholder-xs">👤</view>
-              <text class="claimant-tag-name">{{c.displayName}}</text>
+    <view wx:if="{{task.claims && task.claims.length > 0}}">
+      <view wx:if="{{task.timeSlots && task.timeSlots.length > 0}}">
+        <view wx:for="{{task.timeSlots}}" wx:key="id" class="slot-claim-group">
+          <view class="slot-label">{{utils.formatTime(item.startTime)}} — {{utils.formatTime(item.endTime)}}</view>
+          <view class="claimant-tags">
+            <view wx:for="{{task.claims}}" wx:for-item="c" wx:key="id">
+              <view wx:if="{{c.timeSlotId === item.id}}" class="claimant-tag">
+                <image wx:if="{{c.user.avatarUrl}}" src="{{c.user.avatarUrl}}" class="avatar-xs" mode="aspectFill" />
+                <view wx:else class="avatar-xs avatar-placeholder-xs">👤</view>
+                <text class="claimant-tag-name">{{c.user.displayName}}</text>
+              </view>
             </view>
           </view>
-          <view wx:else class="hint">暂无</view>
+        </view>
+      </view>
+      <view wx:else class="claimant-tags">
+        <view wx:for="{{task.claims}}" wx:key="id" class="claimant-tag">
+          <image wx:if="{{item.user.avatarUrl}}" src="{{item.user.avatarUrl}}" class="avatar-xs" mode="aspectFill" />
+          <view wx:else class="avatar-xs avatar-placeholder-xs">👤</view>
+          <text class="claimant-tag-name">{{item.user.displayName}}</text>
         </view>
       </view>
     </view>
@@ -88,16 +96,21 @@
   <!-- 我的操作 -->
   <view wx:if="{{task.status === 'OPEN'}}" class="card">
     <view class="card-title">我的操作</view>
-    <view wx:if="{{myClaimedSlotIds && myClaimedSlotIds.length > 0}}">
-      <view wx:for="{{task.timeSlots}}" wx:key="id" wx:for-item="slot">
-        <view wx:for="{{myClaimedSlotIds}}" wx:for-item="sid" wx:key="*this">
-          <view wx:if="{{sid === slot.id}}">
-            <view class="flex-between claim-slot-row">
-              <view class="hint">已接时段: {{utils.formatTime(slot.startTime)}} — {{utils.formatTime(slot.endTime)}}</view>
-              <button class="btn-link" bindtap="onCancelClaimTap">取消接取</button>
+    <view wx:if="{{hasClaimed}}">
+      <view wx:for="{{task.claims}}" wx:for-item="c" wx:key="id">
+        <view wx:if="{{c.user.id === me.id}}">
+          <view class="flex-between claim-slot-row">
+            <view wx:if="{{c.timeSlotId && task.timeSlots}}">
+              <view wx:for="{{task.timeSlots}}" wx:for-item="slot" wx:key="id">
+                <view wx:if="{{slot.id === c.timeSlotId}}" class="hint">
+                  已接时段: {{utils.formatTime(slot.startTime)}} — {{utils.formatTime(slot.endTime)}}
+                </view>
+              </view>
             </view>
-            <button wx:if="{{!mySubmission}}" class="btn-primary mt-12" bindtap="onOpenSubmit" style="width:100%">提交完成凭证</button>
+            <view wx:else class="hint">已接取任务</view>
+            <button class="btn-link" bindtap="onCancelClaimTap" data-claim-id="{{c.id}}">取消接取</button>
           </view>
+          <button class="btn-primary mt-12" bindtap="onOpenSubmit" style="width:100%">提交完成凭证</button>
         </view>
       </view>
     </view>
