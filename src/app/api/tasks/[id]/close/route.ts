@@ -57,7 +57,22 @@ export async function POST(req: Request, ctx: { params: Promise<Params> }) {
       excludeFromAttendance: parsed.data.excludeFromAttendance,
     },
   });
+
   if (!parsed.data.excludeFromAttendance) {
+    // 收工：自动审核所有待审批的提交（视为已通过，计入考勤/积分）
+    const pendingSubmissions = await prisma.taskSubmission.findMany({
+      where: { taskId, review: null },
+      select: { id: true },
+    });
+    for (const sub of pendingSubmissions) {
+      await prisma.taskReview.create({
+        data: {
+          submissionId: sub.id,
+          result: "APPROVED",
+          reason: "收工自动确认",
+        },
+      });
+    }
     await notifyTaskCompletedToApprovedClaimants(taskId);
   }
   return NextResponse.json({ task: { id: updated.id, status: updated.status, excludeFromAttendance: updated.excludeFromAttendance } });
