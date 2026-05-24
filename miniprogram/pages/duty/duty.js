@@ -1,4 +1,5 @@
 const api = require("../../utils/api");
+const { formatTime, formatDate } = require("../../utils/format");
 
 const WEEKDAYS = ["周一", "周二", "周三", "周四", "周五"];
 const PERIODS = ["第1节", "第2节", "第3节", "第4节", "第5节"];
@@ -52,7 +53,6 @@ Page({
   noop() {},
 
   onShow() {
-    if (!getApp().checkLogin()) return;
     const app = getApp();
     const isAdminOrMinister = app.hasRole("ADMIN", "MINISTER");
     const tabs = isAdminOrMinister
@@ -83,6 +83,12 @@ Page({
       case 2: this.loadLeaves(); break;
       case 3: if (this.data.showStats) this.loadStats(); break;
     }
+  },
+
+  onPullDownRefresh() {
+    this.loadTab(this.data.activeTab);
+    // 各加载方法各自 setData loading 后停止下拉动画
+    setTimeout(() => wx.stopPullDownRefresh(), 2000);
   },
 
   // ===== 值班表 =====
@@ -325,21 +331,7 @@ Page({
     }
   },
 
-  formatTime(dateStr) {
-    if (!dateStr) return "";
-    const d = new Date(dateStr);
-    const m = (d.getMonth() + 1).toString().padStart(2, "0");
-    const day = d.getDate().toString().padStart(2, "0");
-    const h = d.getHours().toString().padStart(2, "0");
-    const min = d.getMinutes().toString().padStart(2, "0");
-    return `${m}-${day} ${h}:${min}`;
-  },
-
-  formatDate(dateStr) {
-    if (!dateStr) return "";
-    const d = new Date(dateStr);
-    return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
-  },
+  // formatTime / formatDate 从 utils/format.js 引用
 
   getLeaveStatus(status) {
     const map = { PENDING: "待审批", APPROVED: "已通过", REJECTED: "已驳回" };

@@ -177,6 +177,13 @@ Page({
           endTime: s.endTime,
           headcountHint: s.headcountHint || this.data.headcountHint,
         }));
+      } else {
+        // 未添加时间段时，自动用当前填写的时间作为单时段
+        const { tempSlotStartDate, tempSlotStartTime, tempSlotEndDate, tempSlotEndTime } = this.data;
+        if (tempSlotStartDate && tempSlotStartTime && tempSlotEndDate && tempSlotEndTime) {
+          body.startTime = `${tempSlotStartDate}T${tempSlotStartTime}:00`;
+          body.endTime = `${tempSlotEndDate}T${tempSlotEndTime}:00`;
+        }
       }
       if (this.data.imageUrls.length > 0) {
         body.imageUrls = this.data.imageUrls;

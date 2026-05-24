@@ -1,4 +1,5 @@
 const api = require("../../utils/api");
+const { fixUrl } = require("../../utils/format");
 
 Page({
   data: {
@@ -37,13 +38,8 @@ Page({
       const res = await api.getTaskDetail(this.taskId);
       const task = res.task;
       const me = getApp().globalData.user;
-      const base = getApp().globalData.apiBase;
 
       // 补全图片 URL
-      const fixUrl = (url) => {
-        if (!url) return url;
-        return (!url.startsWith('http')) ? base + (url.startsWith('/')?'':'/') + url : url;
-      };
       if (task.images) task.images.forEach((img) => { img.url = fixUrl(img.url); });
       task.imageUrls = (task.images || []).map((img) => img.url);
       if (task.claims) task.claims.forEach((c) => { if (c.user) c.user.avatarUrl = fixUrl(c.user.avatarUrl); });
@@ -67,14 +63,39 @@ Page({
         });
       }
 
+      // 消费 API 返回的计算字段
+      const mySubmission = res.mySubmission || null;
+      // 单独调接口取提交审核列表（不依赖 detail API 返回）
+      const submissionsForReview = [];
+      if (getApp().hasRole("ADMIN", "MINISTER")) {
+        try {
+          const subRes = await api.getTaskSubmissions(this.taskId);
+          submissionsForReview.push(...(subRes.submissions || []));
+        } catch { /* 忽略 */ }
+      }
+
+      // 补全 submissionsForReview 中的图片 URL
+      submissionsForReview.forEach((s) => {
+        if (s.evidenceImages) {
+          s.evidenceImages.forEach((img) => { img.url = fixUrl(img.url); });
+        }
+      });
+      // 补全 mySubmission 中的图片 URL
+      if (mySubmission && mySubmission.evidenceImages) {
+        mySubmission.evidenceImages.forEach((img) => { img.url = fixUrl(img.url); });
+      }
+
       this.setData({
         task,
         loading: false,
         hasClaimed,
-        myClaimedSlotIds,
+        myClaimedSlotIds: myClaimedSlotIds,
+        mySubmission,
+        submissionsForReview,
         allClaimantsApproved: res.allClaimantsApproved || false,
         slotsOrTaskFull: res.slotsOrTaskFull || false,
-        isTimeEnded: task.endTime ? new Date(task.endTime).getTime() < Date.now() : false,
+        canClaimMore: res.canClaimMore || false,
+        isTimeEnded: res.isTimeEnded || false,
         isMEMBER: getApp().hasRole("MEMBER"),
         isAdminOrMinister: getApp().hasRole("ADMIN", "MINISTER"),
       });
@@ -197,6 +218,12 @@ Page({
   onSheetStop() {},
 
   // ========== 图片预览 ==========
+  onPreviewEvidence(e) {
+    const url = e.currentTarget.dataset.url;
+    if (url) {
+      wx.previewImage({ current: url, urls: [url] });
+    }
+  },
   onPreviewImage(e) {
     const urls = this.data.task.imageUrls || [];
     const current = e.currentTarget.dataset.current || (urls[0] || '');

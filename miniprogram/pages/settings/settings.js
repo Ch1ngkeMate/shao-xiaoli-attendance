@@ -1,4 +1,5 @@
 const api = require("../../utils/api");
+const { fixUrl } = require("../../utils/format");
 
 Page({
   data: {
@@ -13,11 +14,9 @@ Page({
   onShow() {
     const user = getApp().globalData.user;
     if (user) {
-      const base = getApp().globalData.apiBase;
-      const fix = (u) => (u && !u.startsWith('http')) ? base + (u.startsWith('/')?'':'/') + u : u;
       this.setData({
         username: user.username || "",
-        bgPreviewUrl: fix(user.profileBgUrl) || "",
+        bgPreviewUrl: fixUrl(user.profileBgUrl) || "",
       });
     }
     // 获取版本号

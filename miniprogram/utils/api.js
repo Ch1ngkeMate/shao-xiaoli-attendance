@@ -75,6 +75,11 @@ function closeTask(taskId, excludeFromAttendance) {
 
 // ============ 审核 ============
 
+/** 取任务提交审核列表 */
+function getTaskSubmissions(taskId) {
+  return request({ url: `/api/tasks/${taskId}/submissions` });
+}
+
 /** 审核提交 */
 function reviewSubmission(submissionId, result, reason) {
   return request({
@@ -250,6 +255,7 @@ module.exports = {
   getTasks, createTask, getTaskDetail, claimTask, removeClaim, submitTask, closeTask,
   // 审核
   reviewSubmission,
+  getTaskSubmissions,
   // 会议
   getMeetings, getMeetingDetail, endMeeting,
   // 值班

@@ -156,6 +156,10 @@
 
 /* 凭证图片 */
 .evidence-images { display: flex; flex-wrap: wrap; gap: 12rpx; }
+.evidence-img-sm {
+  width: 120rpx; height: 120rpx;
+  border-radius: var(--border-radius-sm);
+}
 .evidence-img-wrap {
   position: relative; width: 140rpx; height: 140rpx;
   border-radius: var(--border-radius-sm); overflow: hidden;

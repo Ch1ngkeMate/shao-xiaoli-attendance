@@ -1,4 +1,5 @@
 const api = require("../../utils/api");
+const { formatTime, fixUrl } = require("../../utils/format");
 
 Page({
   data: {
@@ -15,20 +16,16 @@ Page({
   async loadDetail() {
     try {
       const res = await api.getAnnouncementDetail(this.announceId);
-      this.setData({ announcement: res.announcement, loading: false });
+      const announcement = res.announcement;
+      if (announcement && announcement.images) {
+        announcement.images.forEach((img) => { img.url = fixUrl(img.url); });
+      }
+      this.setData({ announcement, loading: false });
     } catch (err) {
       this.setData({ loading: false });
       wx.showToast({ title: err.message || "加载失败", icon: "none" });
     }
   },
 
-  formatTime(dateStr) {
-    if (!dateStr) return "";
-    const d = new Date(dateStr);
-    const m = (d.getMonth() + 1).toString().padStart(2, "0");
-    const day = d.getDate().toString().padStart(2, "0");
-    const h = d.getHours().toString().padStart(2, "0");
-    const min = d.getMinutes().toString().padStart(2, "0");
-    return `${m}-${day} ${h}:${min}`;
-  },
+  // formatTime 从 utils/format.js 引用
 });

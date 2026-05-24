@@ -1,4 +1,5 @@
 const api = require("../../utils/api");
+const { fixUrl } = require("../../utils/format");
 
 Page({
   data: {
@@ -20,8 +21,13 @@ Page({
   async loadProfile() {
     try {
       const res = await api.getUserProfile(this.userId, this.data.currentMonth);
+      const profileUser = res.user;
+      // 补全头像 URL
+      if (profileUser && profileUser.avatarUrl) {
+        profileUser.avatarUrl = fixUrl(profileUser.avatarUrl);
+      }
       this.setData({
-        profileUser: res.user,
+        profileUser,
         attendance: res.row,
         loading: false,
       });

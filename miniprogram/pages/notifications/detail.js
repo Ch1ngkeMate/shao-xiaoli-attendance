@@ -1,4 +1,5 @@
 const api = require("../../utils/api");
+const { formatTime } = require("../../utils/format");
 
 Page({
   data: {
@@ -22,15 +23,7 @@ Page({
     }
   },
 
-  formatTime(dateStr) {
-    if (!dateStr) return "";
-    const d = new Date(dateStr);
-    const m = (d.getMonth() + 1).toString().padStart(2, "0");
-    const day = d.getDate().toString().padStart(2, "0");
-    const h = d.getHours().toString().padStart(2, "0");
-    const min = d.getMinutes().toString().padStart(2, "0");
-    return `${m}-${day} ${h}:${min}`;
-  },
+  // formatTime 从 utils/format.js 引用
 
   onJump(e) {
     const item = this.data.message;

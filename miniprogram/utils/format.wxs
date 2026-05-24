@@ -1,0 +1,23 @@
+/**
+ * WXS 公共格式化工具
+ * 供 WXML 模板通过 <wxs src="../../utils/format.wxs" module="fmt" /> 引用
+ */
+
+var pad2 = function(n) {
+  return n < 10 ? '0' + n : '' + n;
+};
+
+/**
+ * 标准时间格式化：MM-DD HH:mm
+ * @param {string} s ISO 日期字符串
+ */
+var formatTime = function(s) {
+  if (!s) return '';
+  var d = getDate(s);
+  return pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()) + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+};
+
+module.exports = {
+  formatTime: formatTime,
+  pad2: pad2,
+};

@@ -1,4 +1,5 @@
 const api = require("../../utils/api");
+const { formatTimeRelative } = require("../../utils/format");
 
 const TYPE_ICONS = {
   TASK: "📋",
@@ -27,7 +28,6 @@ Page({
   },
 
   onShow() {
-    if (!getApp().checkLogin()) return;
     this.checkShowFab();
     this.loadMessages();
   },
@@ -160,16 +160,5 @@ Page({
     return TYPE_ICONS[type] || "💬";
   },
 
-  formatTime(dateStr) {
-    if (!dateStr) return "";
-    const d = new Date(dateStr);
-    const now = new Date();
-    const diff = now - d;
-    if (diff < 60000) return "刚刚";
-    if (diff < 3600000) return Math.floor(diff / 60000) + "分钟前";
-    if (diff < 86400000) return Math.floor(diff / 3600000) + "小时前";
-    const m = (d.getMonth() + 1).toString().padStart(2, "0");
-    const day = d.getDate().toString().padStart(2, "0");
-    return `${m}-${day}`;
-  },
+  // formatTimeRelative 从 utils/format.js 引用
 });

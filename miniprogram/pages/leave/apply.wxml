@@ -11,12 +11,21 @@
   <!-- 值班请假参数 -->
   <view wx:if="{{category === 'DUTY'}}" class="form-group">
     <view class="form-label">值班时间</view>
-    <picker mode="selector" range="{{weekdayLabels}}" value="{{dutyWeekday}}" bindchange="onWeekdayChange">
-      <view class="picker-value">星期: {{weekdayLabels[dutyWeekday]}}</view>
-    </picker>
-    <picker mode="selector" range="{{periodLabels}}" value="{{dutyPeriod}}" bindchange="onPeriodChange">
-      <view class="picker-value mt-16">节次: {{periodLabels[dutyPeriod]}}</view>
-    </picker>
+    <!-- 有值班安排时：只显示自己的时段 -->
+    <view wx:if="{{hasDuty}}">
+      <picker mode="selector" range="{{myDutySlots}}" range-key="label" value="{{dutySlotIndex}}" bindchange="onDutySlotChange">
+        <view class="picker-value">{{myDutySlots[dutySlotIndex] ? myDutySlots[dutySlotIndex].label : '请选择'}}</view>
+      </picker>
+    </view>
+    <!-- 无值班安排时：回退到全量选择（后端会校验） -->
+    <view wx:else>
+      <picker mode="selector" range="{{weekdayLabels}}" value="{{dutyWeekday}}" bindchange="onWeekdayChange">
+        <view class="picker-value">星期: {{weekdayLabels[dutyWeekday]}}</view>
+      </picker>
+      <picker mode="selector" range="{{periodLabels}}" value="{{dutyPeriod}}" bindchange="onPeriodChange">
+        <view class="picker-value mt-16">节次: {{periodLabels[dutyPeriod]}}</view>
+      </picker>
+    </view>
   </view>
 
   <!-- 会议请假参数 -->

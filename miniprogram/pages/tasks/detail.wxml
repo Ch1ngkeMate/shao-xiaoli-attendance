@@ -104,6 +104,24 @@
     <view wx:else class="hint" style="padding:20rpx 0;">暂无人接取</view>
   </view>
 
+  <!-- 我的提交状态 -->
+  <view wx:if="{{mySubmission}}" class="card">
+    <view class="card-title">我的提交</view>
+    <view class="flex-between">
+      <view class="flex-row gap-8">
+        <text wx:if="{{!mySubmission.review}}" class="tag tag-gold">待审核</text>
+        <text wx:elif="{{mySubmission.review.result === 'APPROVED'}}" class="tag tag-green">已通过</text>
+        <text wx:else class="tag tag-red">已驳回</text>
+        <text class="hint">{{mySubmission.submitTime}}</text>
+      </view>
+    </view>
+    <view wx:if="{{mySubmission.note}}" class="hint mt-8">{{mySubmission.note}}</view>
+    <view wx:if="{{mySubmission.evidenceImages && mySubmission.evidenceImages.length > 0}}" class="evidence-images mt-8">
+      <image wx:for="{{mySubmission.evidenceImages}}" wx:key="id" src="{{item.url}}" mode="aspectFill" class="evidence-img-sm" data-url="{{item.url}}" bindtap="onPreviewEvidence" />
+    </view>
+    <view wx:if="{{mySubmission.review && mySubmission.review.reason}}" class="hint mt-8" style="color:#ff4d4f;">驳回原因：{{mySubmission.review.reason}}</view>
+  </view>
+
   <!-- 我的操作 -->
   <view wx:if="{{task.status === 'OPEN'}}" class="card">
     <view class="card-title">我的操作</view>
@@ -153,7 +171,10 @@
         </view>
       </view>
       <view wx:if="{{item.note}}" class="hint mt-8">{{item.note}}</view>
-      <view wx:if="{{item.review && item.review.reason}}" class="hint mt-8 error">驳回原因：{{item.review.reason}}</view>
+      <view wx:if="{{item.evidenceImages && item.evidenceImages.length > 0}}" class="evidence-images mt-8">
+        <image wx:for="{{item.evidenceImages}}" wx:key="id" src="{{item.url}}" mode="aspectFill" class="evidence-img-sm" data-url="{{item.url}}" bindtap="onPreviewEvidence" />
+      </view>
+      <view wx:if="{{item.review && item.review.reason}}" class="hint mt-8" style="color:#ff4d4f;">驳回原因：{{item.review.reason}}</view>
     </view>
   </view>
 
