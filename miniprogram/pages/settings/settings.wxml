@@ -5,6 +5,11 @@
   </view>
 
   <view class="form-group">
+    <view class="form-label">背景图</view>
+    <button class="btn-ghost" bindtap="onChangeBg">更换背景</button>
+  </view>
+
+  <view class="form-group">
     <view class="form-label">账号名</view>
     <input class="form-input" value="{{username}}" bindinput="onUsernameInput" placeholder="账号名" />
   </view>

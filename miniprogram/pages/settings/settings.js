@@ -42,6 +42,31 @@ Page({
     }
   },
 
+  async onChangeBg() {
+    const that = this;
+    wx.chooseImage({
+      count: 1,
+      sizeType: ["compressed"],
+      sourceType: ["album", "camera"],
+      success(res) {
+        that.uploadBg(res.tempFilePaths[0]);
+      },
+    });
+  },
+
+  async uploadBg(filePath) {
+    try {
+      const resUpload = await api.uploadFile(filePath, "avatar");
+      const res = await api.updateMe({ profileBgUrl: resUpload.url });
+      const app = getApp();
+      app.globalData.user = res.user;
+      wx.setStorageSync("sxl_user", res.user);
+      wx.showToast({ title: "背景已更新", icon: "success" });
+    } catch (err) {
+      wx.showToast({ title: "上传失败", icon: "none" });
+    }
+  },
+
   async onSave() {
     const body = {};
     if (this.data.username && this.data.username !== getApp().globalData.user.username) {
