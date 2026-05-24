@@ -158,14 +158,14 @@
   <view wx:if="{{isAdminOrMinister && submissionsForReview && submissionsForReview.length > 0}}" class="card">
     <view class="card-title">待审核/已审核列表</view>
     <view wx:for="{{submissionsForReview}}" wx:key="id" class="review-item">
-      <view class="flex-between">
-        <view class="flex-row gap-8">
+      <view class="review-row">
+        <view class="review-left">
           <text class="review-user">{{item.user.displayName}}</text>
           <view wx:if="{{!item.review}}" class="tag tag-gold">待审核</view>
           <view wx:elif="{{item.review.result === 'APPROVED'}}" class="tag tag-green">已通过</view>
           <view wx:else class="tag tag-red">已驳回</view>
         </view>
-        <view wx:if="{{!item.review}}" class="flex-row gap-8">
+        <view wx:if="{{!item.review}}" class="review-actions">
           <button class="btn-primary btn-sm-inline" data-submission-id="{{item.id}}" data-result="APPROVED" bindtap="onReview">通过</button>
           <button class="btn-sm-inline btn-danger-inline" data-submission-id="{{item.id}}" data-result="REJECTED" bindtap="onReview">驳回</button>
         </view>

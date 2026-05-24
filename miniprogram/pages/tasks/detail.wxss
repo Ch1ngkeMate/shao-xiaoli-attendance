@@ -107,14 +107,35 @@
 
 /* 审核列表 */
 .review-item {
-  padding: var(--spacing-sm) 0;
+  padding: 16rpx 0;
 }
 .review-item + .review-item {
-  border-top: 1rpx solid var(--color-split);
+  border-top: 1rpx solid #f0f0f0;
+}
+.review-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.review-left {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex: 1;
+  min-width: 0;
 }
 .review-user {
-  font-size: var(--font-size-base);
+  font-size: 28rpx;
   font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.review-actions {
+  display: flex;
+  gap: 8rpx;
+  flex-shrink: 0;
+  margin-left: 12rpx;
 }
 
 /* 弹窗 */
