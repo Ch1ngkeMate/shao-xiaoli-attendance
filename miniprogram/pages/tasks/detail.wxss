@@ -92,6 +92,10 @@
   font-size: 24rpx;
   flex-shrink: 0;
 }
+.btn-danger-inline {
+  background: #ff4d4f; color: #fff;
+  border: none; border-radius: 8rpx;
+}
 
 /* 审核列表 */
 .review-item {

@@ -5,8 +5,10 @@ Page({
     task: null,
     me: null,
     loading: true,
+    myClaimedSlotIds: [],
+    mySubmission: null,
+    submissionsForReview: [],
 
-    // 操作弹窗
     showSubmitSheet: false,
     submitNote: "",
     evidenceUrls: [],
@@ -15,15 +17,12 @@ Page({
     showCloseConfirm: false,
     excludeAttendance: true,
 
-    // 审核
     showReviewSheet: false,
     reviewSubmissionId: "",
     reviewResult: "APPROVED",
     reviewReason: "",
 
-    // 移除确认
     showRemoveSheet: false,
-    removeTarget: null,
   },
 
   onLoad(options) {
@@ -38,28 +37,32 @@ Page({
     try {
       const res = await api.getTaskDetail(this.taskId);
       const task = res.task;
-      const me = getApp().globalData.user;
-      const app = getApp();
-      const hasClaimed = me && task.claims
-        ? task.claims.some((c) => c.user && c.user.id === me.id)
-        : false;
-
-      // 补全所有头像/图片 URL 相对路径
       const base = getApp().globalData.apiBase;
+
+      // 补全图片 URL
       const fixUrl = (url) => {
         if (!url) return url;
         return (!url.startsWith('http')) ? base + (url.startsWith('/')?'':'/') + url : url;
       };
       if (task.images) task.images.forEach((img) => { img.url = fixUrl(img.url); });
-      if (task.claims) task.claims.forEach((c) => { if (c.user) c.user.avatarUrl = fixUrl(c.user.avatarUrl); });
-      if (task.submissions) task.submissions.forEach((s) => { if (s.user) s.user.avatarUrl = fixUrl(s.user.avatarUrl); });
+      if (task.claimantsBySlot) task.claimantsBySlot.forEach((slot) => {
+        if (slot.claimants) slot.claimants.forEach((c) => { c.avatarUrl = fixUrl(c.avatarUrl); });
+      });
+
+      // 处理 submissionsForReview 头像
+      const sfr = (res.submissionsForReview || []).map((s) => {
+        if (s.user) s.user.avatarUrl = fixUrl(s.user.avatarUrl);
+        return s;
+      });
 
       this.setData({
         task,
         loading: false,
-        isMEMBER: app.hasRole("MEMBER"),
-        isAdminOrMinister: app.hasRole("ADMIN", "MINISTER"),
-        hasClaimed,
+        isMEMBER: getApp().hasRole("MEMBER"),
+        isAdminOrMinister: getApp().hasRole("ADMIN", "MINISTER"),
+        myClaimedSlotIds: res.myClaimedSlotIds || [],
+        mySubmission: res.mySubmission || null,
+        submissionsForReview: sfr,
       });
     } catch (err) {
       this.setData({ loading: false });
@@ -67,8 +70,7 @@ Page({
     }
   },
 
-  // ========== 接取 / 取消接取 ==========
-
+  // ========== 接取 ==========
   async onClaim(e) {
     const timeSlotId = e.currentTarget.dataset.slotId || undefined;
     try {
@@ -80,18 +82,13 @@ Page({
     }
   },
 
-  onCancelClaimTap(e) {
-    const userId = e.currentTarget.dataset.userId;
-    this.setData({
-      showRemoveSheet: true,
-      removeTarget: { userId },
-    });
+  onCancelClaimTap() {
+    this.setData({ showRemoveSheet: true });
   },
 
   async onCancelClaim() {
-    const { userId } = this.data.removeTarget;
     try {
-      await api.removeClaim(this.taskId, userId);
+      await api.removeClaim(this.taskId);
       wx.showToast({ title: "已取消接取", icon: "success" });
       this.setData({ showRemoveSheet: false });
       this.loadDetail();
@@ -101,59 +98,35 @@ Page({
   },
 
   // ========== 提交凭证 ==========
-
   onOpenSubmit() {
-    this.setData({
-      showSubmitSheet: true,
-      submitNote: "",
-      evidenceUrls: [],
-    });
+    this.setData({ showSubmitSheet: true, submitNote: "", evidenceUrls: [] });
   },
-
-  onNoteInput(e) {
-    this.setData({ submitNote: e.detail.value });
-  },
-
+  onNoteInput(e) { this.setData({ submitNote: e.detail.value }); },
   async onChooseImage() {
     const that = this;
     wx.chooseImage({
       count: 9 - that.data.evidenceUrls.length,
       sizeType: ["compressed"],
       sourceType: ["album", "camera"],
-      success(res) {
-        that.uploadImages(res.tempFilePaths);
-      },
+      success(res) { that.uploadImages(res.tempFilePaths); },
     });
   },
-
   async uploadImages(paths) {
     this.setData({ uploading: true });
     const urls = [...this.data.evidenceUrls];
     for (const path of paths) {
-      try {
-        const res = await api.uploadFile(path, "evidence");
-        urls.push(res.url);
-      } catch (err) {
-        wx.showToast({ title: "图片上传失败", icon: "none" });
-        break;
-      }
+      try { const res = await api.uploadFile(path, "evidence"); urls.push(res.url); }
+      catch (err) { wx.showToast({ title: "上传失败", icon: "none" }); break; }
     }
     this.setData({ evidenceUrls: urls, uploading: false });
   },
-
   removeImage(e) {
-    const idx = e.currentTarget.dataset.index;
-    const urls = [...this.data.evidenceUrls];
-    urls.splice(idx, 1);
+    const urls = [...this.data.evidenceUrls]; urls.splice(e.currentTarget.dataset.index, 1);
     this.setData({ evidenceUrls: urls });
   },
-
   async onSubmit() {
     try {
-      await api.submitTask(this.taskId, {
-        note: this.data.submitNote,
-        evidenceUrls: this.data.evidenceUrls,
-      });
+      await api.submitTask(this.taskId, { note: this.data.submitNote, evidenceUrls: this.data.evidenceUrls });
       wx.showToast({ title: "提交成功", icon: "success" });
       this.setData({ showSubmitSheet: false });
       this.loadDetail();
@@ -163,32 +136,15 @@ Page({
   },
 
   // ========== 审核 ==========
-
   onReview(e) {
     const { submissionId, result } = e.currentTarget.dataset;
-    this.setData({
-      showReviewSheet: true,
-      reviewSubmissionId: submissionId,
-      reviewResult: result || "APPROVED",
-      reviewReason: "",
-    });
+    this.setData({ showReviewSheet: true, reviewSubmissionId: submissionId, reviewResult: result || "APPROVED", reviewReason: "" });
   },
-
-  onReviewResultChange(e) {
-    this.setData({ reviewResult: e.currentTarget.dataset.result });
-  },
-
-  onReviewReasonInput(e) {
-    this.setData({ reviewReason: e.detail.value });
-  },
-
+  onReviewResultChange(e) { this.setData({ reviewResult: e.currentTarget.dataset.result }); },
+  onReviewReasonInput(e) { this.setData({ reviewReason: e.detail.value }); },
   async onReviewSubmit() {
     try {
-      await api.reviewSubmission(
-        this.data.reviewSubmissionId,
-        this.data.reviewResult,
-        this.data.reviewReason || undefined
-      );
+      await api.reviewSubmission(this.data.reviewSubmissionId, this.data.reviewResult, this.data.reviewReason || undefined);
       wx.showToast({ title: "审核完成", icon: "success" });
       this.setData({ showReviewSheet: false });
       this.loadDetail();
@@ -198,60 +154,22 @@ Page({
   },
 
   // ========== 关单 ==========
-
-  onCloseTask(e) {
-    const exclude = e.currentTarget.dataset.exclude === 'true' || e.currentTarget.dataset.exclude === true;
-    if (exclude) {
-      this.setData({ showCloseConfirm: true, excludeAttendance: true });
-    } else {
-      // 收工（不计考勤=false），直接确认
-      this.setData({ showCloseConfirm: true, excludeAttendance: false });
-    }
-  },
-
-  onConfirmCloseSkip() {
-    this.setData({ showCloseConfirm: true, excludeAttendance: true });
-  },
-
-  onExcludeChange() {
-    this.setData({ excludeAttendance: !this.data.excludeAttendance });
-  },
-
+  onCloseTask(e) { this.setData({ showCloseConfirm: true, excludeAttendance: false }); },
+  onConfirmCloseSkip() { this.setData({ showCloseConfirm: true, excludeAttendance: true }); },
+  onExcludeChange() { this.setData({ excludeAttendance: !this.data.excludeAttendance }); },
   async onConfirmClose() {
     try {
       await api.closeTask(this.taskId, this.data.excludeAttendance);
       wx.showToast({ title: "已关单", icon: "success" });
       this.setData({ showCloseConfirm: false });
       this.loadDetail();
-    } catch (err) {
-      wx.showToast({ title: err.message || "关单失败", icon: "none" });
-    }
+    } catch (err) { wx.showToast({ title: err.message || "失败", icon: "none" }); }
   },
 
-  // ========== 弹窗通用 ==========
-
+  // ========== 弹窗 ==========
   onCloseSubmitSheet() { this.setData({ showSubmitSheet: false }); },
   onCloseReviewSheet() { this.setData({ showReviewSheet: false }); },
   onCloseCloseConfirm() { this.setData({ showCloseConfirm: false }); },
   onCloseRemoveSheet() { this.setData({ showRemoveSheet: false }); },
   onSheetStop() {},
-
-  // ========== 工具 ==========
-
-  getMyClaims() {
-    const me = getApp().globalData.user;
-    const task = this.data.task;
-    if (!me || !task || !task.claims) return [];
-    return task.claims.filter((c) => c.user && c.user.id === me.id);
-  },
-
-  formatTime(dateStr) {
-    if (!dateStr) return "";
-    const d = new Date(dateStr);
-    const m = (d.getMonth() + 1).toString().padStart(2, "0");
-    const day = d.getDate().toString().padStart(2, "0");
-    const h = d.getHours().toString().padStart(2, "0");
-    const min = d.getMinutes().toString().padStart(2, "0");
-    return `${m}-${day} ${h}:${min}`;
-  },
 });
