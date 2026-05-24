@@ -44,6 +44,8 @@ Page({
         return (!url.startsWith('http')) ? base + (url.startsWith('/')?'':'/') + url : url;
       };
       if (task.images) task.images.forEach((img) => { img.url = fixUrl(img.url); });
+      task.imageUrls = (task.images || []).map((img) => img.url);
+      if (task.claims) task.claims.forEach((c) => { if (c.user) c.user.avatarUrl = fixUrl(c.user.avatarUrl); });
       if (task.claims) task.claims.forEach((c) => { if (c.user) c.user.avatarUrl = fixUrl(c.user.avatarUrl); });
 
       const hasClaimed = me && task.claims
@@ -175,4 +177,11 @@ Page({
   onCloseCloseConfirm() { this.setData({ showCloseConfirm: false }); },
   onCloseRemoveSheet() { this.setData({ showRemoveSheet: false }); },
   onSheetStop() {},
+
+  // ========== 图片预览 ==========
+  onPreviewImage(e) {
+    const urls = this.data.task.imageUrls || [];
+    const current = e.currentTarget.dataset.current || (urls[0] || '');
+    wx.previewImage({ current: current, urls: urls });
+  },
 });

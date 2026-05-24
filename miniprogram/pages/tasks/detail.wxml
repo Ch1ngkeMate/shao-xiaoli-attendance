@@ -14,7 +14,7 @@
 <view wx:if="{{task}}">
   <swiper wx:if="{{task.images && task.images.length > 0}}" class="image-swiper" indicator-dots circular>
     <swiper-item wx:for="{{task.images}}" wx:key="id">
-      <image src="{{item.url}}" mode="aspectFill" class="swiper-image" />
+      <image src="{{item.url}}" mode="aspectFill" class="swiper-image" data-urls="{{task.imageUrls}}" data-current="{{item.url}}" bindtap="onPreviewImage" />
     </swiper-item>
   </swiper>
 

@@ -6,11 +6,31 @@ Page({
     currentPassword: "",
     newPassword: "",
     submitting: false,
+    bgPreviewUrl: "",
+    buildVersion: "",
   },
 
   onShow() {
     const user = getApp().globalData.user;
-    if (user) this.setData({ username: user.username || "" });
+    if (user) {
+      const base = getApp().globalData.apiBase;
+      const fix = (u) => (u && !u.startsWith('http')) ? base + (u.startsWith('/')?'':'/') + u : u;
+      this.setData({
+        username: user.username || "",
+        bgPreviewUrl: fix(user.profileBgUrl) || "",
+      });
+    }
+    // 获取版本号
+    this.loadVersion();
+  },
+
+  async loadVersion() {
+    try {
+      const res = await api.getVersion();
+      this.setData({ buildVersion: res.buildId ? res.buildId.substring(0, 8) : '-' });
+    } catch (e) {
+      this.setData({ buildVersion: '-' });
+    }
   },
 
   onUsernameInput(e) { this.setData({ username: e.detail.value }); },
@@ -19,16 +39,10 @@ Page({
 
   async onChangeAvatar() {
     const that = this;
-    wx.chooseImage({
-      count: 1,
-      sizeType: ["compressed"],
-      sourceType: ["album", "camera"],
-      success(res) {
-        that.uploadAvatar(res.tempFilePaths[0]);
-      },
+    wx.chooseImage({ count: 1, sizeType: ["compressed"], sourceType: ["album", "camera"],
+      success(res) { that.uploadAvatar(res.tempFilePaths[0]); }
     });
   },
-
   async uploadAvatar(filePath) {
     try {
       const res = await api.uploadFile(filePath, "avatar");
@@ -44,16 +58,10 @@ Page({
 
   async onChangeBg() {
     const that = this;
-    wx.chooseImage({
-      count: 1,
-      sizeType: ["compressed"],
-      sourceType: ["album", "camera"],
-      success(res) {
-        that.uploadBg(res.tempFilePaths[0]);
-      },
+    wx.chooseImage({ count: 1, sizeType: ["compressed"], sourceType: ["album", "camera"],
+      success(res) { that.uploadBg(res.tempFilePaths[0]); }
     });
   },
-
   async uploadBg(filePath) {
     try {
       const resUpload = await api.uploadFile(filePath, "avatar");
@@ -61,6 +69,9 @@ Page({
       const app = getApp();
       app.globalData.user = res.user;
       wx.setStorageSync("sxl_user", res.user);
+      const base = app.globalData.apiBase;
+      const fix = (u) => (u && !u.startsWith('http')) ? base + (u.startsWith('/')?'':'/') + u : u;
+      this.setData({ bgPreviewUrl: fix(res.user.profileBgUrl) || "" });
       wx.showToast({ title: "背景已更新", icon: "success" });
     } catch (err) {
       wx.showToast({ title: "上传失败", icon: "none" });
@@ -74,18 +85,14 @@ Page({
     }
     if (this.data.currentPassword && this.data.newPassword) {
       if (this.data.newPassword.length < 6) {
-        wx.showToast({ title: "新密码至少6位", icon: "none" });
-        return;
+        wx.showToast({ title: "新密码至少6位", icon: "none" }); return;
       }
       body.currentPassword = this.data.currentPassword;
       body.newPassword = this.data.newPassword;
     }
-
     if (Object.keys(body).length === 0) {
-      wx.showToast({ title: "无修改", icon: "none" });
-      return;
+      wx.showToast({ title: "无修改", icon: "none" }); return;
     }
-
     this.setData({ submitting: true });
     try {
       const res = await api.updateMe(body);

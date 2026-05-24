@@ -223,6 +223,11 @@ function getUserProfile(userId, month) {
   return request({ url: `/api/admin/users/${userId}/profile`, data: { month } });
 }
 
+/** 版本号 */
+function getVersion() {
+  return request({ url: "/api/version" });
+}
+
 module.exports = {
   // 认证
   wxLogin, bindLogin,
@@ -249,5 +254,5 @@ module.exports = {
   // 上传
   uploadFile,
   // 其他
-  getAssignableUsers, getUserProfile,
+  getAssignableUsers, getUserProfile, getVersion,
 };

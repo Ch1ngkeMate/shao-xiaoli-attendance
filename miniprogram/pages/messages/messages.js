@@ -41,11 +41,17 @@ Page({
     this.setData({ loading: true });
     try {
       const res = await api.getNotifications();
+      const unread = res.unreadCount || 0;
       this.setData({
         messages: res.list || [],
-        unreadCount: res.unreadCount || 0,
+        unreadCount: unread,
         loading: false,
       });
+      if (unread > 0) {
+        wx.setTabBarBadge({ index: 1, text: unread > 99 ? '99+' : String(unread) });
+      } else {
+        wx.removeTabBarBadge({ index: 1 });
+      }
     } catch (err) {
       this.setData({ loading: false });
     }

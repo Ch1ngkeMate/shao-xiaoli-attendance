@@ -1,28 +1,38 @@
 <view class="form-page">
-  <view class="form-group">
+  <!-- 外观 -->
+  <view class="card">
+    <view class="card-title">外观</view>
     <view class="form-label">修改头像</view>
     <button class="btn-ghost" bindtap="onChangeAvatar">选择新头像</button>
+    <view class="form-label mt-16">背景图</view>
+    <view wx:if="{{bgPreviewUrl}}" class="bg-preview" style="background-image:url({{bgPreviewUrl}})"></view>
+    <view wx:else class="bg-preview bg-preview-empty">暂无背景</view>
+    <view class="flex-row gap-12 mt-12">
+      <button class="btn-ghost" bindtap="onChangeBg" style="flex:1">更换背景</button>
+    </view>
   </view>
 
-  <view class="form-group">
-    <view class="form-label">背景图</view>
-    <button class="btn-ghost" bindtap="onChangeBg">更换背景</button>
-  </view>
-
-  <view class="form-group">
+  <!-- 账号与安全 -->
+  <view class="card">
+    <view class="card-title">账号与安全</view>
     <view class="form-label">账号名</view>
-    <input class="form-input" value="{{username}}" bindinput="onUsernameInput" placeholder="账号名" />
+    <input class="input" value="{{username}}" bindinput="onUsernameInput" placeholder="账号名" />
+    <view class="form-label mt-16">修改密码</view>
+    <input class="input" password placeholder="当前密码" value="{{currentPassword}}" bindinput="onCurrentPwdInput" />
+    <input class="input mt-12" password placeholder="新密码（至少6位）" value="{{newPassword}}" bindinput="onNewPwdInput" />
+    <view class="mt-16">
+      <button class="btn-primary" bindtap="onSave" loading="{{submitting}}" disabled="{{submitting}}" style="width:100%">
+        {{submitting ? '保存中...' : '保存修改'}}
+      </button>
+    </view>
   </view>
 
-  <view class="form-group">
-    <view class="form-label">修改密码</view>
-    <input class="form-input" password placeholder="当前密码" value="{{currentPassword}}" bindinput="onCurrentPwdInput" />
-    <input class="form-input mt-16" password placeholder="新密码（至少6位）" value="{{newPassword}}" bindinput="onNewPwdInput" />
-  </view>
-
-  <view class="submit-area">
-    <button class="btn-primary btn-full" bindtap="onSave" loading="{{submitting}}" disabled="{{submitting}}">
-      {{submitting ? '保存中...' : '保存修改'}}
-    </button>
+  <!-- 关于 -->
+  <view class="card">
+    <view class="card-title">关于</view>
+    <view class="flex-between">
+      <text>当前版本</text>
+      <text class="hint">{{buildVersion}}</text>
+    </view>
   </view>
 </view>

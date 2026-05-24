@@ -1,3 +1,10 @@
+<!-- 品牌区 — 对齐 Web 端 DeptLogo -->
+<view class="brand-area">
+  <image class="brand-logo" src="../../images/dept-logo.png" mode="aspectFit" />
+  <view class="brand-title">干事考勤系统</view>
+  <view class="brand-subtitle">宣传部</view>
+</view>
+
 <view class="card">
   <view class="title">首次使用请绑定</view>
   <view class="hint">请输入与系统一致的「显示姓名」，绑定后可微信一键登录。</view>

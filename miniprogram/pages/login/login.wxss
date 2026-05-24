@@ -1,20 +1,31 @@
-.title {
-  font-size: 36rpx;
-  font-weight: 600;
-  margin-bottom: 16rpx;
+/* 品牌区 */
+.brand-area {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 80rpx 0 40rpx;
+}
+.brand-logo {
+  width: 120rpx; height: 120rpx;
+  border-radius: 24rpx;
+  background: linear-gradient(135deg, #1677ff, #0958d9);
+  box-shadow: 0 4rpx 16rpx rgba(22,119,255,0.2);
+}
+.brand-title {
+  margin-top: 20rpx;
+  font-size: 36rpx; font-weight: 700;
+  color: var(--color-text);
+}
+.brand-subtitle {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: var(--color-text-secondary);
 }
 
-.input {
-  margin-top: 24rpx;
-  padding: 20rpx 24rpx;
-  background: #fafafa;
-  border-radius: 12rpx;
-  border: 1rpx solid #eee;
+.title {
+  font-size: 32rpx; font-weight: 600; margin-bottom: 16rpx;
 }
 
 .btn-ghost {
   margin-top: 24rpx;
-  background: #fff;
-  color: #1677ff;
-  border: 1rpx solid #1677ff;
+  background: #fff; color: var(--color-primary);
+  border: 1rpx solid var(--color-primary);
 }
