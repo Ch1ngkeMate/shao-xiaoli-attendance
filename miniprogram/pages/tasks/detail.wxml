@@ -1,200 +1,188 @@
 <wxs module="utils">
+  var pad2 = function(n) { return n < 10 ? '0'+n : ''+n; };
   var formatTime = function(s) {
     if (!s) return '';
     var d = getDate(s);
-    var M = (d.getMonth()+1);
-    var D = d.getDate();
-    var h = d.getHours();
-    var m = d.getMinutes();
-    if (M<10) M='0'+M; if (D<10) D='0'+D;
-    if (h<10) h='0'+h; if (m<10) m='0'+m;
-    return M+'-'+D+' '+h+':'+m;
+    return pad2(d.getMonth()+1)+'-'+pad2(d.getDate())+' '+pad2(d.getHours())+':'+pad2(d.getMinutes());
   };
-  module.exports = { formatTime: formatTime };
+  module.exports = { formatTime:formatTime };
 </wxs>
 
 <view wx:if="{{loading}}" class="load-more">加载中...</view>
 
 <block wx:elif="{{task}}">
   <!-- 图片轮播 -->
-  <swiper wx:if="{{task.imageUrls && task.imageUrls.length > 0}}" class="image-swiper" indicator-dots>
-    <swiper-item wx:for="{{task.imageUrls}}" wx:key="*this">
-      <image src="{{item}}" mode="aspectFill" class="swiper-image" />
+  <swiper wx:if="{{task.images && task.images.length > 0}}" class="image-swiper" indicator-dots circular>
+    <swiper-item wx:for="{{task.images}}" wx:key="id">
+      <image src="{{item.url}}" mode="aspectFill" class="swiper-image" />
     </swiper-item>
   </swiper>
 
-  <view class="card detail-card">
-    <!-- 标题 -->
-    <view class="detail-title">{{task.title}}</view>
-
-    <!-- 状态和积分 -->
-    <view class="flex-between mt-16">
-      <view class="flex-row">
-        <view class="tag tag-blue">+{{task.points}} 分</view>
-        <view wx:if="{{task.status === 'OPEN'}}" class="tag tag-green ml-16">进行中</view>
-        <view wx:else class="tag tag-gray ml-16">已结束</view>
-      </view>
-      <view class="hint">
-        已接 {{task.claimedCount || 0}}<text wx:if="{{task.headcountHint}}">/{{task.headcountHint}}</text> 人
-      </view>
+  <!-- 标题区 -->
+  <view class="card">
+    <view class="flex-row gap-12">
+      <view class="detail-title ellipsis">{{task.title}}</view>
     </view>
-
-    <!-- 描述 -->
-    <view wx:if="{{task.description}}" class="detail-desc mt-24">{{task.description}}</view>
-
-    <!-- 时间段 -->
-    <view wx:if="{{task.timeSlots && task.timeSlots.length > 0}}" class="mt-24">
-      <view class="section-title">时间段</view>
-      <view wx:for="{{task.timeSlots}}" wx:key="id" class="slot-item">
-        <view class="flex-between">
-          <view class="slot-time">
-            {{utils.formatTime(item.startTime)}} - {{utils.formatTime(item.endTime)}}
-          </view>
-          <view wx:if="{{item.claimedCount >= item.headcountHint}}" class="tag tag-red">已满</view>
-          <view wx:else class="hint">{{item.claimedCount}}/{{item.headcountHint}}人</view>
-        </view>
-        <!-- 接取按钮（MEMBER） -->
-        <view wx:if="{{task.status === 'OPEN' && isMEMBER && !hasClaimed}}" class="mt-8">
-          <button class="btn-primary btn-sm" data-slot-id="{{item.id}}" bindtap="onClaim">
-            接取此时段
-          </button>
-        </view>
-      </view>
+    <view class="flex-row gap-12 mt-12">
+      <view wx:if="{{task.status === 'OPEN'}}" class="tag tag-gold">待处理</view>
+      <view wx:else class="tag tag-gray">已结束</view>
+      <view class="tag tag-blue">+{{task.points}} 分</view>
     </view>
-
-    <!-- 普通任务接取按钮 -->
-    <view wx:if="{{task.status === 'OPEN' && isMEMBER && !hasClaimed && (!task.timeSlots || task.timeSlots.length === 0)}}" class="mt-24">
-      <button class="btn-primary btn-full" bindtap="onClaim">接取任务</button>
-    </view>
-
-    <!-- 取消接取 -->
-    <view wx:if="{{hasClaimed && task.status === 'OPEN'}}" class="mt-16">
-      <button class="btn-ghost btn-full" data-user-id="{{me.id}}" bindtap="onCancelClaimTap">取消接取</button>
-    </view>
-
-    <!-- 提交凭证入口 -->
-    <view wx:if="{{hasClaimed && task.status === 'OPEN'}}" class="mt-16">
-      <button class="btn-primary btn-full" bindtap="onOpenSubmit">提交完成凭证</button>
-    </view>
+    <view wx:if="{{task.publisher}}" class="hint mt-12">发布人: {{task.publisher.displayName}}</view>
   </view>
 
-  <!-- 接取人员 -->
+  <!-- 信息区 -->
   <view class="card">
-    <view class="section-title">接取人员</view>
-    <view wx:if="{{task.claims && task.claims.length > 0}}">
-      <view wx:for="{{task.claims}}" wx:key="id" class="claimant-item flex-between">
-        <view class="flex-row">
-          <image wx:if="{{item.user.avatarUrl}}" src="{{item.user.avatarUrl}}" class="avatar-sm" mode="aspectFill" />
-          <view wx:else class="avatar-sm avatar-placeholder">👤</view>
-          <view class="ml-16">
-            <view class="claimant-name">{{item.user.displayName}}</view>
-            <view wx:if="{{item.submissions && item.submissions.length > 0}}" class="hint">
-              已提交 {{item.submissions.length}} 次
-            </view>
+    <view class="info-row">
+      <view class="info-label">进行时间</view>
+      <view class="info-value">
+        <block wx:if="{{task.timeSlots && task.timeSlots.length > 0}}">
+          <view wx:for="{{task.timeSlots}}" wx:key="id" class="slot-line">
+            {{utils.formatTime(item.startTime)}} — {{utils.formatTime(item.endTime)}}
+            <text wx:if="{{item.headcountHint}}" class="hint">（限{{item.headcountHint}}人）</text>
           </view>
-        </view>
-        <!-- 审核操作 (MINISTER/ADMIN) -->
-        <block wx:if="{{item.submissions && item.submissions.length > 0 && isAdminOrMinister}}">
-          <view wx:for="{{item.submissions}}" wx:for-item="sub" wx:key="id" class="flex-row">
-            <view wx:if="{{!sub.review}}" class="flex-row">
-              <button class="btn-sm btn-green" data-submission-id="{{sub.id}}" data-result="APPROVED" bindtap="onReview">通过</button>
-              <button class="btn-sm btn-red ml-8" data-submission-id="{{sub.id}}" data-result="REJECTED" bindtap="onReview">驳回</button>
-            </view>
-            <view wx:else>
-              <view wx:if="{{sub.review.result === 'APPROVED'}}" class="tag tag-green">已通过</view>
-              <view wx:else class="tag tag-red">已驳回</view>
-            </view>
-          </view>
+        </block>
+        <block wx:else>
+          {{utils.formatTime(task.startTime)}} — {{utils.formatTime(task.endTime)}}
         </block>
       </view>
     </view>
-    <view wx:else class="empty" style="padding:40rpx 0;">
-      <view class="hint">暂无人接取</view>
+    <view class="info-divider"></view>
+    <view class="info-row">
+      <view class="info-label">积分</view>
+      <view class="info-value">{{task.points}}</view>
+    </view>
+    <view class="info-divider"></view>
+    <view class="info-row">
+      <view class="info-label">人数</view>
+      <view class="info-value">{{task.headcountHint || '不限制'}}</view>
+    </view>
+    <view class="info-divider"></view>
+    <view class="info-row">
+      <view class="info-label">描述</view>
+      <view class="info-value">{{task.description || '无'}}</view>
     </view>
   </view>
 
-  <!-- 关单 (MINISTER/ADMIN) -->
+  <!-- 已接取人员 -->
+  <view class="card">
+    <view class="card-title">已接取人员</view>
+    <block wx:if="{{task.claims && task.claims.length > 0}}">
+      <!-- 按时段分组 -->
+      <block wx:if="{{task.timeSlots && task.timeSlots.length > 0}}">
+        <view wx:for="{{task.timeSlots}}" wx:key="id" class="slot-claim-group">
+          <view class="slot-label">{{utils.formatTime(item.startTime)}} — {{utils.formatTime(item.endTime)}}</view>
+          <view class="claimant-tags">
+            <block wx:for="{{task.claims}}" wx:for-item="claim" wx:key="id">
+              <view wx:if="{{claim.timeSlotId === item.id}}" class="claimant-tag">
+                <image wx:if="{{claim.user.avatarUrl}}" src="{{claim.user.avatarUrl}}" class="avatar-xs" mode="aspectFill" />
+                <view wx:else class="avatar-xs avatar-placeholder-xs">👤</view>
+                <text class="claimant-tag-name">{{claim.user.displayName}}</text>
+              </view>
+            </block>
+            <view wx:if="{{item.claimedCount === 0}}" class="hint">暂无</view>
+          </view>
+        </view>
+      </block>
+      <!-- 无时段 -->
+      <view wx:else class="claimant-tags">
+        <view wx:for="{{task.claims}}" wx:key="id" class="claimant-tag">
+          <image wx:if="{{item.user.avatarUrl}}" src="{{item.user.avatarUrl}}" class="avatar-xs" mode="aspectFill" />
+          <view wx:else class="avatar-xs avatar-placeholder-xs">👤</view>
+          <text class="claimant-tag-name">{{item.user.displayName}}</text>
+        </view>
+      </view>
+    </block>
+    <view wx:else class="hint" style="padding:20rpx 0;">暂无人接取</view>
+  </view>
+
+  <!-- 我的操作 -->
+  <view wx:if="{{task.status === 'OPEN'}}" class="card">
+    <view class="card-title">我的操作</view>
+    <!-- 已接 -->
+    <block wx:if="{{hasClaimed}}">
+      <view wx:for="{{task.claims}}" wx:for-item="claim" wx:key="id">
+        <block wx:if="{{claim.user && claim.user.id === me.id && claim.status === 'CLAIMED'}}">
+          <view class="flex-between">
+            <view>
+              <view wx:if="{{claim.timeSlot}}" class="hint">已接时段: {{utils.formatTime(claim.timeSlot.startTime)}} — {{utils.formatTime(claim.timeSlot.endTime)}}</view>
+              <view wx:else class="hint">已接取任务</view>
+            </view>
+            <button class="btn-link" bindtap="onCancelClaimTap">取消接取</button>
+          </view>
+          <!-- 提交按钮 -->
+          <button wx:if="{{!claim.submitted}}" class="btn-primary mt-12" bindtap="onOpenSubmit" style="width:100%">提交完成凭证</button>
+        </block>
+      </block>
+    </block>
+    <!-- 未接 -->
+    <view wx:else>
+      <block wx:if="{{task.timeSlots && task.timeSlots.length > 0}}">
+        <view wx:for="{{task.timeSlots}}" wx:key="id" class="flex-between claim-slot-row">
+          <view class="flex-row gap-8">
+            <text class="hint">{{utils.formatTime(item.startTime)}} — {{utils.formatTime(item.endTime)}}</text>
+            <text wx:if="{{item.claimedCount >= item.headcountHint}}" class="tag tag-red">已满</text>
+            <text wx:else class="tag tag-blue">可接</text>
+          </view>
+          <button wx:if="{{item.claimedCount < item.headcountHint}}" class="btn-primary btn-sm-inline" data-slot-id="{{item.id}}" bindtap="onClaim">接取</button>
+        </view>
+      </block>
+      <button wx:else class="btn-primary" bindtap="onClaim">接取任务</button>
+    </view>
+  </view>
+
+  <!-- 关单（管理员/部长） -->
   <view wx:if="{{task.status === 'OPEN' && isAdminOrMinister}}" class="card">
-    <button class="btn-danger btn-full" bindtap="onCloseTask">关单 / 提前结束</button>
+    <button class="btn-danger" bindtap="onCloseTask" style="width:100%">关单 / 提前结束</button>
   </view>
 </block>
 
-<!-- ========= 提交凭证弹窗 ========= -->
+<!-- ===== 弹窗 ===== -->
 <view wx:if="{{showSubmitSheet}}" class="sheet-overlay" bindtap="onCloseSubmitSheet">
   <view class="sheet-content" catchtap="onSheetStop">
     <view class="sheet-title">提交完成凭证</view>
-
-    <textarea class="sheet-textarea" placeholder="备注说明（选填）" value="{{submitNote}}" bindinput="onNoteInput" maxlength="500" />
-
+    <textarea class="textarea" placeholder="备注说明（选填）" value="{{submitNote}}" bindinput="onNoteInput" maxlength="500" />
     <view class="evidence-images mt-16">
       <block wx:for="{{evidenceUrls}}" wx:key="*this">
         <view class="evidence-img-wrap">
           <image src="{{item}}" mode="aspectFill" class="evidence-img" />
-          <view class="evidence-remove" data-index="{{index}}" bindtap="removeImage">✕</view>
+          <view class="evidence-remove" data-index="{{index}}" bindtap="removeImage">×</view>
         </view>
       </block>
       <view wx:if="{{evidenceUrls.length < 9}}" class="evidence-add" bindtap="onChooseImage">
         <view class="evidence-add-icon">+</view>
-        <view class="hint">{{uploading ? '上传中...' : '添加图片'}}</view>
+        <view class="hint">{{uploading ? '上传中' : '添加图片'}}</view>
       </view>
     </view>
-
     <view class="sheet-actions mt-24">
-      <button class="btn-ghost" bindtap="onCloseSubmitSheet">取消</button>
-      <button class="btn-primary" bindtap="onSubmit">确认提交</button>
+      <button class="btn-ghost" bindtap="onCloseSubmitSheet" style="flex:1">取消</button>
+      <button class="btn-primary" bindtap="onSubmit" style="flex:2">确认提交</button>
     </view>
   </view>
 </view>
 
-<!-- ========= 审核弹窗 ========= -->
-<view wx:if="{{showReviewSheet}}" class="sheet-overlay" bindtap="onCloseReviewSheet">
-  <view class="sheet-content" catchtap="onSheetStop">
-    <view class="sheet-title">审核提交</view>
-
-    <view class="review-options mt-24">
-      <view class="review-option {{reviewResult === 'APPROVED' ? 'review-active' : ''}}" data-result="APPROVED" bindtap="onReviewResultChange">
-        ✅ 通过
-      </view>
-      <view class="review-option {{reviewResult === 'REJECTED' ? 'review-active' : ''}}" data-result="REJECTED" bindtap="onReviewResultChange">
-        ❌ 驳回
-      </view>
-    </view>
-
-    <textarea wx:if="{{reviewResult === 'REJECTED'}}" class="sheet-textarea mt-16" placeholder="驳回原因（可选）" value="{{reviewReason}}" bindinput="onReviewReasonInput" maxlength="500" />
-
-    <view class="sheet-actions mt-24">
-      <button class="btn-ghost" bindtap="onCloseReviewSheet">取消</button>
-      <button class="btn-primary" bindtap="onReviewSubmit">确认</button>
-    </view>
-  </view>
-</view>
-
-<!-- ========= 关单确认弹窗 ========= -->
 <view wx:if="{{showCloseConfirm}}" class="sheet-overlay" bindtap="onCloseCloseConfirm">
   <view class="sheet-content" catchtap="onSheetStop">
     <view class="sheet-title">确认关单</view>
     <view class="mt-16">确定要提前结束此任务吗？</view>
-
-    <view class="flex-row mt-16" bindtap="onExcludeChange">
-      <view class="checkbox {{excludeAttendance ? 'checked' : ''}}">{{excludeAttendance ? '☑' : '☐'}}</view>
-      <view class="ml-16">不计入考勤</view>
+    <view class="flex-row mt-16 gap-12" bindtap="onExcludeChange">
+      <text>{{excludeAttendance ? '☑' : '☐'}}</text>
+      <text>不计入考勤</text>
     </view>
-
     <view class="sheet-actions mt-24">
-      <button class="btn-ghost" bindtap="onCloseCloseConfirm">取消</button>
-      <button class="btn-danger" bindtap="onConfirmClose">确认关单</button>
+      <button class="btn-ghost" bindtap="onCloseCloseConfirm" style="flex:1">取消</button>
+      <button class="btn-danger" bindtap="onConfirmClose" style="flex:2">确认关单</button>
     </view>
   </view>
 </view>
 
-<!-- ========= 移除确认弹窗 ========= -->
 <view wx:if="{{showRemoveSheet}}" class="sheet-overlay" bindtap="onCloseRemoveSheet">
   <view class="sheet-content" catchtap="onSheetStop">
     <view class="sheet-title">确认移除</view>
-    <view class="mt-16">确定要取消此接取记录吗？</view>
+    <view class="mt-16">确定要取消此接取吗？</view>
     <view class="sheet-actions mt-24">
-      <button class="btn-ghost" bindtap="onCloseRemoveSheet">取消</button>
-      <button class="btn-danger" bindtap="onCancelClaim">确认</button>
+      <button class="btn-ghost" bindtap="onCloseRemoveSheet" style="flex:1">取消</button>
+      <button class="btn-danger" bindtap="onCancelClaim" style="flex:2">确认</button>
     </view>
   </view>
 </view>
