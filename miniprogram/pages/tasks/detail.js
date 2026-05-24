@@ -189,7 +189,17 @@ Page({
 
   // ========== 关单 ==========
 
-  onCloseTask() {
+  onCloseTask(e) {
+    const exclude = e.currentTarget.dataset.exclude === 'true' || e.currentTarget.dataset.exclude === true;
+    if (exclude) {
+      this.setData({ showCloseConfirm: true, excludeAttendance: true });
+    } else {
+      // 收工（不计考勤=false），直接确认
+      this.setData({ showCloseConfirm: true, excludeAttendance: false });
+    }
+  },
+
+  onConfirmCloseSkip() {
     this.setData({ showCloseConfirm: true, excludeAttendance: true });
   },
 

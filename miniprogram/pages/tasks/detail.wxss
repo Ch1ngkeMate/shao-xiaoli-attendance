@@ -88,12 +88,24 @@
 }
 
 .btn-sm-inline {
-  height: 48rpx; padding: 0 24rpx;
+  height: 48rpx; padding: 0 20rpx;
   font-size: 24rpx;
   flex-shrink: 0;
 }
 
-/* ===== 弹窗 ===== */
+/* 审核列表 */
+.review-item {
+  padding: var(--spacing-sm) 0;
+}
+.review-item + .review-item {
+  border-top: 1rpx solid var(--color-split);
+}
+.review-user {
+  font-size: var(--font-size-base);
+  font-weight: 500;
+}
+
+/* 弹窗 */
 .sheet-overlay {
   position: fixed; inset: 0;
   background: rgba(0,0,0,0.45);
