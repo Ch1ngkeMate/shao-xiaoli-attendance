@@ -48,4 +48,13 @@ Page({
     const min = d.getMinutes().toString().padStart(2, "0");
     return `${m}-${day} ${h}:${min}`;
   },
+
+  onShareAppMessage() {
+    const m = this.data.meeting;
+    if (!m) return { title: "干事考勤系统", path: "/pages/duty/duty" };
+    return {
+      title: `会议通知：${m.title}`,
+      path: `/pages/meetings/detail?id=${this.meetingId}`,
+    };
+  },
 });

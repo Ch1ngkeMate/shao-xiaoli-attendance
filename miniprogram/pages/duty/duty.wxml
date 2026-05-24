@@ -46,9 +46,35 @@
       <view class="duty-cell duty-label">{{utils.weeks[index]}}</view>
       <view wx:for="{{item}}" wx:for-item="slot" wx:for-index="pi" wx:key="pi" class="duty-cell duty-data-cell">
         <view wx:if="{{slot && slot.length > 0}}" class="duty-names">
-          <view wx:for="{{slot}}" wx:for-item="u" wx:key="id" class="tag tag-blue duty-name-tag">{{u.displayName}}</view>
+          <view wx:for="{{slot}}" wx:for-item="u" wx:key="aid" class="duty-name-row">
+            <view class="tag tag-blue duty-name-tag">{{u.displayName}}<text wx:if="{{u.deptLabel}}">({{u.deptLabel}})</text></view>
+            <view wx:if="{{isAdmin}}" class="duty-remove" data-aid="{{u.aid}}" bindtap="onRemoveTap">✕</view>
+          </view>
         </view>
         <view wx:else class="hint">-</view>
+        <view wx:if="{{isAdmin}}" class="duty-add" data-w="{{index}}" data-p="{{pi}}" bindtap="onAddTap">+ 加人</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 添加值班弹窗 -->
+  <view wx:if="{{showDutySheet}}" class="duty-sheet-mask" bindtap="onCloseDutySheet" catchtouchmove="noop">
+    <view class="duty-sheet" catchtap="noop">
+      <view class="duty-sheet-header">
+        <view class="duty-sheet-title">添加值班 — {{utils.weeks[dutyPick.w]}}{{utils.periods[dutyPick.p]}}</view>
+        <view class="duty-sheet-close" bindtap="onCloseDutySheet">✕</view>
+      </view>
+      <view class="duty-sheet-body">
+        <view class="form-label">选择干事</view>
+        <picker wx:if="{{assignableUsers.length > 0}}" mode="selector" range="{{assignableUsers}}" range-key="displayName" value="{{dutyUserIndex}}" bindchange="onDutyUserChange">
+          <view class="form-input duty-select">
+            {{dutyUserIndex >= 0 ? assignableUsers[dutyUserIndex].displayName : '请选择干事'}}
+          </view>
+        </picker>
+        <view wx:else class="form-input duty-select hint">加载中...</view>
+        <view class="form-label mt-16">部门/分组（选填）</view>
+        <input class="form-input" placeholder="如 办公室、宣传部" value="{{dutyDeptLabel}}" bindinput="onDutyDeptLabelInput" maxlength="50" />
+        <button class="btn-primary btn-full mt-24" bindtap="onConfirmAdd">确认添加</button>
       </view>
     </view>
   </view>
@@ -117,5 +143,57 @@
   <view wx:else class="empty">
     <view class="empty-icon">📊</view>
     <view>暂无统计数据</view>
+  </view>
+</view>
+
+<!-- ====== 请假审批弹窗 — 对齐 Web LeaveSlipModal ====== -->
+<view wx:if="{{showLeaveSheet}}" class="leave-sheet-mask" bindtap="onCloseLeaveSheet" catchtouchmove="noop">
+  <view class="leave-sheet" catchtap="noop">
+    <view class="leave-sheet-header">
+      <view class="leave-sheet-title">请假条</view>
+      <view class="leave-sheet-close" bindtap="onCloseLeaveSheet">✕</view>
+    </view>
+
+    <!-- 请假条纸面 -->
+    <view class="leave-paper">
+      <view class="leave-paper-inner">
+        <view class="leave-paper-border"></view>
+        <view class="leave-paper-title">请假条</view>
+        <view class="leave-paper-body">
+          <text>亲爱的部长：</text>
+        </view>
+        <view class="leave-paper-body" style="text-indent:2em;text-align:justify;">
+          我因<text class="leave-underline">{{leaveSlip.reason}}</text>
+          无法参与<text class="leave-underline">{{leaveSlip.timeStr}}</text>
+          的<text class="leave-underline">{{leaveSlip.eventStr}}</text>
+          ，需要请假一次。特书此假条，还望批准。
+        </view>
+        <view class="leave-paper-body mt-16">请假人：{{leaveSlip.applicant}}</view>
+        <view class="leave-paper-body">日期：{{leaveSlip.dateStr}}</view>
+      </view>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view wx:if="{{!rejectPhase}}" class="leave-actions">
+      <button class="btn-leave-approve" loading="{{leaveSubmitting}}" bindtap="onApproveLeave">同意</button>
+      <button class="btn-leave-reject" disabled="{{leaveSubmitting}}" bindtap="onRejectLeave">驳回</button>
+      <button class="btn-leave-close" disabled="{{leaveSubmitting}}" bindtap="onCloseLeaveSheet">关闭</button>
+    </view>
+
+    <!-- 驳回原因输入 -->
+    <view wx:else class="leave-reject-area">
+      <textarea
+        class="leave-reject-input"
+        placeholder="驳回说明（可空，将通知部员）"
+        value="{{rejectReason}}"
+        bindinput="onRejectReasonInput"
+        maxlength="500"
+        auto-height
+      />
+      <view class="leave-reject-actions">
+        <button class="btn-leave-approve btn-danger" loading="{{leaveSubmitting}}" bindtap="onConfirmReject">确认驳回</button>
+        <button class="btn-leave-close" disabled="{{leaveSubmitting}}" bindtap="onCancelReject">返回</button>
+      </view>
+    </view>
   </view>
 </view>

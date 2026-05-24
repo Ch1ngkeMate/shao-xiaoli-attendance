@@ -1,6 +1,9 @@
 <!-- 品牌区 — 对齐 Web 端 DeptLogo -->
 <view class="brand-area">
-  <image class="brand-logo" src="../../images/dept-logo.png" mode="aspectFit" />
+  <image wx:if="{{!logoFailed}}" class="brand-logo" src="{{logoUrl}}" mode="aspectFit" binderror="onLogoError" />
+  <view wx:else class="brand-logo">
+    <text class="brand-logo-heart">♥</text>
+  </view>
   <view class="brand-title">干事考勤系统</view>
   <view class="brand-subtitle">宣传部</view>
 </view>

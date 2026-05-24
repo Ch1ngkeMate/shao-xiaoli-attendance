@@ -55,9 +55,12 @@ function claimTask(taskId, timeSlotId) {
   return request({ url: `/api/tasks/${taskId}/claim`, method: "POST", data: { timeSlotId } });
 }
 
-/** 取消接取 */
-function removeClaim(taskId, userId) {
-  return request({ url: `/api/tasks/${taskId}/remove-claim`, method: "POST", data: { userId } });
+/** 取消接取（管理员移除） — claimId 用于多时段，userId 用于单时段兼容 */
+function removeClaim(taskId, userId, claimId) {
+  const data = {};
+  if (claimId) data.claimId = claimId;
+  if (userId) data.userId = userId;
+  return request({ url: `/api/tasks/${taskId}/remove-claim`, method: "POST", data });
 }
 
 /** 提交任务完成 */
@@ -103,6 +106,16 @@ function endMeeting(id, absentUserIds) {
 /** 值班列表 */
 function getDuty() {
   return request({ url: "/api/duty" });
+}
+
+/** 添加值班安排 */
+function addDuty(weekday, period, userId, deptLabel) {
+  return request({ url: "/api/duty", method: "POST", data: { weekday, period, userId, deptLabel: deptLabel || undefined } });
+}
+
+/** 移除值班安排 */
+function removeDuty(id) {
+  return request({ url: `/api/duty?id=${encodeURIComponent(id)}`, method: "DELETE" });
 }
 
 // ============ 请假 ============
@@ -240,7 +253,7 @@ module.exports = {
   // 会议
   getMeetings, getMeetingDetail, endMeeting,
   // 值班
-  getDuty,
+  getDuty, addDuty, removeDuty,
   // 请假
   getLeaves, applyLeave, decideLeave,
   // 公告

@@ -9,8 +9,15 @@ Page({
     tabs: [],
 
     // 值班
-    dutyGrid: [[],[],[],[],[]],
+    dutyGrid: [[],[],[],[],[]].map(() => [[],[],[],[],[]]),
     dutyLoading: false,
+
+    // 值班编辑（管理员/部长）
+    showDutySheet: false,
+    dutyPick: { w: -1, p: -1 },
+    assignableUsers: [],
+    dutyUserIndex: -1,
+    dutyDeptLabel: "",
 
     // 会议
     meetings: [],
@@ -19,6 +26,14 @@ Page({
     // 请假
     leaves: [],
     leavesLoading: false,
+
+    // 请假审批弹窗
+    showLeaveSheet: false,
+    reviewingLeave: null,
+    leaveSlip: { reason: "", timeStr: "", eventStr: "", applicant: "", dateStr: "" },
+    rejectPhase: false,
+    rejectReason: "",
+    leaveSubmitting: false,
 
     // 统计（MINISTER/ADMIN）
     stats: null,
@@ -34,6 +49,8 @@ Page({
     this.setData({ currentMonth: `${now.getFullYear()}-${m}` });
   },
 
+  noop() {},
+
   onShow() {
     if (!getApp().checkLogin()) return;
     const app = getApp();
@@ -43,6 +60,14 @@ Page({
       : ["值班表", "会议", "请假"];
     this.setData({ tabs, showStats: isAdminOrMinister, isAdmin: isAdminOrMinister });
     this.loadTab(this.data.activeTab);
+    if (isAdminOrMinister) this.loadAssignable();
+  },
+
+  async loadAssignable() {
+    try {
+      const res = await api.getAssignableUsers();
+      this.setData({ assignableUsers: res.users || [] });
+    } catch (e) { /* 静默失败 */ }
   },
 
   onTabChange(e) {
@@ -66,16 +91,93 @@ Page({
     this.setData({ dutyLoading: true });
     try {
       const res = await api.getDuty();
-      const grid = [[],[],[],[],[]];
+      // 预初始化 5×5 格子，避免 undefined 导致空单元格不渲染
+      const grid = [];
+      for (let w = 0; w < 5; w++) {
+        grid[w] = [];
+        for (let p = 0; p < 5; p++) {
+          grid[w][p] = [];
+        }
+      }
       (res.assignments || []).forEach((a) => {
-        if (a.weekday >= 0 && a.weekday < 5) {
-          if (!grid[a.weekday][a.period]) grid[a.weekday][a.period] = [];
-          grid[a.weekday][a.period].push(a.user);
+        if (a.weekday >= 0 && a.weekday < 5 && a.period >= 0 && a.period < 5) {
+          grid[a.weekday][a.period].push({ aid: a.id, ...a.user, deptLabel: a.deptLabel });
         }
       });
       this.setData({ dutyGrid: grid, dutyLoading: false });
     } catch (err) {
       this.setData({ dutyLoading: false });
+    }
+  },
+
+  // ===== 值班编辑（管理员/部长）=====
+
+  onAddTap(e) {
+    const w = parseInt(e.currentTarget.dataset.w);
+    const p = parseInt(e.currentTarget.dataset.p);
+    this.setData({
+      showDutySheet: true,
+      dutyPick: { w, p },
+      dutyUserIndex: -1,
+      dutyDeptLabel: "",
+    });
+  },
+
+  onCloseDutySheet() {
+    this.setData({ showDutySheet: false });
+  },
+
+  onDutyUserChange(e) {
+    const idx = parseInt(e.detail.value);
+    this.setData({ dutyUserIndex: idx });
+  },
+
+  onDutyDeptLabelInput(e) {
+    this.setData({ dutyDeptLabel: e.detail.value });
+  },
+
+  async onConfirmAdd() {
+    const { dutyPick, dutyUserIndex, assignableUsers, dutyDeptLabel } = this.data;
+    if (dutyUserIndex < 0 || !assignableUsers[dutyUserIndex]) {
+      wx.showToast({ title: "请选择干事", icon: "none" });
+      return;
+    }
+    try {
+      await api.addDuty(
+        dutyPick.w,
+        dutyPick.p,
+        assignableUsers[dutyUserIndex].id,
+        dutyDeptLabel.trim() || undefined,
+      );
+      wx.showToast({ title: "已安排", icon: "success" });
+      this.setData({ showDutySheet: false });
+      this.loadDuty();
+    } catch (err) {
+      wx.showToast({ title: err.message || "添加失败", icon: "none" });
+    }
+  },
+
+  async onRemoveTap(e) {
+    const aid = e.currentTarget.dataset.aid;
+    const that = this;
+    wx.showModal({
+      title: "移除值班",
+      content: "确定移除该干事的值班安排吗？",
+      success(res) {
+        if (res.confirm) {
+          that.confirmRemoveDuty(aid);
+        }
+      },
+    });
+  },
+
+  async confirmRemoveDuty(aid) {
+    try {
+      await api.removeDuty(aid);
+      wx.showToast({ title: "已移除", icon: "success" });
+      this.loadDuty();
+    } catch (err) {
+      wx.showToast({ title: err.message || "移除失败", icon: "none" });
     }
   },
 
@@ -112,40 +214,93 @@ Page({
     wx.navigateTo({ url: "/pages/leave/apply" });
   },
 
-  // ===== 请假审批（管理员/部长）=====
+  // ===== 请假审批（管理员/部长）— 对齐 Web LeaveSlipModal =====
   onLeaveTap(e) {
     if (!this.data.isAdmin) return;
     const { id, status } = e.currentTarget.dataset;
     if (status !== 'PENDING') return;
-    const that = this;
-    wx.showActionSheet({
-      itemList: ['通过', '驳回'],
-      success(res) {
-        const result = res.tapIndex === 0 ? 'APPROVED' : 'REJECTED';
-        if (result === 'REJECTED') {
-          wx.showModal({
-            title: '驳回原因',
-            editable: true,
-            placeholderText: '选填',
-            success(mr) {
-              if (mr.confirm) {
-                that.decideLeave(id, result, mr.content || '');
-              }
-            }
-          });
-        } else {
-          that.decideLeave(id, result, '');
-        }
-      },
+
+    // 从列表中取出对应请假记录
+    const leave = this.data.leaves.find(l => l.id === id);
+    if (!leave) return;
+
+    // 构建请假条字段（与 Web buildSlipFields 一致）
+    const WEEKDAYS = ["周一", "周二", "周三", "周四", "周五"];
+    const PERIODS = ["第1节", "第2节", "第3节", "第4节", "第5节"];
+    const reason = (leave.reason || "").trim() || "—";
+    let timeStr = "—";
+    let eventStr = "—";
+    if (leave.category === "MEETING" && leave.meeting) {
+      timeStr = this.formatTime(leave.meeting.startTime);
+      eventStr = leave.meeting.title;
+    } else if (leave.category === "DUTY" && leave.dutyWeekday != null && leave.dutyPeriod != null) {
+      timeStr = WEEKDAYS[leave.dutyWeekday] + PERIODS[leave.dutyPeriod];
+      eventStr = "值班";
+    } else if (leave.category === "DUTY") {
+      eventStr = "值班";
+    } else {
+      eventStr = "会议";
+    }
+    const applicant = (leave.user && leave.user.displayName) || "—";
+    const dateStr = this.formatDate(leave.createdAt);
+
+    this.setData({
+      showLeaveSheet: true,
+      reviewingLeave: leave,
+      leaveSlip: { reason, timeStr, eventStr, applicant, dateStr },
+      rejectPhase: false,
+      rejectReason: "",
     });
   },
 
-  async decideLeave(leaveId, result, reason) {
+  onCloseLeaveSheet() {
+    this.setData({ showLeaveSheet: false, reviewingLeave: null, rejectPhase: false, rejectReason: "" });
+  },
+
+  onApproveLeave() {
+    if (!this.data.reviewingLeave) return;
+    this.decideLeave(this.data.reviewingLeave.id, 'APPROVED', '');
+  },
+
+  onRejectLeave() {
+    this.setData({ rejectPhase: true });
+  },
+
+  onCancelReject() {
+    this.setData({ rejectPhase: false, rejectReason: "" });
+  },
+
+  onRejectReasonInput(e) {
+    this.setData({ rejectReason: e.detail.value });
+  },
+
+  async onConfirmReject() {
+    if (!this.data.reviewingLeave) return;
+    this.setData({ leaveSubmitting: true });
     try {
-      await api.decideLeave(leaveId, result === 'APPROVED', reason);
-      wx.showToast({ title: result === 'APPROVED' ? '已通过' : '已驳回', icon: 'success' });
+      await api.decideLeave(
+        this.data.reviewingLeave.id,
+        false,
+        this.data.rejectReason.trim()
+      );
+      wx.showToast({ title: '已驳回', icon: 'success' });
+      this.setData({ showLeaveSheet: false, reviewingLeave: null, rejectPhase: false, rejectReason: "", leaveSubmitting: false });
       this.loadLeaves();
     } catch (err) {
+      this.setData({ leaveSubmitting: false });
+      wx.showToast({ title: err.message || '操作失败', icon: 'none' });
+    }
+  },
+
+  async decideLeave(leaveId, result, reason) {
+    this.setData({ leaveSubmitting: true });
+    try {
+      await api.decideLeave(leaveId, result === 'APPROVED', reason);
+      wx.showToast({ title: result === 'APPROVED' ? '已同意' : '已驳回', icon: 'success' });
+      this.setData({ showLeaveSheet: false, reviewingLeave: null, rejectPhase: false, rejectReason: "", leaveSubmitting: false });
+      this.loadLeaves();
+    } catch (err) {
+      this.setData({ leaveSubmitting: false });
       wx.showToast({ title: err.message || '操作失败', icon: 'none' });
     }
   },
@@ -178,6 +333,12 @@ Page({
     const h = d.getHours().toString().padStart(2, "0");
     const min = d.getMinutes().toString().padStart(2, "0");
     return `${m}-${day} ${h}:${min}`;
+  },
+
+  formatDate(dateStr) {
+    if (!dateStr) return "";
+    const d = new Date(dateStr);
+    return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
   },
 
   getLeaveStatus(status) {

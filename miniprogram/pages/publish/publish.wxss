@@ -46,6 +46,13 @@
   box-sizing: border-box;
 }
 
+/* 积分选择器 */
+.point-active {
+  background: #e6f4ff !important;
+  border-color: #1677ff !important;
+  color: #1677ff !important;
+}
+
 /* 时间段 */
 .slot-tag {
   background: #e6f4ff;
@@ -65,10 +72,18 @@
   border-radius: 12rpx;
   padding: 16rpx;
 }
-.slot-pickers {
+.slot-row {
   display: flex;
-  gap: 16rpx;
+  align-items: center;
+  gap: 12rpx;
   margin-bottom: 12rpx;
+}
+.slot-label {
+  width: 72rpx;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #333;
+  flex-shrink: 0;
 }
 .slot-picker-item {
   flex: 1;
@@ -78,13 +93,17 @@
   border-radius: 8rpx;
   padding: 0 12rpx;
   font-size: 24rpx;
-  color: #999;
+  color: #333;
   text-align: center;
 }
+.slot-picker-placeholder {
+  color: #999;
+}
 .btn-sm-inline {
-  margin-top: 12rpx;
+  flex-shrink: 0;
   padding: 12rpx 24rpx;
   font-size: 24rpx;
+  margin-left: auto;
 }
 
 /* 图片 */
@@ -140,4 +159,58 @@
 
 .btn-full {
   width: 100%;
+}
+
+/* 转发引导弹窗 */
+.share-tip-mask {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.share-tip-card {
+  width: 560rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 48rpx 40rpx 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.share-tip-icon {
+  font-size: 80rpx;
+  margin-bottom: 16rpx;
+}
+.share-tip-title {
+  font-size: 36rpx; font-weight: 700;
+  margin-bottom: 8rpx;
+}
+.share-tip-body {
+  font-size: 26rpx; color: #666;
+  text-align: center;
+  margin-bottom: 32rpx;
+}
+.share-tip-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  width: 100%;
+}
+.btn-share {
+  width: 100%; height: 80rpx;
+  background: linear-gradient(135deg, #07c160, #06ad56);
+  color: #fff; font-size: 30rpx; font-weight: 600;
+  border-radius: 12rpx; border: none;
+  display: flex; align-items: center; justify-content: center;
+  line-height: 80rpx;
+}
+.btn-close-share {
+  width: 100%; height: 72rpx;
+  background: #f5f5f5; color: #999;
+  font-size: 26rpx;
+  border-radius: 12rpx; border: none;
+  display: flex; align-items: center; justify-content: center;
+  line-height: 72rpx;
 }

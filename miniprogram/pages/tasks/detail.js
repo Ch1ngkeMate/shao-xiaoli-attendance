@@ -8,6 +8,7 @@ Page({
     myClaimedSlotIds: [],
     mySubmission: null,
     submissionsForReview: [],
+    isTimeEnded: false,
 
     showSubmitSheet: false,
     submitNote: "",
@@ -48,16 +49,32 @@ Page({
       if (task.claims) task.claims.forEach((c) => { if (c.user) c.user.avatarUrl = fixUrl(c.user.avatarUrl); });
       if (task.claims) task.claims.forEach((c) => { if (c.user) c.user.avatarUrl = fixUrl(c.user.avatarUrl); });
 
-      const hasClaimed = me && task.claims
-        ? task.claims.some((c) => c.user && c.user.id === me.id)
-        : false;
+      // 我接取了哪些时段（支持一人接多段）
+      const myClaimedSlotIds = [];
+      const myClaims = me && task.claims
+        ? task.claims.filter((c) => c.user && c.user.id === me.id)
+        : [];
+      myClaims.forEach((c) => { myClaimedSlotIds.push(c.timeSlotId); });
+
+      const hasClaimed = myClaimedSlotIds.length > 0;
+
+      // 计算每个时段的已接人数和名额，供模板判断"可接/已满" + 显示接取按钮
+      if (task.timeSlots && task.timeSlots.length > 0) {
+        const claims = task.claims || [];
+        task.timeSlots.forEach((slot) => {
+          slot.claimedCount = claims.filter((c) => c.timeSlotId === slot.id).length;
+          slot.limit = slot.headcountHint > 0 ? slot.headcountHint : null;
+        });
+      }
 
       this.setData({
         task,
         loading: false,
         hasClaimed,
+        myClaimedSlotIds,
         allClaimantsApproved: res.allClaimantsApproved || false,
         slotsOrTaskFull: res.slotsOrTaskFull || false,
+        isTimeEnded: task.endTime ? new Date(task.endTime).getTime() < Date.now() : false,
         isMEMBER: getApp().hasRole("MEMBER"),
         isAdminOrMinister: getApp().hasRole("ADMIN", "MINISTER"),
       });
@@ -69,22 +86,23 @@ Page({
 
   // ========== 管理员移除接取 ==========
   onRemoveTap(e) {
-    const userId = e.currentTarget.dataset.userId;
+    const claimId = e.currentTarget.dataset.claimId;
+    if (!claimId) return;
     const that = this;
     wx.showModal({
       title: "移出接取人员",
       content: "确定移除此人的接取记录吗？",
       success(res) {
         if (res.confirm) {
-          that.confirmRemove(userId);
+          that.confirmRemove(claimId);
         }
       },
     });
   },
 
-  async confirmRemove(userId) {
+  async confirmRemove(claimId) {
     try {
-      await api.removeClaim(this.taskId, userId);
+      await api.removeClaim(this.taskId, undefined, claimId);
       wx.showToast({ title: "已移出", icon: "success" });
       this.loadDetail();
     } catch (err) {
@@ -183,5 +201,15 @@ Page({
     const urls = this.data.task.imageUrls || [];
     const current = e.currentTarget.dataset.current || (urls[0] || '');
     wx.previewImage({ current: current, urls: urls });
+  },
+
+  // ========== 分享 ==========
+  onShareAppMessage() {
+    const task = this.data.task;
+    if (!task) return { title: "干事考勤系统", path: "/pages/tasks/tasks" };
+    return {
+      title: `${task.title} (+${task.points}分)`,
+      path: `/pages/tasks/detail?id=${this.taskId}`,
+    };
   },
 });

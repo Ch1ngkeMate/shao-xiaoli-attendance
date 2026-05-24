@@ -7,7 +7,19 @@
   width: 120rpx; height: 120rpx;
   border-radius: 24rpx;
   background: linear-gradient(135deg, #1677ff, #0958d9);
-  box-shadow: 0 4rpx 16rpx rgba(22,119,255,0.2);
+  box-shadow: 0 1rpx 2rpx rgba(0,0,0,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+image.brand-logo {
+  background: #fff;
+}
+.brand-logo-heart {
+  font-size: 52rpx;
+  color: #fff;
+  line-height: 1;
 }
 .brand-title {
   margin-top: 20rpx;

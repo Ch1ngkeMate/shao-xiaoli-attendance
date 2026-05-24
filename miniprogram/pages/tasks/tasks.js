@@ -15,7 +15,7 @@ Page({
       { key: "ALL", label: "全部" },
       { key: "CLAIMABLE", label: "可接取" },
       { key: "FULL", label: "已满" },
-      { key: "PENDING", label: "待提交" },
+      { key: "PENDING", label: "待处理" },
       { key: "ENDED", label: "已结束" },
     ],
     showFab: false,

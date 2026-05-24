@@ -15,13 +15,17 @@
   <!-- 积分 -->
   <view class="form-group">
     <view class="form-label">积分 *</view>
-    <input class="form-input" type="number" placeholder="完成任务可获得积分" value="{{points}}" bindinput="onPointsChange" />
+    <view style="display:flex;flex-direction:row;gap:16rpx;">
+      <view class="point-option {{points === 1 ? 'point-active' : ''}}" style="flex:1;height:72rpx;background:#f5f5f5;border:2rpx solid #e8e8e8;border-radius:12rpx;display:flex;align-items:center;justify-content:center;font-size:28rpx;font-weight:600;color:#666;" bindtap="setPoints" data-v="1">1分</view>
+      <view class="point-option {{points === 2 ? 'point-active' : ''}}" style="flex:1;height:72rpx;background:#f5f5f5;border:2rpx solid #e8e8e8;border-radius:12rpx;display:flex;align-items:center;justify-content:center;font-size:28rpx;font-weight:600;color:#666;" bindtap="setPoints" data-v="2">2分</view>
+      <view class="point-option {{points === 3 ? 'point-active' : ''}}" style="flex:1;height:72rpx;background:#f5f5f5;border:2rpx solid #e8e8e8;border-radius:12rpx;display:flex;align-items:center;justify-content:center;font-size:28rpx;font-weight:600;color:#666;" bindtap="setPoints" data-v="3">3分</view>
+    </view>
   </view>
 
   <!-- 人数上限 -->
   <view class="form-group">
     <view class="form-label">接取人数上限</view>
-    <input class="form-input" type="number" placeholder="1" value="{{headcountHint}}" bindinput="onHeadcountChange" />
+    <input class="form-input" type="number" placeholder="不填 = 无上限" value="{{headcountHint > 0 ? headcountHint : ''}}" bindinput="onHeadcountChange" />
   </view>
 
   <!-- 时间段（多时段） -->
@@ -34,18 +38,38 @@
       <view class="slot-remove" data-index="{{index}}" bindtap="onRemoveSlot">✕</view>
     </view>
 
-    <!-- 添加入口 -->
+    <!-- 添加入口 — 拆为日期+时间两个 picker，对齐 Web DatePicker showTime -->
     <view class="slot-add">
-      <view class="slot-pickers">
-        <picker mode="datetime" value="{{tempSlotStart}}" bindchange="onSlotStartChange">
-          <view class="slot-picker-item">开始: {{tempSlotStart || '点击选择'}}</view>
+      <view class="slot-row">
+        <view class="slot-label">开始</view>
+        <picker mode="date" value="{{tempSlotStartDate}}" bindchange="onSlotStartDateChange">
+          <view class="slot-picker-item {{tempSlotStartDate ? '' : 'slot-picker-placeholder'}}">
+            {{tempSlotStartDate || '选择日期'}}
+          </view>
         </picker>
-        <picker mode="datetime" value="{{tempSlotEnd}}" bindchange="onSlotEndChange">
-          <view class="slot-picker-item">结束: {{tempSlotEnd || '点击选择'}}</view>
+        <picker mode="time" value="{{tempSlotStartTime}}" bindchange="onSlotStartTimeChange">
+          <view class="slot-picker-item {{tempSlotStartTime ? '' : 'slot-picker-placeholder'}}">
+            {{tempSlotStartTime || '选择时间'}}
+          </view>
         </picker>
       </view>
-      <input class="form-input-sm" type="number" placeholder="人数" value="{{tempSlotHeadcount}}" bindinput="onSlotHeadcountChange" />
-      <button class="btn-primary btn-sm-inline" bindtap="onAddSlot">添加时段</button>
+      <view class="slot-row">
+        <view class="slot-label">结束</view>
+        <picker mode="date" value="{{tempSlotEndDate}}" bindchange="onSlotEndDateChange">
+          <view class="slot-picker-item {{tempSlotEndDate ? '' : 'slot-picker-placeholder'}}">
+            {{tempSlotEndDate || '选择日期'}}
+          </view>
+        </picker>
+        <picker mode="time" value="{{tempSlotEndTime}}" bindchange="onSlotEndTimeChange">
+          <view class="slot-picker-item {{tempSlotEndTime ? '' : 'slot-picker-placeholder'}}">
+            {{tempSlotEndTime || '选择时间'}}
+          </view>
+        </picker>
+      </view>
+      <view class="slot-row">
+        <input class="form-input-sm" type="number" placeholder="本段限员(不填不限)" value="{{tempSlotHeadcount}}" bindinput="onSlotHeadcountChange" />
+        <button class="btn-primary btn-sm-inline" bindtap="onAddSlot">添加时段</button>
+      </view>
     </view>
   </view>
 
@@ -71,6 +95,19 @@
     <button class="btn-primary btn-full" bindtap="onSubmit" loading="{{submitting}}" disabled="{{submitting}}">
       {{submitting ? '发布中...' : '发布任务'}}
     </button>
+  </view>
+
+  <!-- 发布成功 — 转发引导 -->
+  <view wx:if="{{showShareTip}}" class="share-tip-mask" bindtap="onCloseShareTip" catchtouchmove="noop">
+    <view class="share-tip-card" catchtap="noop">
+      <view class="share-tip-icon">✅</view>
+      <view class="share-tip-title">发布成功！</view>
+      <view class="share-tip-body">转发到部门群，让部员们知晓并接取</view>
+      <view class="share-tip-actions">
+        <button class="btn-share" open-type="share">📤 转发到群</button>
+        <button class="btn-close-share" bindtap="onCloseShareTip">稍后</button>
+      </view>
+    </view>
   </view>
 
 </view>

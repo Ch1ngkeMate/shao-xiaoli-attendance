@@ -12,14 +12,28 @@
     if (min < 10) min = '0' + min;
     return m + '-' + day + ' ' + h + ':' + min;
   };
-  // 四态可见性 Tag — 与 Web getTaskClaimVisibility 一致
-  var getVisLabel = function(status, slotsOrTaskFull, allClaimantsApproved) {
+  // 四态可见性 Tag — 与后端 getTaskClaimVisibility 完全对齐
+  var getVisLabel = function(status, endTime, claimedCount, slotsOrTaskFull, allClaimantsApproved) {
     if (status === 'CLOSED' || allClaimantsApproved) return '已结束';
+    if (endTime) {
+      var et = getDate(endTime).getTime();
+      if (et && Date.now() > et) {
+        if (claimedCount > 0) return '待处理';
+        return '已结束';
+      }
+    }
     if (slotsOrTaskFull) return '名额已满';
     return '可接取';
   };
-  var getVisClass = function(status, slotsOrTaskFull, allClaimantsApproved) {
+  var getVisClass = function(status, endTime, claimedCount, slotsOrTaskFull, allClaimantsApproved) {
     if (status === 'CLOSED' || allClaimantsApproved) return 'tag-gray';
+    if (endTime) {
+      var et = getDate(endTime).getTime();
+      if (et && Date.now() > et) {
+        if (claimedCount > 0) return 'tag-orange';
+        return 'tag-gray';
+      }
+    }
     if (slotsOrTaskFull) return 'tag-orange';
     return 'tag-green';
   };
@@ -62,8 +76,8 @@
   >
     <view class="flex-between">
       <view class="task-title ellipsis">{{item.title}}</view>
-      <view class="tag {{utils.getVisClass(item.status, item.slotsOrTaskFull, item.allClaimantsApproved)}}">
-        {{utils.getVisLabel(item.status, item.slotsOrTaskFull, item.allClaimantsApproved)}}
+      <view class="tag {{utils.getVisClass(item.status, item.endTime, item.claimedCount, item.slotsOrTaskFull, item.allClaimantsApproved)}}">
+        {{utils.getVisLabel(item.status, item.endTime, item.claimedCount, item.slotsOrTaskFull, item.allClaimantsApproved)}}
       </view>
     </view>
 

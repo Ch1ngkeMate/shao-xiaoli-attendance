@@ -6,14 +6,15 @@
 | **中文名称** | 邵小利志愿服务队 · 干事考勤系统 |
 | **当前版本** | `0.1.0`（package.json） |
 | **报告日期** | 2026-05-24 |
-| **代码仓库** | 本地路径 `D:\develop\cursor Pro\shao-xiaoli-attendance`，Git 分支 `main`（约 24 次提交） |
+| **代码仓库** | 本地路径 `D:\develop\cursor Pro\shao-xiaoli-attendance`，Git 分支 `main` |
+| **远程仓库** | `https://github.com/Ch1ngkeMate/shao-xiaoli-attendance.git` |
 | **部署形态** | 自建服务器（宝塔 + PM2 + MySQL），支持 Vercel Blob 图床；微信小程序备案后联调中 |
 
 ---
 
 ## 一、项目概述
 
-本系统面向志愿服务队内部，用于 **任务发布与接取**、**完成凭证审核**、**值班与例会考勤**、**请假审批**、**站内消息与公告**、**月度积分报表** 等日常管理。主体为 **Web 应用（浏览器 / 手机浏览器）**；**微信小程序** 处于基础联调阶段（登录绑定已完成，业务页面待开发）。
+本系统面向志愿服务队内部，用于 **任务发布与接取**、**完成凭证审核**、**值班与例会考勤**、**请假审批**、**站内消息与公告**、**月度积分报表** 等日常管理。主体为 **Web 应用（浏览器 / 手机浏览器）**；**微信小程序** 已具备与 Web 对等的页面骨架（任务、消息、值班、请假、发布、月报等），联调与真机验收仍在进行。
 
 ### 角色体系
 
@@ -242,36 +243,33 @@ shao-xiaoli-attendance/
 
 ---
 
-### 5.2 微信小程序 — 已完成（基础）
+### 5.2 微信小程序 — 已完成（已推送远程）
 
 | 项 | 状态 |
 |----|------|
-| 数据库字段 `wxOpenId` / `wxUnionId` | ✅ 已设计迁移 |
+| 数据库字段 `wxOpenId` / `wxUnionId` | ✅ 迁移已入库 |
 | `POST /api/miniprogram/auth/bind-login` | ✅ 姓名 + code 首次绑定，返回 JWT |
 | `POST /api/miniprogram/auth/wx-login` | ✅ 已绑定用户 code 登录 |
 | API 鉴权 Bearer Token | ✅ `readSessionCookie()` 兼容 Cookie 与 `Authorization: Bearer` |
-| 客户端 `miniprogram/` 登录页 + 首页 | ✅ 可验证登录与 `GET /api/me` |
+| middleware 放行 `/api/miniprogram/auth/*` | ✅（见提交 `ec776e4`） |
+| 客户端页面 | ✅ 登录、首页/任务、消息、公告、通知、值班、会议、请假、发布、个人/他人主页、设置、月报等（`miniprogram/pages/`） |
 | 联调文档 | ✅ `docs/MINIPROGRAM.md` |
 
 ---
 
 ### 5.3 未完成 / 待办
 
-#### 微信小程序（业务功能）
+#### 微信小程序（上线与打磨）
 
-- [ ] 任务列表、详情、接取、提交凭证
-- [ ] 站内消息与公告
-- [ ] 值班表、会议、请假
-- [ ] 个人考勤与月报查看
-- [ ] 图片上传（需配置 uploadFile 合法域名）
+- [ ] 生产环境配置真实 `WX_APPID`、`WX_SECRET` 并完成真机全链路验收
+- [ ] 微信公众平台：request / uploadFile 合法域名（备案 HTTPS）
+- [ ] 图片上传在真机上的稳定性（域名与白名单）
 - [ ] 提交微信审核与正式版发布
 
-#### 后端 / 联调
+#### 后端 / 运维
 
-- [ ] **middleware 放行小程序登录 API**：当前 `middleware.ts` 仅放行 `/api/auth/*`，`/api/miniprogram/auth/*` 未登录会被重定向到 `/login`，需在 `isPublicPath` 中补充（否则真机 bind-login 会失败）
-- [ ] 生产环境配置真实 `WX_APPID`、`WX_SECRET` 并执行 `prisma migrate deploy`
-- [ ] 微信公众平台配置 request 合法域名（备案 HTTPS 域名）
-- [ ] 本地未提交 Git 的改动需整理提交（见下文「仓库状态」）
+- [ ] 服务器 `.env` 与本地 `miniprogram/utils/config.js` 中 `API_BASE` 指向生产域名
+- [ ] 推送后执行 `deploy.sh` 确保迁移与构建一致
 
 #### 工程与质量
 
@@ -409,38 +407,240 @@ shao-xiaoli-attendance/
 
 ### 10.1 已推送远程（`origin/main`）
 
-Web 端核心功能、部署脚本、多数迁移与 API 已存在于远程仓库（最近提交含：部署优化、公告已读、版本探针、深色模式、个人主页背景等）。
+以下能力**已在 GitHub 远程仓库**（`origin/main`），服务器执行 `git pull` + `deploy.sh` 即可拉取：
 
-### 10.2 本地已有、待整理提交（截至 2026-05-24）
-
-| 类型 | 内容 |
+| 类别 | 说明 |
 |------|------|
-| 已修改 | `prisma/schema.prisma`（微信字段）、`src/components/ClientProviders.tsx`（中文 locale）、`src/lib/auth.ts`（Bearer）、`.env.example`、`scripts/check-deploy-env.ts` |
-| 新增 | `src/app/api/miniprogram/**`、`src/lib/wechat.ts`、`miniprogram/**`、`docs/MINIPROGRAM.md`、`docs/DEVELOPMENT_REPORT.md`、`prisma/migrations/20260524120000_user_wechat_bind/` |
-| 未跟踪杂项 | PPT 生成脚本、`.agents/`、`CHANGES_REPORT.md` 等 |
+| Web 全功能 | 任务、值班、会议、请假、公告、消息、月报、账号管理等 |
+| 部署脚本 | `deploy.sh`、`npm run deploy:check`、低内存构建说明 |
+| 小程序（后端 + 客户端） | `miniprogram/` 多页面、`/api/miniprogram/auth/*`、Bearer 鉴权、middleware 放行 |
+| 数据库迁移 | 含 `20260524120000_user_wechat_bind` 等全部 `prisma/migrations/` |
+| 文档 | `docs/MINIPROGRAM.md` 等 |
 
-建议在联调通过后将小程序相关改动单独提交，避免混入无关文件。
+近期代表性提交（从新到旧）：
+
+| 提交 | 说明 |
+|------|------|
+| `0282c52` | fix: 修复代码审查发现的 8 个问题 |
+| `ec776e4` | feat: 微信小程序完整开发 + middleware 修复 |
+| `0bc6b79` | chore(deploy): 降低 npm ci 被 kill 概率 |
+| `5403bce` | feat(deploy): 增加一键部署脚本与默认透明封面 |
+
+### 10.2 本地未推送 / 未提交（随开发变化，提交前请 `git status`）
+
+常见**不应提交**或**可选提交**项：
+
+| 类型 | 路径/文件 | 建议 |
+|------|-----------|------|
+| 敏感配置 | `.env`、`.env.local` | ❌ 永不提交（已在 `.gitignore`） |
+| 依赖与构建产物 | `node_modules/`、`.next/` | ❌ 已忽略 |
+| 本地上传 | `public/uploads/` | ❌ 已忽略 |
+| 微信开发者私有配置 | `miniprogram/project.private.config.json` | ❌ 建议保持未跟踪（含本机调试项） |
+| 无关作业文件 | `*.pptx`、`generate_ppt.py` 等 | ❌ 勿纳入考勤仓库 |
+| Agent 技能 | `.agents/`、`skills-lock.json` | 可选，与业务无关 |
+| 文档更新 | `docs/DEVELOPMENT_REPORT.md` | ✅ 建议提交 |
 
 ---
 
-## 十一、推荐后续路线图
+## 十一、代码推送与服务器部署
 
-1. **修复 middleware**：放行 `/api/miniprogram/auth/`，完成真机登录联调。  
-2. **配置生产**：`WX_*`、HTTPS 域名、迁移、微信公众平台合法域名。  
-3. **小程序 MVP**：任务列表 → 接取 → 提交（复用现有 API）。  
-4. **小程序扩展**：消息、值班请假、公告弹窗。  
-5. **工程化**：补充项目 README、配置 crontab 调用滞留通知、按需补充 API 测试。
+本节描述 **本地开发机 → GitHub → 生产服务器** 的完整流程。本项目采用 **单分支 `main` + 服务器手动拉取部署**（非 CI/CD 自动发布）。
+
+### 11.1 流程总览
+
+```
+┌──────────────┐    git push     ┌─────────────────┐    git pull      ┌──────────────────┐
+│  Windows 本机 │ ──────────────► │ GitHub origin   │ ───────────────► │ 阿里云/宝塔 VPS   │
+│  改代码、自测  │                 │ /main           │   SSH 登录服务器  │ deploy.sh 构建重启 │
+└──────────────┘                 └─────────────────┘                  └──────────────────┘
+        │                                                                  │
+        │ 勿提交 .env                                                       │ .env 仅在服务器配置
+        └──────────────────────────────────────────────────────────────────┘
+```
+
+### 11.2 前置条件（本机 Windows）
+
+1. 已安装 **Git**、**Node.js**（与服务器大版本接近更佳）。
+2. 已克隆仓库到本地，例如：
+   ```powershell
+   cd "D:\develop\cursor Pro\shao-xiaoli-attendance"
+   ```
+3. 已配置 GitHub 身份（二选一）：
+   - **HTTPS**：个人访问令牌（PAT），`git push` 时作为密码；
+   - **SSH**：`git@github.com:Ch1ngkeMate/shao-xiaoli-attendance.git` 并配置公钥。
+4. 确认远程：
+   ```powershell
+   git remote -v
+   # origin  https://github.com/Ch1ngkeMate/shao-xiaoli-attendance.git (fetch/push)
+   ```
+
+### 11.3 本地提交与推送到 GitHub
+
+> PowerShell 中请用分号 `;` 串联命令，**不要**使用 Bash 的 `&&`。
+
+**① 查看改动**
+
+```powershell
+cd "D:\develop\cursor Pro\shao-xiaoli-attendance"
+git status
+git diff
+```
+
+**② 只添加业务相关文件（推荐显式 add，避免误提交 PPT 等）**
+
+```powershell
+# 示例：提交文档与小程序样式修复
+git add docs/DEVELOPMENT_REPORT.md
+git add miniprogram/pages/leave/apply.wxss
+git add miniprogram/pages/settings/settings.wxss
+# 按需继续 git add 其它路径…
+```
+
+或一次性添加已跟踪文件的修改（不含未跟踪杂项）：
+
+```powershell
+git add -u
+```
+
+**③ 提交（commit message 风格与历史保持一致：`feat:` / `fix:` / `chore:` / `docs:`）**
+
+```powershell
+git commit -m "docs: 补充开发报告与代码推送说明"
+```
+
+**④ 推送到远程 `main`**
+
+```powershell
+git pull origin main
+git push origin main
+```
+
+若 `git pull` 提示冲突，先解决冲突文件后再 `git add` → `git commit` → `git push`。
+
+**⑤ 推送后核对**
+
+```powershell
+git log --oneline -3
+git status
+# 应显示：Your branch is up to date with 'origin/main'
+```
+
+### 11.4 切勿提交的内容（安全检查清单）
+
+| 检查项 | 说明 |
+|--------|------|
+| `.env` | 含 `DATABASE_URL`、`AUTH_SECRET`、`WX_SECRET` 等，仅放服务器 |
+| 真实 `WX_APPID` / Secret 写进 `miniprogram/utils/config.js` | 若含生产域名可提交；密钥只放服务器 `.env` |
+| 数据库文件、上传图片 | `dev.db`、`public/uploads/` 已在 `.gitignore` |
+| `node_modules`、`.next` | 由服务器 `npm ci` / `npm run build` 生成 |
+
+推送前可执行：
+
+```powershell
+git diff --cached --name-only
+```
+
+确认列表中无 `.env`、无 `.pptx`、无 `__pycache__`。
+
+### 11.5 服务器端：拉代码并部署
+
+推送成功后，**SSH 登录生产服务器**，进入项目目录（路径以你宝塔实际为准，下文用占位 `/www/wwwroot/shao-xiaoli-attendance`）：
+
+```bash
+cd /www/wwwroot/shao-xiaoli-attendance
+
+# 可选：查看当前版本
+git log --oneline -1
+
+# 一键部署（脚本内含 git pull、迁移、构建、PM2 重启）
+bash deploy.sh
+```
+
+`deploy.sh` 会自动完成：
+
+| 步骤 | 命令/行为 |
+|------|-----------|
+| 1 | 工作区有改动则 `git stash -u` |
+| 2 | `git pull` 拉取 `origin` 最新代码 |
+| 3 | `npm ci` 安装依赖（可用 `NODE_HEAP_MB` 调大 Node 内存） |
+| 4 | `npx prisma migrate deploy` + `prisma generate` |
+| 5 | `npm run build` |
+| 6 | `pm2 restart nextjs-app`（名称可由环境变量 `PM2_NAME` 覆盖） |
+| 7 | `curl` 探测 `/api/version`、`/api/me` |
+
+**环境变量**仅在服务器配置（宝塔「环境变量」或项目根 `.env`），**不要**从 Git 拉取。首次或变更后建议：
+
+```bash
+npm run deploy:check
+```
+
+**小内存 VPS 构建被 Kill 时：**
+
+```bash
+NEXT_BUILD_LOW_MEM=1 npm run build
+# 或在本机/CI 构建好 .next 再上传（见 next.config.ts 注释）
+```
+
+**`npm ci` 在 postinstall 阶段被 Kill：**
+
+```bash
+SKIP_PRISMA_GENERATE=1 npm ci --no-audit --fund=false --progress=false
+npx prisma generate
+npm run build
+```
+
+### 11.6 部署后验证
+
+| 检查 | 方法 |
+|------|------|
+| 构建版本 | 浏览器打开站点 → 设置页查看 buildId，或访问 `https://你的域名/api/version` |
+| 登录 | Web 账号密码登录；HTTPS 下 Cookie 正常 |
+| 数据库迁移 | 部署日志中 `prisma migrate deploy` 无报错 |
+| 小程序 | 微信开发者工具指向 `miniprogram/`，`config.js` 中 `API_BASE` 为生产 HTTPS 域名；真机测 bind-login / wx-login |
+
+### 11.7 常见问题
+
+| 现象 | 处理 |
+|------|------|
+| `git push` 被拒绝（non-fast-forward） | 先 `git pull origin main`，解决冲突后再 push |
+| 服务器 `git pull` 失败（本地有修改） | `deploy.sh` 会 stash；或手动 `git stash` / `git reset --hard origin/main`（**硬重置会丢服务器上未提交的本地改**） |
+| 推送成功但网站仍是旧版 | 确认 `pm2 restart` 成功；看 `/api/version` 的 `buildId` 是否变化 |
+| 仅 HTTP、无法保持登录 | 生产设 `SESSION_COOKIE_SECURE=false` 仅作临时调试；正式应上 HTTPS |
+| 小程序请求 401 / 跳登录页 | 确认 middleware 已放行 `/api/miniprogram/auth/`（提交 `ec776e4` 及之后） |
+
+### 11.8 推荐提交分组（实践）
+
+| 场景 | 建议 commit 范围 |
+|------|------------------|
+| 仅文档 | `docs/**` → `docs: …` |
+| 小程序 UI | `miniprogram/**` → `fix(miniprogram): …` |
+| 后端 API | `src/app/api/**`、`src/lib/**` → `feat(api): …` |
+| 数据库结构 | `prisma/schema.prisma` + `prisma/migrations/**` → `feat(db): …`（部署后必须 migrate） |
+| 部署相关 | `deploy.sh`、`scripts/check-deploy-env.ts` → `chore(deploy): …` |
+
+一次推送可包含多个 commit；**含数据库迁移的提交**推送后务必在服务器跑 `deploy.sh`（或至少 `prisma migrate deploy`）。
 
 ---
 
-## 十二、相关文档
+## 十二、推荐后续路线图
+
+1. **配置生产**：服务器 `WX_*`、HTTPS、`API_BASE`、微信合法域名。  
+2. **真机验收**：小程序各页面与 Web API 联调（任务接取提交、请假、上传等）。  
+3. **推送与部署**：按第十一章流程 push → 服务器 `deploy.sh`。  
+4. **工程化**：改写项目 README、配置 `CRON_SECRET` 计划任务、按需补充测试。  
+5. **小程序上线**：提审、发布正式版。
+
+---
+
+## 十三、相关文档
 
 | 文档 | 路径 |
 |------|------|
 | 微信小程序联调指南 | `docs/MINIPROGRAM.md` |
-| 本开发报告 | `docs/DEVELOPMENT_REPORT.md` |
+| 本开发报告（含推送与部署） | `docs/DEVELOPMENT_REPORT.md` |
 | 环境变量模板 | `.env.example` |
 | 变更备忘（历史） | `CHANGES_REPORT.md` |
+| 服务器一键部署脚本 | `deploy.sh`（项目根目录） |
 
 ---
 

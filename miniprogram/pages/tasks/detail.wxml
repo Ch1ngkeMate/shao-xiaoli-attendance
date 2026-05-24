@@ -5,7 +5,14 @@
     var d = getDate(s);
     return pad2(d.getMonth()+1)+'-'+pad2(d.getDate())+' '+pad2(d.getHours())+':'+pad2(d.getMinutes());
   };
-  module.exports = { formatTime:formatTime };
+  var inArray = function(arr, val) {
+    if (!arr) return false;
+    for (var i = 0; i < arr.length; i++) {
+      if (arr[i] === val) return true;
+    }
+    return false;
+  };
+  module.exports = { formatTime:formatTime, inArray:inArray };
 </wxs>
 
 <view wx:if="{{loading}}" class="load-more">加载中...</view>
@@ -25,6 +32,7 @@
     </view>
     <view class="flex-row gap-12 mt-12">
       <view wx:if="{{task.status === 'CLOSED' || allClaimantsApproved}}" class="tag tag-gray">已结束</view>
+      <view wx:elif="{{isTimeEnded && task.claimedCount > 0 && !allClaimantsApproved}}" class="tag tag-orange">待处理</view>
       <view wx:elif="{{slotsOrTaskFull}}" class="tag tag-orange">名额已满</view>
       <view wx:else class="tag tag-green">可接取</view>
       <view class="tag tag-blue">+{{task.points}} 分</view>
@@ -78,6 +86,7 @@
                 <image wx:if="{{c.user.avatarUrl}}" src="{{c.user.avatarUrl}}" class="avatar-xs" mode="aspectFill" />
                 <view wx:else class="avatar-xs avatar-placeholder-xs">👤</view>
                 <text class="claimant-tag-name">{{c.user.displayName}}</text>
+                <text wx:if="{{isAdminOrMinister && task.status === 'OPEN'}}" class="remove-claimant" data-claim-id="{{c.id}}" bindtap="onRemoveTap">✕</text>
               </view>
             </view>
           </view>
@@ -88,7 +97,7 @@
           <image wx:if="{{item.user.avatarUrl}}" src="{{item.user.avatarUrl}}" class="avatar-xs" mode="aspectFill" />
           <view wx:else class="avatar-xs avatar-placeholder-xs">👤</view>
           <text class="claimant-tag-name">{{item.user.displayName}}</text>
-          <text wx:if="{{isAdminOrMinister && task.status === 'OPEN'}}" class="remove-claimant" data-user-id="{{item.user.id}}" bindtap="onRemoveTap">✕</text>
+          <text wx:if="{{isAdminOrMinister && task.status === 'OPEN'}}" class="remove-claimant" data-claim-id="{{item.id}}" bindtap="onRemoveTap">✕</text>
         </view>
       </view>
     </view>
@@ -98,35 +107,32 @@
   <!-- 我的操作 -->
   <view wx:if="{{task.status === 'OPEN'}}" class="card">
     <view class="card-title">我的操作</view>
-    <view wx:if="{{hasClaimed}}">
-      <view wx:for="{{task.claims}}" wx:for-item="c" wx:key="id">
-        <view wx:if="{{c.user.id === me.id}}">
-          <view class="flex-between claim-slot-row">
-            <view wx:if="{{c.timeSlotId && task.timeSlots}}">
-              <view wx:for="{{task.timeSlots}}" wx:for-item="slot" wx:key="id">
-                <view wx:if="{{slot.id === c.timeSlotId}}" class="hint">
-                  已接时段: {{utils.formatTime(slot.startTime)}} — {{utils.formatTime(slot.endTime)}}
-                </view>
-              </view>
-            </view>
-            <view wx:else class="hint">已接取任务</view>
-          </view>
-          <button class="btn-primary mt-12" bindtap="onOpenSubmit" style="width:100%">提交完成凭证</button>
+    <view wx:if="{{task.timeSlots && task.timeSlots.length > 0}}">
+      <view wx:for="{{task.timeSlots}}" wx:key="id" class="flex-between claim-slot-row">
+        <view class="flex-row gap-8">
+          <text class="hint">{{utils.formatTime(item.startTime)}} — {{utils.formatTime(item.endTime)}}</text>
+          <!-- 我已接取该时段 -->
+          <text wx:if="{{utils.inArray(myClaimedSlotIds, item.id)}}" class="tag tag-green">已接</text>
+          <!-- 满了 -->
+          <text wx:elif="{{item.limit && item.claimedCount >= item.limit}}" class="tag tag-red">已满</text>
+          <!-- 可接 -->
+          <text wx:else class="tag tag-blue">可接</text>
         </view>
+        <button wx:if="{{!utils.inArray(myClaimedSlotIds, item.id) && (!item.limit || item.claimedCount < item.limit)}}"
+          class="btn-primary btn-sm-inline" style="padding:0 16rpx;min-width:80rpx;" data-slot-id="{{item.id}}" bindtap="onClaim">接取</button>
+        <text wx:else class="hint">—</text>
+      </view>
+      <view wx:if="{{hasClaimed}}" style="margin-top:16rpx;">
+        <button class="btn-primary" bindtap="onOpenSubmit" style="width:100%">提交完成凭证</button>
       </view>
     </view>
     <view wx:else>
-      <view wx:if="{{task.timeSlots && task.timeSlots.length > 0}}">
-        <view wx:for="{{task.timeSlots}}" wx:key="id" class="flex-between claim-slot-row">
-          <view class="flex-row gap-8">
-            <text class="hint">{{utils.formatTime(item.startTime)}} — {{utils.formatTime(item.endTime)}}</text>
-            <text wx:if="{{item.claimedCount >= item.limit}}" class="tag tag-red">已满</text>
-            <text wx:else class="tag tag-blue">可接</text>
-          </view>
-          <button wx:if="{{item.claimedCount < item.limit}}" class="btn-primary btn-sm-inline" data-slot-id="{{item.id}}" bindtap="onClaim">接取</button>
-        </view>
+      <view wx:if="{{hasClaimed}}">
+        <button class="btn-primary" bindtap="onOpenSubmit" style="width:100%">提交完成凭证</button>
       </view>
-      <view wx:else><button class="btn-primary" bindtap="onClaim">接取任务</button></view>
+      <view wx:else>
+        <button class="btn-primary" bindtap="onClaim">接取任务</button>
+      </view>
     </view>
   </view>
 

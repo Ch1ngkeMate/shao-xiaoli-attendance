@@ -5,6 +5,7 @@ import { batchAllClaimantsSubmittedAndApproved } from "@/lib/task-all-claimants-
 import { readSessionCookie } from "@/lib/auth";
 import { isTaskFullForClaim } from "@/lib/slot-claim-availability";
 import { getTaskClaimVisibility } from "@/lib/task-availability";
+import { notifyTaskPublished } from "@/lib/wechat-subscribe";
 
 const CreateTaskSchema = z
   .object({
@@ -260,6 +261,14 @@ export async function POST(req: Request) {
     },
     include: { images: true, timeSlots: { orderBy: { sort: "asc" } } },
   });
+
+  // 异步发送微信订阅消息通知全部员
+  void notifyTaskPublished({
+    taskId: task.id,
+    title: task.title,
+    points: task.points,
+    deadline: task.endTime.toISOString(),
+  }).catch((e) => console.error("[tasks] notifyTaskPublished", e));
 
   return NextResponse.json({ task });
 }

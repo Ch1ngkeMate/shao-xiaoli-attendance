@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { readSessionCookie } from "@/lib/auth";
 import { notifyMembersNewMeeting } from "@/lib/in-app-notify";
+import { notifyMeetingPublished } from "@/lib/wechat-subscribe";
 import { prisma } from "@/lib/prisma";
 
 const CreateSchema = z.object({
@@ -62,5 +63,14 @@ export async function POST(req: Request) {
     description: m.description,
     publisherName: m.publisher.displayName,
   }).catch((e) => void console.error("[meetings] notifyMembersNewMeeting", e));
+
+  // 异步发送微信订阅消息通知全部员
+  void notifyMeetingPublished({
+    meetingId: m.id,
+    title: m.title,
+    startTime: m.startTime,
+    place: m.place,
+  }).catch((e) => console.error("[meetings] notifyMeetingPublished", e));
+
   return NextResponse.json({ meeting: m });
 }

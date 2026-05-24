@@ -4,7 +4,6 @@ import { prisma } from "@/lib/prisma";
 import { readSessionCookie } from "@/lib/auth";
 import { notifyTaskCompletedToApprovedClaimants } from "@/lib/in-app-notify";
 import { isAllClaimantsSubmittedAndApproved } from "@/lib/task-all-claimants-state";
-import { getTaskTimeBoundsFromSlots } from "@/lib/task-time-bounds";
 
 type Params = { id: string };
 
@@ -38,24 +37,12 @@ export async function POST(req: Request, ctx: { params: Promise<Params> }) {
 
   const task = await prisma.task.findUnique({
     where: { id: taskId },
-    include: { timeSlots: { orderBy: { sort: "asc" } } },
   });
   if (!task) return NextResponse.json({ message: "任务不存在" }, { status: 404 });
   if (task.status !== "OPEN") {
     return NextResponse.json({ message: "任务已结束" }, { status: 400 });
   }
 
-  const { end: effectiveEnd } = getTaskTimeBoundsFromSlots({
-    startTime: task.startTime,
-    endTime: task.endTime,
-    timeSlots: task.timeSlots.map((s) => ({ startTime: s.startTime, endTime: s.endTime })),
-  });
-  if (Date.now() > effectiveEnd.getTime()) {
-    return NextResponse.json(
-      { message: "整段进行时间已结束，无法再收工或提前结束" },
-      { status: 400 },
-    );
-  }
   if (await isAllClaimantsSubmittedAndApproved(taskId)) {
     return NextResponse.json(
       { message: "全员已确认完成，请等待关单；无需再收工" },
