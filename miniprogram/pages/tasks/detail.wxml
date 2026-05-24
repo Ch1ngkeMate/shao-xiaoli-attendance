@@ -157,24 +157,37 @@
   <!-- 审核列表 -->
   <view wx:if="{{isAdminOrMinister && submissionsForReview && submissionsForReview.length > 0}}" class="card">
     <view class="card-title">待审核/已审核列表</view>
-    <view wx:for="{{submissionsForReview}}" wx:key="id" class="review-item">
-      <view class="review-row">
-        <view class="review-left">
-          <text class="review-user">{{item.user.displayName}}</text>
-          <view wx:if="{{!item.review}}" class="tag tag-gold">待审核</view>
-          <view wx:elif="{{item.review.result === 'APPROVED'}}" class="tag tag-green">已通过</view>
-          <view wx:else class="tag tag-red">已驳回</view>
+    <view wx:for="{{submissionsForReview}}" wx:key="id" class="review-card">
+      <!-- 头部：头像+姓名+状态 -->
+      <view class="review-header">
+        <view class="review-user-info">
+          <image wx:if="{{item.user.avatarUrl}}" src="{{item.user.avatarUrl}}" class="review-avatar" mode="aspectFill" />
+          <view wx:else class="review-avatar review-avatar-placeholder">👤</view>
+          <text class="review-user-name">{{item.user.displayName}}</text>
         </view>
-        <view wx:if="{{!item.review}}" class="review-actions">
-          <button class="btn-primary btn-sm-inline" data-submission-id="{{item.id}}" data-result="APPROVED" bindtap="onReview">通过</button>
-          <button class="btn-sm-inline btn-danger-inline" data-submission-id="{{item.id}}" data-result="REJECTED" bindtap="onReview">驳回</button>
+        <view wx:if="{{!item.review}}" class="tag tag-gold">待审核</view>
+        <view wx:elif="{{item.review.result === 'APPROVED'}}" class="tag tag-green">已通过</view>
+        <view wx:else class="tag tag-red">已驳回</view>
+      </view>
+      <!-- 内容区 -->
+      <view class="review-body">
+        <view class="review-time">提交时间：{{utils.formatTime(item.submitTime)}}</view>
+        <view wx:if="{{item.note}}" class="review-note">{{item.note}}</view>
+        <view wx:if="{{item.evidenceImages && item.evidenceImages.length > 0}}" class="review-evidence-row">
+          <image wx:for="{{item.evidenceImages}}" wx:for-item="img" wx:key="id" src="{{img.url}}" mode="aspectFill" class="evidence-img-sm" data-url="{{img.url}}" bindtap="onPreviewEvidence" />
+          <view wx:if="{{!item.review}}" class="review-actions-inline">
+            <button class="btn-primary btn-sm" data-submission-id="{{item.id}}" data-result="APPROVED" bindtap="onReview">通过</button>
+            <button class="btn-ghost btn-sm btn-danger-text" data-submission-id="{{item.id}}" data-result="REJECTED" bindtap="onReview">驳回</button>
+          </view>
+        </view>
+        <view wx:elif="{{!item.review}}" class="review-actions-block">
+          <button class="btn-primary btn-sm" data-submission-id="{{item.id}}" data-result="APPROVED" bindtap="onReview">通过</button>
+          <button class="btn-ghost btn-sm btn-danger-text" data-submission-id="{{item.id}}" data-result="REJECTED" bindtap="onReview">驳回</button>
         </view>
       </view>
-      <view wx:if="{{item.note}}" class="hint mt-8">{{item.note}}</view>
-      <view wx:if="{{item.evidenceImages && item.evidenceImages.length > 0}}" class="evidence-images mt-8">
-        <image wx:for="{{item.evidenceImages}}" wx:key="id" src="{{item.url}}" mode="aspectFill" class="evidence-img-sm" data-url="{{item.url}}" bindtap="onPreviewEvidence" />
+      <view wx:if="{{item.review && item.review.reason}}" class="review-reject-reason">
+        驳回原因：{{item.review.reason}}
       </view>
-      <view wx:if="{{item.review && item.review.reason}}" class="hint mt-8" style="color:#ff4d4f;">驳回原因：{{item.review.reason}}</view>
     </view>
   </view>
 
