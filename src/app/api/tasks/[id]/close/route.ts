@@ -70,6 +70,7 @@ export async function POST(req: Request, ctx: { params: Promise<Params> }) {
           submissionId: sub.id,
           result: "APPROVED",
           reason: "收工自动确认",
+          reviewerId: session.sub,
         },
       });
     }
