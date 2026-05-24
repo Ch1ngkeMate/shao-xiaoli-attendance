@@ -1,0 +1,50 @@
+<wxs module="utils">
+  var roleLabel = function(r) {
+    if (r==='ADMIN') return '管理员';
+    if (r==='MINISTER') return '部长';
+    if (r==='MEMBER') return '部员';
+    return r;
+  };
+  module.exports = { roleLabel:roleLabel };
+</wxs>
+
+<view wx:if="{{user}}">
+  <!-- 个人信息卡片 -->
+  <view class="profile-card">
+    <view wx:if="{{user.profileBgUrl}}" class="profile-bg" style="background-image:url({{user.profileBgUrl}})"></view>
+    <view wx:else class="profile-bg profile-bg-default"></view>
+    <view class="profile-info">
+      <image wx:if="{{user.avatarUrl}}" src="{{user.avatarUrl}}" class="profile-avatar" mode="aspectFill" />
+      <view wx:else class="profile-avatar profile-avatar-placeholder">👤</view>
+      <view class="profile-name">{{user.displayName}}</view>
+      <view class="tag tag-blue mt-8">{{utils.roleLabel(user.role)}}</view>
+    </view>
+  </view>
+
+  <!-- 考勤摘要 -->
+  <view wx:if="{{attendanceSummary}}" class="card">
+    <view class="section-title">{{currentMonth}} 考勤摘要</view>
+    <view class="flex-between mt-16">
+      <view class="stat-item">任务 {{attendanceSummary.claimedCount || 0}}</view>
+      <view class="stat-item">提交 {{attendanceSummary.submittedCount || 0}}</view>
+      <view class="stat-item">完成 {{attendanceSummary.approvedCount || 0}}</view>
+      <view class="stat-item primary">+{{attendanceSummary.approvedPoints || 0}}分</view>
+    </view>
+  </view>
+
+  <!-- 功能菜单 -->
+  <view class="card menu-list">
+    <view class="menu-item flex-between" bindtap="onSettings">
+      <view>⚙️ 设置</view>
+      <view class="hint">›</view>
+    </view>
+    <view wx:if="{{isAdminOrMinister}}" class="menu-item flex-between" bindtap="onReports">
+      <view>📊 月报</view>
+      <view class="hint">›</view>
+    </view>
+    <view class="menu-item flex-between" bindtap="onLogout">
+      <view style="color:#ff4d4f">🚪 退出登录</view>
+      <view class="hint">›</view>
+    </view>
+  </view>
+</view>

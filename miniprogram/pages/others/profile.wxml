@@ -1,0 +1,30 @@
+<wxs module="utils">
+  var roleLabel = function(r) {
+    if (r==='ADMIN') return '管理员';
+    if (r==='MINISTER') return '部长';
+    if (r==='MEMBER') return '部员';
+    return r;
+  };
+  module.exports = { roleLabel:roleLabel };
+</wxs>
+
+<view wx:if="{{loading}}" class="load-more">加载中...</view>
+
+<block wx:elif="{{profileUser}}">
+  <view class="card" style="text-align:center;">
+    <image wx:if="{{profileUser.avatarUrl}}" src="{{profileUser.avatarUrl}}" class="avatar-lg" mode="aspectFill" />
+    <view wx:else class="avatar-lg avatar-placeholder">👤</view>
+    <view class="profile-name mt-16">{{profileUser.displayName}}</view>
+    <view class="tag tag-blue mt-8">{{utils.roleLabel(profileUser.role)}}</view>
+  </view>
+
+  <view wx:if="{{attendance}}" class="card">
+    <view class="section-title">{{currentMonth}} 考勤</view>
+    <view class="flex-between mt-16">
+      <view class="stat-item">接取 {{attendance.claimedCount || 0}}</view>
+      <view class="stat-item">提交 {{attendance.submittedCount || 0}}</view>
+      <view class="stat-item">完成 {{attendance.approvedCount || 0}}</view>
+      <view class="stat-item primary">+{{attendance.approvedPoints || 0}}分</view>
+    </view>
+  </view>
+</block>

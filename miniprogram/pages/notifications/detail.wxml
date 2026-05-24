@@ -1,0 +1,22 @@
+<wxs module="utils">
+  var formatTime = function(s) {
+    if (!s) return '';
+    var d = getDate(s);
+    var M = d.getMonth()+1, D = d.getDate(), h = d.getHours(), m = d.getMinutes();
+    if (M<10) M='0'+M; if (D<10) D='0'+D;
+    if (h<10) h='0'+h; if (m<10) m='0'+m;
+    return M+'-'+D+' '+h+':'+m;
+  };
+  module.exports = { formatTime: formatTime };
+</wxs>
+
+<view wx:if="{{loading}}" class="load-more">加载中...</view>
+
+<block wx:elif="{{message}}">
+  <view class="card">
+    <view class="detail-title">{{message.title}}</view>
+    <view class="hint mt-16">{{utils.formatTime(message.createdAt)}}</view>
+    <view class="divider"></view>
+    <view class="detail-body">{{message.body}}</view>
+  </view>
+</block>

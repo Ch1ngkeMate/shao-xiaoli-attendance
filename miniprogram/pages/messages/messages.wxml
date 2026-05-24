@@ -1,0 +1,51 @@
+<wxs module="utils">
+  var icons = { TASK:'📋',TASK_REVIEW:'✅',MEETING:'📅',LEAVE:'📝',ANNOUNCEMENT:'📢',SYSTEM:'🔔' };
+  var getIcon = function(t) { return icons[t] || '💬'; };
+  var formatTime = function(s) {
+    if (!s) return '';
+    var d = getDate(s), now = getDate();
+    var diff = now.getTime() - d.getTime();
+    if (diff < 60000) return '刚刚';
+    if (diff < 3600000) return Math.floor(diff/60000)+'分钟前';
+    if (diff < 86400000) return Math.floor(diff/3600000)+'小时前';
+    var M = d.getMonth()+1, D = d.getDate();
+    if (M<10) M='0'+M; if (D<10) D='0'+D;
+    return M+'-'+D;
+  };
+  module.exports = { getIcon:getIcon, formatTime:formatTime };
+</wxs>
+
+<view class="msg-header flex-between">
+  <view class="msg-title">消息 ({{unreadCount}}条未读)</view>
+  <view wx:if="{{unreadCount > 0}}" class="mark-all-read" bindtap="onMarkAllRead">全部已读</view>
+</view>
+
+<view wx:if="{{messages.length > 0}}">
+  <view
+    wx:for="{{messages}}"
+    wx:key="id"
+    class="msg-item flex-row"
+    data-item="{{item}}"
+    bindtap="onMessageTap"
+  >
+    <view class="msg-icon">{{utils.getIcon(item.type)}}</view>
+    <view class="flex-1 ml-16">
+      <view class="flex-between">
+        <view class="msg-item-title ellipsis">{{item.title}}</view>
+        <view wx:if="{{!item.readAt}}" class="unread-dot"></view>
+      </view>
+      <view class="msg-item-body ellipsis-2 mt-8">{{item.body}}</view>
+      <view class="msg-item-time hint mt-8">{{utils.formatTime(item.createdAt)}}</view>
+    </view>
+  </view>
+
+  <view class="load-more">— 已加载全部 —</view>
+</view>
+
+<view wx:elif="{{!loading}}" class="empty">
+  <view class="empty-icon">💬</view>
+  <view>暂无消息</view>
+</view>
+
+<!-- 发布公告 FAB（MINISTER/ADMIN） -->
+<view wx:if="{{showFab}}" class="fab" bindtap="onPublishAnnouncement">📢</view>

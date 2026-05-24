@@ -1,0 +1,2 @@
+.detail-title { font-size: 34rpx; font-weight: 700; color: #222; line-height: 1.4; }
+.detail-body { font-size: 28rpx; color: #555; line-height: 1.8; white-space: pre-wrap; }

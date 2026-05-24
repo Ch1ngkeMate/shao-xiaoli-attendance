@@ -1,0 +1,27 @@
+<view class="card">
+  <picker mode="date" fields="month" value="{{currentMonth}}" bindchange="onMonthChange">
+    <view class="month-picker">{{currentMonth}}</view>
+  </picker>
+</view>
+
+<view wx:if="{{loading}}" class="load-more">加载中...</view>
+
+<block wx:elif="{{stats}}">
+  <view wx:if="{{stats.length > 0}}">
+    <view wx:for="{{stats}}" wx:key="userId" wx:for-item="row" class="card">
+      <view class="flex-between">
+        <view class="report-name">{{row.userDisplayName || row.userId}}</view>
+        <view class="tag tag-blue">+{{row.approvedPoints || 0}}分</view>
+      </view>
+      <view class="flex-row mt-16 stat-detail">
+        <view class="stat-item">接取 {{row.claimedCount || 0}}</view>
+        <view class="stat-item">提交 {{row.submittedCount || 0}}</view>
+        <view class="stat-item">完成 {{row.approvedCount || 0}}</view>
+      </view>
+    </view>
+  </view>
+  <view wx:else class="empty">
+    <view class="empty-icon">📊</view>
+    <view>{{currentMonth}} 暂无数据</view>
+  </view>
+</block>

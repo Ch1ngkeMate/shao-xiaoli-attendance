@@ -1,0 +1,4 @@
+.month-picker { font-size:32rpx; font-weight:600; text-align:center; color:#1677ff; }
+.report-name { font-size:28rpx; font-weight:600; }
+.stat-detail { gap:24rpx; }
+.stat-item { font-size:24rpx; color:#888; }

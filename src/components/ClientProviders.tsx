@@ -1,6 +1,7 @@
 "use client";
 
 import { ConfigProvider, theme } from "antd";
+import zhCN from "antd/locale/zh_CN";
 import { useEffect, useMemo, useState } from "react";
 
 export type ThemeMode = "light" | "dark" | "system";
@@ -72,6 +73,6 @@ export default function ClientProviders({ children }: { children: React.ReactNod
     [resolved],
   );
 
-  return <ConfigProvider theme={antdTheme}>{children}</ConfigProvider>;
+  return <ConfigProvider theme={antdTheme} locale={zhCN}>{children}</ConfigProvider>;
 }
 

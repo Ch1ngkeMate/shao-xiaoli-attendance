@@ -1,0 +1,55 @@
+<wxs module="utils">
+  var formatTime = function(s) {
+    if (!s) return '';
+    var d = getDate(s);
+    var M = d.getMonth()+1, D = d.getDate(), h = d.getHours(), m = d.getMinutes();
+    if (M<10) M='0'+M; if (D<10) D='0'+D;
+    if (h<10) h='0'+h; if (m<10) m='0'+m;
+    return M+'-'+D+' '+h+':'+m;
+  };
+  module.exports = { formatTime: formatTime };
+</wxs>
+
+<view wx:if="{{loading}}" class="load-more">加载中...</view>
+
+<block wx:elif="{{meeting}}">
+  <view class="card">
+    <view class="meeting-title">{{meeting.title}}</view>
+    <view class="flex-between mt-16">
+      <view wx:if="{{meeting.endedAt}}" class="tag tag-gray">已结束</view>
+      <view wx:else class="tag tag-green">进行中</view>
+      <view class="hint">发布者: {{meeting.publisher ? meeting.publisher.displayName : ''}}</view>
+    </view>
+    <view class="mt-16 hint">🕐 {{utils.formatTime(meeting.startTime)}}</view>
+    <view wx:if="{{meeting.place}}" class="mt-8 hint">📍 {{meeting.place}}</view>
+    <view wx:if="{{meeting.description}}" class="mt-16 meeting-desc">{{meeting.description}}</view>
+  </view>
+
+  <!-- 参会人员 -->
+  <view class="card">
+    <view class="section-title">参会人员 ({{members.length}}人)</view>
+    <view wx:if="{{members.length > 0}}">
+      <view wx:for="{{members}}" wx:key="id" class="member-tag tag tag-blue">{{item.displayName}}</view>
+    </view>
+    <view wx:else class="hint">暂无</view>
+  </view>
+
+  <!-- 请假记录 -->
+  <view class="card">
+    <view class="section-title">请假记录</view>
+    <view wx:if="{{leaves.length > 0}}">
+      <view wx:for="{{leaves}}" wx:key="id" class="flex-between leave-item">
+        <view>{{item.user ? item.user.displayName : ''}}</view>
+        <view wx:if="{{item.status === 'APPROVED'}}" class="tag tag-green">已通过</view>
+        <view wx:elif="{{item.status === 'REJECTED'}}" class="tag tag-red">已驳回</view>
+        <view wx:else class="tag tag-orange">待审批</view>
+      </view>
+    </view>
+    <view wx:else class="hint">暂无请假</view>
+  </view>
+
+  <!-- 请假按钮（MEMBER） -->
+  <view wx:if="{{!meeting.endedAt && !isAdminOrMinister}}" class="card">
+    <button class="btn-primary btn-full" bindtap="onApplyLeave">申请请假</button>
+  </view>
+</block>

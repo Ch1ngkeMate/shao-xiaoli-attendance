@@ -1,0 +1,108 @@
+<wxs module="utils">
+  var formatTime = function(dateStr) {
+    if (!dateStr) return '';
+    var d = getDate(dateStr);
+    var m = (d.getMonth() + 1);
+    var day = d.getDate();
+    var h = d.getHours();
+    var min = d.getMinutes();
+    if (m < 10) m = '0' + m;
+    if (day < 10) day = '0' + day;
+    if (h < 10) h = '0' + h;
+    if (min < 10) min = '0' + min;
+    return m + '-' + day + ' ' + h + ':' + min;
+  };
+  var getStatusLabel = function(status) {
+    if (status === 'OPEN') return '进行中';
+    if (status === 'CLOSED') return '已结束';
+    return status;
+  };
+  var getStatusClass = function(status) {
+    if (status === 'OPEN') return 'tag-blue';
+    if (status === 'CLOSED') return 'tag-gray';
+    return 'tag-gray';
+  };
+  var pointsText = function(p) {
+    return '+' + p + '分';
+  };
+  module.exports = {
+    formatTime: formatTime,
+    getStatusLabel: getStatusLabel,
+    getStatusClass: getStatusClass,
+    pointsText: pointsText
+  };
+</wxs>
+
+<!-- 搜索栏 -->
+<view class="search-bar">
+  <input
+    placeholder="搜索任务..."
+    value="{{searchText}}"
+    bindinput="onSearchInput"
+    bindconfirm="onSearch"
+    confirm-type="search"
+  />
+</view>
+
+<!-- 筛选标签 -->
+<scroll-view scroll-x class="filter-scroll">
+  <view class="filter-row">
+    <view
+      wx:for="{{filters}}"
+      wx:key="key"
+      class="filter-tag {{activeFilter === item.key ? 'filter-tag-active' : ''}}"
+      data-key="{{item.key}}"
+      bindtap="onFilterTap"
+    >{{item.label}}</view>
+  </view>
+</scroll-view>
+
+<!-- 任务列表 -->
+<view wx:if="{{tasks.length > 0}}" class="task-list">
+  <view
+    wx:for="{{tasks}}"
+    wx:key="id"
+    class="card task-card"
+    data-id="{{item.id}}"
+    bindtap="onTaskTap"
+  >
+    <view class="flex-between">
+      <view class="task-title ellipsis">{{item.title}}</view>
+      <view class="tag {{utils.getStatusClass(item.status)}}">{{utils.getStatusLabel(item.status)}}</view>
+    </view>
+
+    <view wx:if="{{item.description}}" class="task-desc ellipsis-2 mt-8">{{item.description}}</view>
+
+    <view class="flex-row mt-16 task-meta">
+      <view class="tag tag-blue">{{utils.pointsText(item.points)}}</view>
+      <view wx:if="{{item.timeSlots && item.timeSlots.length > 0}}" class="task-time hint ml-16">
+        {{utils.formatTime(item.timeSlots[0].startTime)}} - {{utils.formatTime(item.timeSlots[0].endTime)}}
+        <text wx:if="{{item.timeSlots.length > 1}}"> 等{{item.timeSlots.length}}个时段</text>
+      </view>
+      <view wx:elif="{{item.startTime}}" class="task-time hint ml-16">
+        {{utils.formatTime(item.startTime)}} - {{utils.formatTime(item.endTime)}}
+      </view>
+    </view>
+
+    <view class="flex-row mt-16 task-footer">
+      <view class="hint">
+        已接取 {{item.claimedCount || 0}}<text wx:if="{{item.headcountHint}}">/{{item.headcountHint}}</text> 人
+      </view>
+      <view wx:if="{{item.slotsOrTaskFull}}" class="tag tag-red">已满</view>
+    </view>
+  </view>
+
+  <view class="load-more">— 已加载全部 —</view>
+</view>
+
+<!-- 空状态 -->
+<view wx:elif="{{!loading}}" class="empty">
+  <view class="empty-icon">📋</view>
+  <view>暂无任务</view>
+</view>
+
+<!-- 加载中 -->
+<view wx:if="{{loading}}" class="load-more">加载中...</view>
+
+<!-- 发布按钮（仅 MINISTER/ADMIN） -->
+<view wx:if="{{showFab}}" class="fab" bindtap="onPublish">+</view>

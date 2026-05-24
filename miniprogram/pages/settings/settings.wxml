@@ -1,0 +1,23 @@
+<view class="form-page">
+  <view class="form-group">
+    <view class="form-label">修改头像</view>
+    <button class="btn-ghost" bindtap="onChangeAvatar">选择新头像</button>
+  </view>
+
+  <view class="form-group">
+    <view class="form-label">账号名</view>
+    <input class="form-input" value="{{username}}" bindinput="onUsernameInput" placeholder="账号名" />
+  </view>
+
+  <view class="form-group">
+    <view class="form-label">修改密码</view>
+    <input class="form-input" password placeholder="当前密码" value="{{currentPassword}}" bindinput="onCurrentPwdInput" />
+    <input class="form-input mt-16" password placeholder="新密码（至少6位）" value="{{newPassword}}" bindinput="onNewPwdInput" />
+  </view>
+
+  <view class="submit-area">
+    <button class="btn-primary btn-full" bindtap="onSave" loading="{{submitting}}" disabled="{{submitting}}">
+      {{submitting ? '保存中...' : '保存修改'}}
+    </button>
+  </view>
+</view>

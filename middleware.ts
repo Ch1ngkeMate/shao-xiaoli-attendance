@@ -6,6 +6,9 @@ const SESSION_COOKIE = "sxlat_session";
 function isPublicPath(pathname: string) {
   if (pathname === "/login") return true;
   if (pathname.startsWith("/api/auth/")) return true;
+  if (pathname.startsWith("/api/miniprogram/auth/")) return true;
+  if (pathname.startsWith("/api/cron/")) return true;
+  if (pathname === "/api/version") return true;
   if (pathname.startsWith("/_next/")) return true;
   if (pathname === "/favicon.ico") return true;
   // 登录页等未带会话时也要能加载 public 下的 Logo

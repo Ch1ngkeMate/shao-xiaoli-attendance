@@ -1,0 +1,121 @@
+<wxs module="utils">
+  var weeks = ['周一','周二','周三','周四','周五'];
+  var periods = ['第1节','第2节','第3节','第4节','第5节'];
+  var formatTime = function(s) {
+    if (!s) return '';
+    var d = getDate(s);
+    var M = d.getMonth()+1, D = d.getDate(), h = d.getHours(), m = d.getMinutes();
+    if (M<10) M='0'+M; if (D<10) D='0'+D;
+    if (h<10) h='0'+h; if (m<10) m='0'+m;
+    return M+'-'+D+' '+h+':'+m;
+  };
+  var leaveStatus = function(s) {
+    if (s === 'PENDING') return '待审批';
+    if (s === 'APPROVED') return '已通过';
+    if (s === 'REJECTED') return '已驳回';
+    return s;
+  };
+  var leaveTagClass = function(s) {
+    if (s === 'APPROVED') return 'tag-green';
+    if (s === 'REJECTED') return 'tag-red';
+    return 'tag-orange';
+  };
+  module.exports = { formatTime:formatTime, leaveStatus:leaveStatus, leaveTagClass:leaveTagClass };
+</wxs>
+
+<!-- Tab 切换 -->
+<view class="tab-bar">
+  <view
+    wx:for="{{tabs}}"
+    wx:key="*this"
+    class="tab-item {{activeTab === index ? 'tab-active' : ''}}"
+    data-index="{{index}}"
+    bindtap="onTabChange"
+  >{{item}}</view>
+</view>
+
+<!-- ====== 值班表 Tab ====== -->
+<view wx:if="{{activeTab === 0}}" class="tab-content">
+  <view wx:if="{{dutyLoading}}" class="load-more">加载中...</view>
+  <view wx:else class="duty-table">
+    <view class="duty-header">
+      <view class="duty-cell duty-label"></view>
+      <view wx:for="{{utils.periods}}" wx:key="*this" class="duty-cell duty-header-cell">{{item}}</view>
+    </view>
+    <view wx:for="{{dutyGrid}}" wx:key="index" class="duty-row">
+      <view class="duty-cell duty-label">{{utils.weeks[index]}}</view>
+      <view wx:for="{{item}}" wx:for-item="slot" wx:for-index="pi" wx:key="pi" class="duty-cell duty-data-cell">
+        <view wx:if="{{slot && slot.length > 0}}" class="duty-names">
+          <view wx:for="{{slot}}" wx:for-item="u" wx:key="id" class="tag tag-blue duty-name-tag">{{u.displayName}}</view>
+        </view>
+        <view wx:else class="hint">-</view>
+      </view>
+    </view>
+  </view>
+</view>
+
+<!-- ====== 会议 Tab ====== -->
+<view wx:if="{{activeTab === 1}}" class="tab-content">
+  <view wx:if="{{meetingsLoading}}" class="load-more">加载中...</view>
+  <block wx:elif="{{meetings.length > 0}}">
+    <view wx:for="{{meetings}}" wx:key="id" class="card meeting-card" data-id="{{item.id}}" bindtap="onMeetingTap">
+      <view class="flex-between">
+        <view class="meeting-title ellipsis">{{item.title}}</view>
+        <view wx:if="{{item.endedAt}}" class="tag tag-gray">已结束</view>
+        <view wx:else class="tag tag-green">进行中</view>
+      </view>
+      <view class="hint mt-8">{{utils.formatTime(item.startTime)}}</view>
+      <view wx:if="{{item.place}}" class="hint mt-8">📍 {{item.place}}</view>
+    </view>
+    <view class="load-more">— 已加载全部 —</view>
+  </block>
+  <view wx:else class="empty">
+    <view class="empty-icon">📅</view>
+    <view>暂无会议</view>
+  </view>
+</view>
+
+<!-- ====== 请假 Tab ====== -->
+<view wx:if="{{activeTab === 2}}" class="tab-content">
+  <button class="btn-primary" style="margin:20rpx;" bindtap="onApplyLeave">申请请假</button>
+  <view wx:if="{{leavesLoading}}" class="load-more">加载中...</view>
+  <block wx:elif="{{leaves.length > 0}}">
+    <view wx:for="{{leaves}}" wx:key="id" class="card leave-card">
+      <view class="flex-between">
+        <view class="leave-type">{{item.category === 'DUTY' ? '值班请假' : '会议请假'}}</view>
+        <view class="tag {{utils.leaveTagClass(item.status)}}">{{utils.leaveStatus(item.status)}}</view>
+      </view>
+      <view wx:if="{{item.meeting}}" class="hint mt-8">{{item.meeting.title}}</view>
+      <view class="leave-reason mt-8">{{item.reason}}</view>
+      <view class="hint mt-8">{{utils.formatTime(item.createdAt)}}</view>
+    </view>
+    <view class="load-more">— 已加载全部 —</view>
+  </block>
+  <view wx:else class="empty">
+    <view class="empty-icon">📝</view>
+    <view>暂无请假记录</view>
+  </view>
+</view>
+
+<!-- ====== 统计 Tab ====== -->
+<view wx:if="{{activeTab === 3 && showStats}}" class="tab-content">
+  <view wx:if="{{statsLoading}}" class="load-more">加载中...</view>
+  <block wx:elif="{{stats}}">
+    <view class="card" wx:for="{{stats}}" wx:key="userId" wx:for-item="row">
+      <view class="flex-between">
+        <view class="stat-name">{{row.userDisplayName || row.userId}}</view>
+        <view class="stat-points tag tag-blue">+{{row.approvedPoints || 0}}分</view>
+      </view>
+      <view class="flex-row mt-16 stat-detail">
+        <view class="stat-item">接取 {{row.claimedCount || 0}}</view>
+        <view class="stat-item">提交 {{row.submittedCount || 0}}</view>
+        <view class="stat-item">完成 {{row.approvedCount || 0}}</view>
+      </view>
+    </view>
+    <view class="load-more">— {{currentMonth}} 考勤统计 —</view>
+  </block>
+  <view wx:else class="empty">
+    <view class="empty-icon">📊</view>
+    <view>暂无统计数据</view>
+  </view>
+</view>

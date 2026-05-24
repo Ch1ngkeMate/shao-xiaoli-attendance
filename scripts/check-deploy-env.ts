@@ -45,6 +45,16 @@ if (process.env.NODE_ENV === "production") {
 
 const localUploadsDir = process.env.LOCAL_UPLOADS_DIR?.trim();
 
+const wxApp = process.env.WX_APPID?.trim();
+const wxSecret = process.env.WX_SECRET?.trim();
+if (wxApp && wxSecret) {
+  ok("已配置 WX_APPID / WX_SECRET（小程序登录可用）");
+} else if (wxApp || wxSecret) {
+  warn("WX_APPID 与 WX_SECRET 需同时配置，否则小程序 bind-login / wx-login 不可用");
+} else {
+  warn("未配置微信小程序：仅 Web 端可用；开通小程序后请填写 WX_APPID、WX_SECRET");
+}
+
 if (process.env.BLOB_READ_WRITE_TOKEN?.trim()) {
   ok("已配置 BLOB_READ_WRITE_TOKEN（使用 Blob 存储）");
 } else if (localUploadsDir) {

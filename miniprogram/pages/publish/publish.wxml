@@ -1,0 +1,76 @@
+<view class="form-page">
+
+  <!-- 标题 -->
+  <view class="form-group">
+    <view class="form-label">任务标题 *</view>
+    <input class="form-input" placeholder="请输入任务标题" value="{{title}}" bindinput="onTitleInput" maxlength="200" />
+  </view>
+
+  <!-- 描述 -->
+  <view class="form-group">
+    <view class="form-label">任务描述</view>
+    <textarea class="form-textarea" placeholder="详细描述任务内容..." value="{{description}}" bindinput="onDescInput" maxlength="2000" />
+  </view>
+
+  <!-- 积分 -->
+  <view class="form-group">
+    <view class="form-label">积分 *</view>
+    <input class="form-input" type="number" placeholder="完成任务可获得积分" value="{{points}}" bindinput="onPointsChange" />
+  </view>
+
+  <!-- 人数上限 -->
+  <view class="form-group">
+    <view class="form-label">接取人数上限</view>
+    <input class="form-input" type="number" placeholder="1" value="{{headcountHint}}" bindinput="onHeadcountChange" />
+  </view>
+
+  <!-- 时间段（多时段） -->
+  <view class="form-group">
+    <view class="form-label">时间段（可添加多个）</view>
+
+    <!-- 已添加的时段 -->
+    <view wx:for="{{timeSlots}}" wx:key="index" class="slot-tag flex-between">
+      <view>{{item.startTime}} ~ {{item.endTime}} ({{item.headcountHint}}人)</view>
+      <view class="slot-remove" data-index="{{index}}" bindtap="onRemoveSlot">✕</view>
+    </view>
+
+    <!-- 添加入口 -->
+    <view class="slot-add">
+      <view class="slot-pickers">
+        <picker mode="datetime" value="{{tempSlotStart}}" bindchange="onSlotStartChange">
+          <view class="slot-picker-item">开始: {{tempSlotStart || '点击选择'}}</view>
+        </picker>
+        <picker mode="datetime" value="{{tempSlotEnd}}" bindchange="onSlotEndChange">
+          <view class="slot-picker-item">结束: {{tempSlotEnd || '点击选择'}}</view>
+        </picker>
+      </view>
+      <input class="form-input-sm" type="number" placeholder="人数" value="{{tempSlotHeadcount}}" bindinput="onSlotHeadcountChange" />
+      <button class="btn-primary btn-sm-inline" bindtap="onAddSlot">添加时段</button>
+    </view>
+  </view>
+
+  <!-- 配图 -->
+  <view class="form-group">
+    <view class="form-label">配图（选填）</view>
+    <view class="evidence-images">
+      <block wx:for="{{imageUrls}}" wx:key="*this">
+        <view class="evidence-img-wrap">
+          <image src="{{item}}" mode="aspectFill" class="evidence-img" />
+          <view class="evidence-remove" data-index="{{index}}" bindtap="onRemoveImage">✕</view>
+        </view>
+      </block>
+      <view wx:if="{{imageUrls.length < 9}}" class="evidence-add" bindtap="onChooseImage">
+        <view class="evidence-add-icon">+</view>
+        <view class="hint">{{uploading ? '上传中...' : '添加图片'}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 提交 -->
+  <view class="submit-area">
+    <button class="btn-primary btn-full" bindtap="onSubmit" loading="{{submitting}}" disabled="{{submitting}}">
+      {{submitting ? '发布中...' : '发布任务'}}
+    </button>
+  </view>
+
+</view>

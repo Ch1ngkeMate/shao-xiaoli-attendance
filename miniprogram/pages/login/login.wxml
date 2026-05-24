@@ -1,0 +1,16 @@
+<view class="card">
+  <view class="title">首次使用请绑定</view>
+  <view class="hint">请输入与系统一致的「显示姓名」，绑定后可微信一键登录。</view>
+  <input
+    class="input"
+    placeholder="真实姓名（与系统 displayName 一致）"
+    value="{{realName}}"
+    bindinput="onNameInput"
+  />
+  <button class="btn-primary" type="primary" loading="{{loading}}" bindtap="onBind">
+    微信授权并绑定
+  </button>
+  <button class="btn-ghost" loading="{{loading}}" bindtap="onWxLogin">
+    已绑定，直接登录
+  </button>
+</view>

@@ -1,0 +1,29 @@
+<wxs module="utils">
+  var formatTime = function(s) {
+    if (!s) return '';
+    var d = getDate(s);
+    var M = d.getMonth()+1, D = d.getDate(), h = d.getHours(), m = d.getMinutes();
+    if (M<10) M='0'+M; if (D<10) D='0'+D;
+    if (h<10) h='0'+h; if (m<10) m='0'+m;
+    return M+'-'+D+' '+h+':'+m;
+  };
+  module.exports = { formatTime: formatTime };
+</wxs>
+
+<view wx:if="{{loading}}" class="load-more">加载中...</view>
+
+<block wx:elif="{{announcement}}">
+  <!-- 图片轮播 -->
+  <swiper wx:if="{{announcement.images && announcement.images.length > 0}}" class="image-swiper" indicator-dots>
+    <swiper-item wx:for="{{announcement.images}}" wx:key="id">
+      <image src="{{item.url}}" mode="aspectFill" class="swiper-image" />
+    </swiper-item>
+  </swiper>
+
+  <view class="card">
+    <view class="announce-title">{{announcement.title}}</view>
+    <view class="hint mt-16">{{utils.formatTime(announcement.createdAt)}}</view>
+    <view class="divider"></view>
+    <view class="announce-body">{{announcement.body}}</view>
+  </view>
+</block>

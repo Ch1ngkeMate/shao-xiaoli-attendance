@@ -1,0 +1,6 @@
+.avatar-lg { width:120rpx;height:120rpx;border-radius:50%;margin-top:16rpx; }
+.avatar-placeholder { background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:56rpx;margin:16rpx auto 0; }
+.profile-name { font-size:34rpx;font-weight:700; }
+.section-title { font-size:28rpx;font-weight:600; }
+.stat-item { font-size:24rpx;color:#888; }
+.stat-item.primary { color:#1677ff;font-weight:600; }

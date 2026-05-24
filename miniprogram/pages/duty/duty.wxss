@@ -1,0 +1,85 @@
+/* Tab切换 */
+.tab-bar {
+  display: flex;
+  background: #fff;
+  border-bottom: 2rpx solid #f0f0f0;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 24rpx 0;
+  font-size: 28rpx;
+  color: #666;
+  border-bottom: 4rpx solid transparent;
+}
+.tab-active {
+  color: #1677ff;
+  border-bottom-color: #1677ff;
+  font-weight: 600;
+}
+.tab-content {
+  padding-bottom: 60rpx;
+}
+
+/* 值班表 */
+.duty-table {
+  margin: 20rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+.duty-header {
+  display: flex;
+  background: #e6f4ff;
+}
+.duty-row {
+  display: flex;
+  border-top: 1rpx solid #f0f0f0;
+}
+.duty-cell {
+  flex: 1;
+  padding: 12rpx 6rpx;
+  text-align: center;
+  font-size: 22rpx;
+  min-height: 80rpx;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4rpx;
+}
+.duty-label {
+  max-width: 80rpx;
+  font-weight: 600;
+  color: #555;
+  font-size: 24rpx;
+}
+.duty-header-cell {
+  font-weight: 600;
+  color: #1677ff;
+  font-size: 24rpx;
+}
+.duty-data-cell {
+  flex-direction: column;
+}
+.duty-name-tag {
+  margin: 2rpx;
+  font-size: 20rpx;
+  padding: 2rpx 8rpx;
+}
+
+/* 会议卡片 */
+.meeting-title { font-size: 30rpx; font-weight: 600; max-width: 70%; }
+
+/* 请假 */
+.leave-type { font-size: 28rpx; font-weight: 600; }
+.leave-reason { font-size: 26rpx; color: #666; }
+
+/* 统计 */
+.stat-name { font-size: 28rpx; font-weight: 600; }
+.stat-points { font-size: 26rpx; }
+.stat-detail { gap: 24rpx; }
+.stat-item { font-size: 24rpx; color: #888; }

@@ -1,0 +1,58 @@
+{
+  "pages": [
+    "pages/login/login",
+    "pages/tasks/tasks",
+    "pages/tasks/detail",
+    "pages/publish/publish",
+    "pages/messages/messages",
+    "pages/notifications/detail",
+    "pages/announcements/detail",
+    "pages/duty/duty",
+    "pages/meetings/detail",
+    "pages/leave/apply",
+    "pages/profile/profile",
+    "pages/settings/settings",
+    "pages/reports/reports",
+    "pages/others/profile"
+  ],
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#1677ff",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/tasks/tasks",
+        "text": "任务",
+        "iconPath": "images/tab-tasks.png",
+        "selectedIconPath": "images/tab-tasks-active.png"
+      },
+      {
+        "pagePath": "pages/messages/messages",
+        "text": "消息",
+        "iconPath": "images/tab-messages.png",
+        "selectedIconPath": "images/tab-messages-active.png"
+      },
+      {
+        "pagePath": "pages/duty/duty",
+        "text": "考勤",
+        "iconPath": "images/tab-duty.png",
+        "selectedIconPath": "images/tab-duty-active.png"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的",
+        "iconPath": "images/tab-profile.png",
+        "selectedIconPath": "images/tab-profile-active.png"
+      }
+    ]
+  },
+  "window": {
+    "navigationBarTitleText": "邵小利考勤",
+    "navigationBarBackgroundColor": "#1677ff",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f5f5f5"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

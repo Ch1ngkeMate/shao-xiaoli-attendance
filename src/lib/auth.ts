@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
 import type { UserRole } from "@/generated/prisma/client";
 
@@ -27,12 +27,28 @@ export type SessionPayload = {
   username: string;
 };
 
-export async function createSessionCookie(payload: SessionPayload) {
-  const token = await new SignJWT(payload)
+const SESSION_MAX_AGE_SEC = 60 * 60 * 24 * 30;
+
+/** 签发会话 JWT（Web Cookie / 小程序 Authorization 共用） */
+export async function signSessionToken(payload: SessionPayload): Promise<string> {
+  return new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("30d")
     .sign(getAuthSecret());
+}
+
+export async function verifySessionToken(token: string): Promise<SessionPayload | null> {
+  try {
+    const { payload } = await jwtVerify(token, getAuthSecret());
+    return payload as unknown as SessionPayload;
+  } catch {
+    return null;
+  }
+}
+
+export async function createSessionCookie(payload: SessionPayload) {
+  const token = await signSessionToken(payload);
 
   const jar = await cookies();
   jar.set(SESSION_COOKIE, token, {
@@ -40,8 +56,10 @@ export async function createSessionCookie(payload: SessionPayload) {
     sameSite: "lax",
     secure: sessionCookieSecure(),
     path: "/",
-    maxAge: 60 * 60 * 24 * 30,
+    maxAge: SESSION_MAX_AGE_SEC,
   });
+
+  return token;
 }
 
 export async function clearSessionCookie() {
@@ -55,17 +73,23 @@ export async function clearSessionCookie() {
   });
 }
 
+/** 读取当前会话：优先 Cookie，其次 Authorization: Bearer（小程序） */
 export async function readSessionCookie(): Promise<SessionPayload | null> {
   const jar = await cookies();
-  const token = jar.get(SESSION_COOKIE)?.value;
-  if (!token) return null;
-
-  try {
-    const { payload } = await jwtVerify(token, getAuthSecret());
-    return payload as unknown as SessionPayload;
-  } catch {
-    return null;
+  const cookieToken = jar.get(SESSION_COOKIE)?.value;
+  if (cookieToken) {
+    const session = await verifySessionToken(cookieToken);
+    if (session) return session;
   }
+
+  const h = await headers();
+  const auth = h.get("authorization")?.trim();
+  if (auth?.toLowerCase().startsWith("bearer ")) {
+    const bearer = auth.slice(7).trim();
+    if (bearer) return verifySessionToken(bearer);
+  }
+
+  return null;
 }
 
 export function hasRole(role: UserRole, allowed: UserRole[]) {
