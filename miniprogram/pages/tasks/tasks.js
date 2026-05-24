@@ -50,7 +50,14 @@ Page({
       }
 
       const res = await api.getTasks(params);
-      this.setData({ tasks: res.tasks || [], loading: false });
+      const base = getApp().globalData.apiBase;
+      const fixUrl = (url) => (url && !url.startsWith('http')) ? base + (url.startsWith('/')?'':'/') + url : url;
+      const tasks = (res.tasks || []).map((t) => {
+        if (t.publisher) t.publisher.avatarUrl = fixUrl(t.publisher.avatarUrl);
+        if (t.images) t.images.forEach((img) => { img.url = fixUrl(img.url); });
+        return t;
+      });
+      this.setData({ tasks, loading: false });
     } catch (err) {
       this.setData({ loading: false });
       wx.showToast({ title: err.message || "加载失败", icon: "none" });
