@@ -48,14 +48,11 @@ Page({
       const base = getApp().globalData.apiBase;
       const fixUrl = (url) => {
         if (!url) return url;
-        const r = (!url.startsWith('http')) ? base + (url.startsWith('/')?'':'/') + url : url;
-        return r;
+        return (!url.startsWith('http')) ? base + (url.startsWith('/')?'':'/') + url : url;
       };
       if (task.images) task.images.forEach((img) => { img.url = fixUrl(img.url); });
       if (task.claims) task.claims.forEach((c) => { if (c.user) c.user.avatarUrl = fixUrl(c.user.avatarUrl); });
       if (task.submissions) task.submissions.forEach((s) => { if (s.user) s.user.avatarUrl = fixUrl(s.user.avatarUrl); });
-      console.log('[detail] first claim avatar:', task.claims?.[0]?.user?.avatarUrl);
-      console.log('[detail] base:', base);
 
       this.setData({
         task,
