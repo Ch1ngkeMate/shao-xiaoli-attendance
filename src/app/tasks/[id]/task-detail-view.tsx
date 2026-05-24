@@ -142,8 +142,8 @@ export default function TaskDetailView({
     () => Date.now() > effectiveEnd.getTime(),
     [effectiveEnd],
   );
-  /** 与顶栏「已结束」Tag 一致：关单/全员通过/过截止时间 后均不可再收工或提前结束 */
-  const canManagerClose = task.status === "OPEN" && !allClaimantsApproved && !timeEnded;
+  /** 关单/全员通过后不可再收工或提前结束 — 无时间限制，过期也可操作 */
+  const canManagerClose = task.status === "OPEN" && !allClaimantsApproved;
 
   useEffect(() => {
     if (!canManagerClose) {
@@ -330,7 +330,7 @@ export default function TaskDetailView({
                         <Space wrap>
                           {group.claimants.map((c) => {
                             const hasSub = submittedUserIds.includes(c.id);
-                            const showRemove = canManage && task.status === "OPEN" && !timeEnded;
+                            const showRemove = canManage && task.status === "OPEN";
                             return (
                               <div
                                 key={c.claimId}

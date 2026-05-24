@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { readSessionCookie } from "@/lib/auth";
-import { getTaskTimeBoundsFromSlots } from "@/lib/task-time-bounds";
 import { prisma } from "@/lib/prisma";
 
 type Params = { id: string };
@@ -27,23 +26,18 @@ export async function POST(req: Request, ctx: { params: Promise<Params> }) {
 
   const task = await prisma.task.findUnique({
     where: { id: taskId },
-    include: { timeSlots: { orderBy: { sort: "asc" } } },
   });
   if (!task) return NextResponse.json({ message: "任务不存在" }, { status: 404 });
   if (task.status !== "OPEN") {
     return NextResponse.json({ message: "任务已结束" }, { status: 400 });
   }
 
-  const { end: effectiveEnd } = getTaskTimeBoundsFromSlots({
-    startTime: task.startTime,
-    endTime: task.endTime,
-    timeSlots: task.timeSlots,
-  });
-  if (Date.now() > effectiveEnd.getTime()) {
-    return NextResponse.json({ message: "任务已截止，无法移出" }, { status: 400 });
-  }
-
-  const multiSlot = task.timeSlots.length > 1;
+  // 无时间限制——截止后仍可移除接取人员
+  const { timeSlots } = await prisma.task.findUnique({
+    where: { id: taskId },
+    select: { timeSlots: { orderBy: { sort: "asc" }, select: { id: true } } },
+  }) ?? {};
+  const multiSlot = (timeSlots?.length ?? 0) > 1;
   let claim: { id: string; userId: string; status: string } | null = null;
 
   if (typeof body.claimId === "string" && body.claimId.trim()) {
