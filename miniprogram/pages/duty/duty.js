@@ -41,7 +41,7 @@ Page({
     const tabs = isAdminOrMinister
       ? ["值班表", "会议", "请假", "统计"]
       : ["值班表", "会议", "请假"];
-    this.setData({ tabs, showStats: isAdminOrMinister });
+    this.setData({ tabs, showStats: isAdminOrMinister, isAdmin: isAdminOrMinister });
     this.loadTab(this.data.activeTab);
   },
 
@@ -110,6 +110,44 @@ Page({
 
   onApplyLeave() {
     wx.navigateTo({ url: "/pages/leave/apply" });
+  },
+
+  // ===== 请假审批（管理员/部长）=====
+  onLeaveTap(e) {
+    if (!this.data.isAdmin) return;
+    const { id, status } = e.currentTarget.dataset;
+    if (status !== 'PENDING') return;
+    const that = this;
+    wx.showActionSheet({
+      itemList: ['通过', '驳回'],
+      success(res) {
+        const result = res.tapIndex === 0 ? 'APPROVED' : 'REJECTED';
+        if (result === 'REJECTED') {
+          wx.showModal({
+            title: '驳回原因',
+            editable: true,
+            placeholderText: '选填',
+            success(mr) {
+              if (mr.confirm) {
+                that.decideLeave(id, result, mr.content || '');
+              }
+            }
+          });
+        } else {
+          that.decideLeave(id, result, '');
+        }
+      },
+    });
+  },
+
+  async decideLeave(leaveId, result, reason) {
+    try {
+      await api.decideLeave(leaveId, result === 'APPROVED', reason);
+      wx.showToast({ title: result === 'APPROVED' ? '已通过' : '已驳回', icon: 'success' });
+      this.loadLeaves();
+    } catch (err) {
+      wx.showToast({ title: err.message || '操作失败', icon: 'none' });
+    }
   },
 
   // ===== 统计 =====

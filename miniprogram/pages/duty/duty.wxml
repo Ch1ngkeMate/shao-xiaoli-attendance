@@ -77,10 +77,10 @@
 
 <!-- ====== 请假 Tab ====== -->
 <view wx:if="{{activeTab === 2}}" class="tab-content">
-  <button class="btn-primary" style="margin:20rpx;" bindtap="onApplyLeave">申请请假</button>
+  <button wx:if="{{!isAdmin}}" class="btn-primary" style="margin:20rpx;" bindtap="onApplyLeave">申请请假</button>
   <view wx:if="{{leavesLoading}}" class="load-more">加载中...</view>
   <block wx:elif="{{leaves.length > 0}}">
-    <view wx:for="{{leaves}}" wx:key="id" class="card leave-card">
+    <view wx:for="{{leaves}}" wx:key="id" class="card leave-card" data-id="{{item.id}}" data-status="{{item.status}}" bindtap="onLeaveTap">
       <view class="flex-between">
         <view class="leave-type">{{item.category === 'DUTY' ? '值班请假' : '会议请假'}}</view>
         <view class="tag {{utils.leaveTagClass(item.status)}}">{{utils.leaveStatus(item.status)}}</view>
