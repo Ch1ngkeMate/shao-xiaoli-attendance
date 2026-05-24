@@ -35,7 +35,15 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  const token = req.cookies.get(SESSION_COOKIE)?.value;
+  // 优先读 Cookie，其次读 Authorization: Bearer（小程序端）
+  let token = req.cookies.get(SESSION_COOKIE)?.value;
+  if (!token) {
+    const auth = req.headers.get("authorization")?.trim();
+    if (auth?.toLowerCase().startsWith("bearer ")) {
+      token = auth.slice(7).trim();
+    }
+  }
+
   if (!token) {
     const url = req.nextUrl.clone();
     url.pathname = "/login";
