@@ -80,4 +80,9 @@ Page({
     const map = { ADMIN: "管理员", MINISTER: "部长", MEMBER: "部员" };
     return map[role] || role;
   },
+
+  // 给 wxml 用的
+  getRoleLabel() {
+    return this.roleLabel(this.data.user?.role);
+  },
 });
