@@ -6,7 +6,7 @@ const PERIODS = ["第1节", "第2节", "第3节", "第4节", "第5节"];
 Page({
   data: {
     activeTab: 0,
-    tabs: ["值班表", "会议", "请假", "统计"],
+    tabs: [],
 
     // 值班
     dutyGrid: [[],[],[],[],[]],
@@ -37,7 +37,11 @@ Page({
   onShow() {
     if (!getApp().checkLogin()) return;
     const app = getApp();
-    this.setData({ showStats: app.hasRole("ADMIN", "MINISTER") });
+    const isAdminOrMinister = app.hasRole("ADMIN", "MINISTER");
+    const tabs = isAdminOrMinister
+      ? ["值班表", "会议", "请假", "统计"]
+      : ["值班表", "会议", "请假"];
+    this.setData({ tabs, showStats: isAdminOrMinister });
     this.loadTab(this.data.activeTab);
   },
 
