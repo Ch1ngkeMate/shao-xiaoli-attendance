@@ -1,1 +1,1 @@
-@import "../../publish/publish.wxss";
+@import "../publish/publish.wxss";
