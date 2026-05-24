@@ -45,7 +45,10 @@ Page({
 
   onMeetingChange(e) {
     const idx = e.detail.value;
-    this.setData({ meetingId: this.data.meetings[idx].id });
+    const meetings = this.data.meetings;
+    if (meetings && meetings[idx]) {
+      this.setData({ meetingId: meetings[idx].id });
+    }
   },
 
   onReasonInput(e) {

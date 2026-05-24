@@ -1,4 +1,4 @@
-const { request } = require("../../utils/request");
+const api = require("../../utils/api");
 
 Page({
   data: {
@@ -31,11 +31,7 @@ Page({
     this.setData({ loading: true });
     try {
       const code = await this.wxLoginCode();
-      const data = await request({
-        url: "/api/miniprogram/auth/bind-login",
-        method: "POST",
-        data: { code, realName },
-      });
+      const data = await api.bindLogin(code, realName);
       if (!data.success) throw new Error(data.message || "绑定失败");
       getApp().setSession(data.token, data.user);
       wx.showToast({ title: "绑定成功", icon: "success" });
@@ -55,11 +51,7 @@ Page({
     this.setData({ loading: true });
     try {
       const code = await this.wxLoginCode();
-      const data = await request({
-        url: "/api/miniprogram/auth/wx-login",
-        method: "POST",
-        data: { code },
-      });
+      const data = await api.wxLogin(code);
       if (!data.success) throw new Error(data.message || "登录失败");
       getApp().setSession(data.token, data.user);
       wx.reLaunch({ url: "/pages/tasks/tasks" });

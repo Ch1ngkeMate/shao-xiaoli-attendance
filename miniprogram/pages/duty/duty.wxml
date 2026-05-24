@@ -20,7 +20,7 @@
     if (s === 'REJECTED') return 'tag-red';
     return 'tag-orange';
   };
-  module.exports = { formatTime:formatTime, leaveStatus:leaveStatus, leaveTagClass:leaveTagClass };
+  module.exports = { weeks:weeks, periods:periods, formatTime:formatTime, leaveStatus:leaveStatus, leaveTagClass:leaveTagClass };
 </wxs>
 
 <!-- Tab 切换 -->
@@ -101,7 +101,7 @@
 <view wx:if="{{activeTab === 3 && showStats}}" class="tab-content">
   <view wx:if="{{statsLoading}}" class="load-more">加载中...</view>
   <block wx:elif="{{stats}}">
-    <view class="card" wx:for="{{stats}}" wx:key="userId" wx:for-item="row">
+    <view class="card stat-card" wx:for="{{stats}}" wx:key="userId" wx:for-item="row" data-user-id="{{row.userId}}" bindtap="onStatTap">
       <view class="flex-between">
         <view class="stat-name">{{row.userDisplayName || row.userId}}</view>
         <view class="stat-points tag tag-blue">+{{row.approvedPoints || 0}}分</view>

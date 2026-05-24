@@ -83,3 +83,4 @@
 .stat-points { font-size: 26rpx; }
 .stat-detail { gap: 24rpx; }
 .stat-item { font-size: 24rpx; color: #888; }
+.stat-card:active { background: #fafafa; }

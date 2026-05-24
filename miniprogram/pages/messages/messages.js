@@ -108,6 +108,48 @@ Page({
     }
   },
 
+  // ========== 发布公告 ==========
+
+  onPublishAnnouncement() {
+    // 跳转到公告发布页 —— 小程序端公告发布通过 navigateTo
+    // 此处用 showModal 收集标题和内容，走 API 创建
+    const that = this;
+    wx.showModal({
+      title: "发布公告",
+      editable: true,
+      placeholderText: "请输入公告标题",
+      success(res) {
+        if (res.confirm && res.content) {
+          that.promptAnnounceBody(res.content);
+        }
+      },
+    });
+  },
+
+  promptAnnounceBody(title) {
+    const that = this;
+    wx.showModal({
+      title: "公告内容",
+      editable: true,
+      placeholderText: "请输入公告正文",
+      success(res) {
+        if (res.confirm && res.content) {
+          that.createAnnouncement(title, res.content);
+        }
+      },
+    });
+  },
+
+  async createAnnouncement(title, body) {
+    try {
+      await api.createAnnouncement({ title, body });
+      wx.showToast({ title: "公告已发布", icon: "success" });
+      this.loadMessages();
+    } catch (err) {
+      wx.showToast({ title: err.message || "发布失败", icon: "none" });
+    }
+  },
+
   getTypeIcon(type) {
     return TYPE_ICONS[type] || "💬";
   },

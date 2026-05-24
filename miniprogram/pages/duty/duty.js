@@ -120,6 +120,13 @@ Page({
     }
   },
 
+  onStatTap(e) {
+    const userId = e.currentTarget.dataset.userId;
+    if (userId) {
+      wx.navigateTo({ url: `/pages/others/profile?id=${userId}` });
+    }
+  },
+
   formatTime(dateStr) {
     if (!dateStr) return "";
     const d = new Date(dateStr);

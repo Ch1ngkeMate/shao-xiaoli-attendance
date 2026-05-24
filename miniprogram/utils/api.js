@@ -129,6 +129,11 @@ function getAnnouncementDetail(id) {
   return request({ url: `/api/announcements/${id}` });
 }
 
+/** 发布公告 */
+function createAnnouncement(data) {
+  return request({ url: "/api/announcements", method: "POST", data });
+}
+
 // ============ 站内消息 ============
 
 /** 消息列表 */
@@ -171,6 +176,9 @@ function uploadFile(filePath, type) {
       break;
     case "evidence":
       url = "/api/upload/evidence";
+      break;
+    case "task":
+      url = "/api/upload";
       break;
     default:
       url = "/api/upload";
@@ -231,7 +239,7 @@ module.exports = {
   // 请假
   getLeaves, applyLeave, decideLeave,
   // 公告
-  getAnnouncementDetail,
+  getAnnouncementDetail, createAnnouncement,
   // 消息
   getNotifications, markNotificationRead, getNotificationDetail,
   // 报表
