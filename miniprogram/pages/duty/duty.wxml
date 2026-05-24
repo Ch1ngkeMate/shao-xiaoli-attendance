@@ -103,12 +103,12 @@
   <block wx:elif="{{stats}}">
     <view class="card stat-card" wx:for="{{stats}}" wx:key="userId" wx:for-item="row" data-user-id="{{row.userId}}" bindtap="onStatTap">
       <view class="flex-between">
-        <view class="stat-name">{{row.userDisplayName || row.userId}}</view>
-        <view class="stat-points tag tag-blue">+{{row.approvedPoints || 0}}分</view>
+        <view class="stat-name">{{row.displayName || row.userId}}</view>
+        <view class="stat-points tag tag-blue">+{{row.totalPoints || 0}}分</view>
       </view>
       <view class="flex-row mt-16 stat-detail">
-        <view class="stat-item">接取 {{row.claimedCount || 0}}</view>
-        <view class="stat-item">提交 {{row.submittedCount || 0}}</view>
+        <view class="stat-item">接取 {{row.claimCount || 0}}</view>
+        <view class="stat-item">提交 {{row.submitCount || 0}}</view>
         <view class="stat-item">完成 {{row.approvedCount || 0}}</view>
       </view>
     </view>

@@ -118,7 +118,8 @@ Page({
     this.setData({ statsLoading: true });
     try {
       const res = await api.getAttendanceStats(this.data.currentMonth);
-      this.setData({ stats: res.stats, statsLoading: false });
+      const people = res.stats?.people || [];
+      this.setData({ stats: people, statsLoading: false });
     } catch (err) {
       this.setData({ statsLoading: false });
     }
