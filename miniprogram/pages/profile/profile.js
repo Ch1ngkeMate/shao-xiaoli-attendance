@@ -20,6 +20,7 @@ Page({
     if (!getApp().checkLogin()) return;
     this.setData({
       isAdminOrMinister: getApp().hasRole("ADMIN", "MINISTER"),
+      roleText: this.roleLabel(getApp().globalData.user?.role),
     });
     this.loadUser();
     this.loadAttendance();

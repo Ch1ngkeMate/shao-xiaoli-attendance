@@ -24,8 +24,9 @@
       <view class="detail-title ellipsis">{{task.title}}</view>
     </view>
     <view class="flex-row gap-12 mt-12">
-      <view wx:if="{{task.status === 'OPEN'}}" class="tag tag-gold">待处理</view>
-      <view wx:else class="tag tag-gray">已结束</view>
+      <view wx:if="{{task.status === 'CLOSED' || allClaimantsApproved}}" class="tag tag-gray">已结束</view>
+      <view wx:elif="{{slotsOrTaskFull}}" class="tag tag-orange">名额已满</view>
+      <view wx:else class="tag tag-green">可接取</view>
       <view class="tag tag-blue">+{{task.points}} 分</view>
     </view>
     <view wx:if="{{task.publisher}}" class="hint mt-12">发布人: {{task.publisher.displayName}}</view>

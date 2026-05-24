@@ -9,7 +9,7 @@
       <view wx:else class="cover-avatar cover-avatar-placeholder">👤</view>
       <view class="cover-text">
         <view class="cover-name">{{user.displayName}}</view>
-        <view class="cover-meta">{{user.username}} · {{roleLabel(user.role)}}</view>
+        <view class="cover-meta">{{user.username}} · {{roleText}}</view>
       </view>
     </view>
   </view>
@@ -19,11 +19,11 @@
     <view class="card-title">我的考勤</view>
     <view class="stat-row">
       <view class="stat-cell">
-        <view class="stat-num">{{attendanceSummary.claimedCount || 0}}</view>
+        <view class="stat-num">{{attendanceSummary.claimCount || 0}}</view>
         <view class="stat-label">参与任务</view>
       </view>
       <view class="stat-cell">
-        <view class="stat-num">{{attendanceSummary.submittedCount || 0}}</view>
+        <view class="stat-num">{{attendanceSummary.submitCount || 0}}</view>
         <view class="stat-label">已提交</view>
       </view>
       <view class="stat-cell">

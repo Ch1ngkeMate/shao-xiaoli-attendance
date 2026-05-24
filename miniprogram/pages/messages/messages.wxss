@@ -1,64 +1,25 @@
-/* 消息列表 */
+/* 消息 — 对齐 Web 端 */
 
 .msg-header {
-  padding: 20rpx 28rpx;
-  background: #fff;
-  border-bottom: 1rpx solid #f0f0f0;
+  padding: var(--spacing-md) var(--spacing-md) var(--spacing-sm);
 }
-.msg-title {
-  font-size: 30rpx;
-  font-weight: 600;
-}
-.mark-all-read {
-  color: #1677ff;
-  font-size: 26rpx;
-}
+.msg-title { font-size: var(--font-size-lg); font-weight: 600; }
+.mark-all-read { font-size: var(--font-size-sm); color: var(--color-primary); }
 
 .msg-item {
-  padding: 24rpx 28rpx;
-  background: #fff;
-  border-bottom: 1rpx solid #f5f5f5;
-  transition: background 0.15s;
+  background: var(--color-bg-container);
+  margin: 8rpx var(--spacing-md);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius);
+  border: 1rpx solid var(--color-border-secondary);
 }
-.msg-item:active {
-  background: #fafafa;
-}
-
-.msg-icon {
-  font-size: 44rpx;
-  width: 72rpx;
-  height: 72rpx;
-  background: #f5f5f5;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.ml-16 { margin-left: 16rpx; }
-
-.msg-item-title {
-  font-size: 28rpx;
-  font-weight: 500;
-  color: #333;
-  max-width: 85%;
-}
-
-.msg-item-body {
-  font-size: 24rpx;
-  color: #999;
-  line-height: 1.5;
-}
-
-.msg-item-time {
-  font-size: 22rpx;
-}
+.msg-item-title { font-size: var(--font-size-base); font-weight: 500; flex: 1; min-width: 0; }
+.msg-item-body { font-size: var(--font-size-sm); color: var(--color-text-secondary); line-height: 1.5; }
+.msg-item-time { font-size: 22rpx; white-space: nowrap; }
 
 .unread-dot {
-  width: 14rpx;
-  height: 14rpx;
-  background: #ff4d4f;
+  width: 14rpx; height: 14rpx;
   border-radius: 50%;
+  background: var(--color-primary);
   flex-shrink: 0;
 }

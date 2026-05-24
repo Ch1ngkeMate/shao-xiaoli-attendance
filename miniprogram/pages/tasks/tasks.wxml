@@ -12,25 +12,19 @@
     if (min < 10) min = '0' + min;
     return m + '-' + day + ' ' + h + ':' + min;
   };
-  var getStatusLabel = function(status) {
-    if (status === 'OPEN') return '进行中';
-    if (status === 'CLOSED') return '已结束';
-    return status;
+  // 四态可见性 Tag — 与 Web getTaskClaimVisibility 一致
+  var getVisLabel = function(status, slotsOrTaskFull, allClaimantsApproved) {
+    if (status === 'CLOSED' || allClaimantsApproved) return '已结束';
+    if (slotsOrTaskFull) return '名额已满';
+    return '可接取';
   };
-  var getStatusClass = function(status) {
-    if (status === 'OPEN') return 'tag-blue';
-    if (status === 'CLOSED') return 'tag-gray';
-    return 'tag-gray';
+  var getVisClass = function(status, slotsOrTaskFull, allClaimantsApproved) {
+    if (status === 'CLOSED' || allClaimantsApproved) return 'tag-gray';
+    if (slotsOrTaskFull) return 'tag-orange';
+    return 'tag-green';
   };
-  var pointsText = function(p) {
-    return '+' + p + '分';
-  };
-  module.exports = {
-    formatTime: formatTime,
-    getStatusLabel: getStatusLabel,
-    getStatusClass: getStatusClass,
-    pointsText: pointsText
-  };
+  var pointsText = function(p) { return '+' + p + '分'; };
+  module.exports = { formatTime:formatTime, getVisLabel:getVisLabel, getVisClass:getVisClass, pointsText:pointsText };
 </wxs>
 
 <!-- 搜索栏 -->
@@ -68,7 +62,9 @@
   >
     <view class="flex-between">
       <view class="task-title ellipsis">{{item.title}}</view>
-      <view class="tag {{utils.getStatusClass(item.status)}}">{{utils.getStatusLabel(item.status)}}</view>
+      <view class="tag {{utils.getVisClass(item.status, item.slotsOrTaskFull, item.allClaimantsApproved)}}">
+        {{utils.getVisLabel(item.status, item.slotsOrTaskFull, item.allClaimantsApproved)}}
+      </view>
     </view>
 
     <view wx:if="{{item.description}}" class="task-desc ellipsis-2 mt-8">{{item.description}}</view>

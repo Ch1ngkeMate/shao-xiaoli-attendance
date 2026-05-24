@@ -54,6 +54,8 @@ Page({
         task,
         loading: false,
         hasClaimed,
+        allClaimantsApproved: res.allClaimantsApproved || false,
+        slotsOrTaskFull: res.slotsOrTaskFull || false,
         isMEMBER: getApp().hasRole("MEMBER"),
         isAdminOrMinister: getApp().hasRole("ADMIN", "MINISTER"),
       });

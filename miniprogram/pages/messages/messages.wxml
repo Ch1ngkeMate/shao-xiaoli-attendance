@@ -1,6 +1,27 @@
 <wxs module="utils">
-  var icons = { TASK:'📋',TASK_REVIEW:'✅',MEETING:'📅',LEAVE:'📝',ANNOUNCEMENT:'📢',SYSTEM:'🔔' };
-  var getIcon = function(t) { return icons[t] || '💬'; };
+  // 与 Web 端对齐的类型 Tag 颜色映射
+  var typeTag = function(t) {
+    if (t==='ANNOUNCEMENT') return 'tag-magenta';
+    if (t==='MEETING'||t==='MEETING_NEW') return 'tag-geekblue';
+    if (t==='MEETING_ABSENCE') return 'tag-red';
+    if (t==='TASK'||t==='TASK_DONE') return 'tag-blue';
+    if (t==='TASK_REVIEW') return 'tag-blue';
+    if (t==='TASK_STALL_MEMBER'||t==='TASK_STALL_MANAGER') return 'tag-volcano';
+    if (t==='LEAVE'||t==='LEAVE_APPLY') return 'tag-orange';
+    if (t==='LEAVE_DECIDED') return 'tag-green';
+    return 'tag-gray';
+  };
+  var typeLabel = function(t) {
+    if (t==='ANNOUNCEMENT') return '公告';
+    if (t==='MEETING'||t==='MEETING_NEW') return '会议';
+    if (t==='MEETING_ABSENCE') return '旷会';
+    if (t==='TASK'||t==='TASK_DONE') return '任务';
+    if (t==='TASK_REVIEW') return '审核';
+    if (t==='TASK_STALL_MEMBER'||t==='TASK_STALL_MANAGER') return '滞留';
+    if (t==='LEAVE'||t==='LEAVE_APPLY') return '请假';
+    if (t==='LEAVE_DECIDED') return '假条';
+    return t;
+  };
   var formatTime = function(s) {
     if (!s) return '';
     var d = getDate(s), now = getDate();
@@ -12,7 +33,7 @@
     if (M<10) M='0'+M; if (D<10) D='0'+D;
     return M+'-'+D;
   };
-  module.exports = { getIcon:getIcon, formatTime:formatTime };
+  module.exports = { typeTag:typeTag, typeLabel:typeLabel, formatTime:formatTime };
 </wxs>
 
 <view class="msg-header flex-between">
@@ -24,19 +45,22 @@
   <view
     wx:for="{{messages}}"
     wx:key="id"
-    class="msg-item flex-row"
+    class="msg-item"
+    style="{{!item.read ? 'background:rgba(0,0,0,0.02);' : ''}}"
     data-item="{{item}}"
     bindtap="onMessageTap"
   >
-    <view class="msg-icon">{{utils.getIcon(item.type)}}</view>
-    <view class="flex-1 ml-16">
-      <view class="flex-between">
+    <view class="flex-between">
+      <view class="flex-row gap-8">
+        <view class="tag {{utils.typeTag(item.type)}}">{{utils.typeLabel(item.type)}}</view>
         <view class="msg-item-title ellipsis">{{item.title}}</view>
-        <view wx:if="{{!item.readAt}}" class="unread-dot"></view>
       </view>
-      <view class="msg-item-body ellipsis-2 mt-8">{{item.body}}</view>
-      <view class="msg-item-time hint mt-8">{{utils.formatTime(item.createdAt)}}</view>
+      <view class="flex-row gap-8">
+        <view wx:if="{{!item.read}}" class="unread-dot"></view>
+        <view class="msg-item-time hint">{{utils.formatTime(item.createdAt)}}</view>
+      </view>
     </view>
+    <view class="msg-item-body ellipsis-2 mt-8">{{item.body}}</view>
   </view>
 
   <view class="load-more">— 已加载全部 —</view>
