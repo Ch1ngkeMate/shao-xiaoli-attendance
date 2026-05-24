@@ -10,7 +10,9 @@
 
 <view wx:if="{{loading}}" class="load-more">加载中...</view>
 
-<block wx:elif="{{task}}">
+<view wx:if="{{!loading && !task}}" class="load-more">任务不存在</view>
+
+<view wx:if="{{task}}">
   <!-- 图片轮播 -->
   <swiper wx:if="{{task.images && task.images.length > 0}}" class="image-swiper" indicator-dots circular>
     <swiper-item wx:for="{{task.images}}" wx:key="id">
@@ -135,7 +137,7 @@
   <view wx:if="{{task.status === 'OPEN' && isAdminOrMinister}}" class="card">
     <button class="btn-danger" bindtap="onCloseTask" style="width:100%">关单 / 提前结束</button>
   </view>
-</block>
+</view>
 
 <!-- ===== 弹窗 ===== -->
 <view wx:if="{{showSubmitSheet}}" class="sheet-overlay" bindtap="onCloseSubmitSheet">
