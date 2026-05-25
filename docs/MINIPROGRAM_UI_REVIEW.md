@@ -694,3 +694,220 @@ animation: animal-btn-loading 1s linear infinite;
 5. **Sheet 弹窗确认按钮用黄色** `background: #ffcc00; color: #725d42` — 关键视觉区分
 
 修复这 5 项后，产品质感可从 **5/10 → 7/10**。
+
+---
+
+## 十一、第三轮审查（2026-05-25 修改后复审）
+
+### 11.1 变更摘要
+
+| 文件 | 变更内容 | 质量 |
+|------|---------|:--:|
+| `app.wxss` | + 背景纹理 `page::before`（帆布点阵）、+ `.card` box-shadow、+ Button `:hover` 上浮、+ `.btn-confirm-yellow` 类 | ✅✅✅ |
+| `theme.wxss` | + 6 个缺失 CSS 变量、+ `--border-radius` 别名、字体变量改名 `--animal-font` | ✅✅ |
+| `publish.wxss` | 完全重写：所有 `#fff/#333/#f0f0f0` 替为 theme 变量、输入框改 3D pill、所有组件加阴影、分享弹窗改 AC 风格 | ✅✅✅ |
+| `duty.wxss` | Tab 激活态改官方 teal 高亮（`rgba(25,200,185,0.15)` + `color: #19c8b9`） | ✅✅ |
+
+### 11.2 上次报告 TOP 5 修复对照
+
+| # | 建议 | 状态 |
+|:--:|------|:--:|
+| 1 | `.card` 加 `box-shadow` | ✅ `0 8rpx 20rpx rgba(107,92,67,0.42)` |
+| 2 | 按钮加 `:hover` 上浮 | ✅ `translateY(-2rpx)` + 阴影加深 |
+| 3 | 重写 `publish.wxss` | ✅ 完全重写，零硬编码 |
+| 4 | Tabs 改官方 teal 高亮 | ✅ 精确匹配 SKILL.md |
+| 5 | Modal 确认按钮黄色 | ⚠️ `.btn-confirm-yellow` **已定义但 0 引用** |
+
+### 11.3 剩余问题
+
+**（重要）btn-confirm-yellow 未使用**
+
+`app.wxss:156-175` 完整实现了官方 Modal 确认按钮样式，但全项目 WXML 中零引用。以下 4 处弹窗确认应改用：
+
+| 位置 | 当前 | 应改为 |
+|------|------|--------|
+| `meetings/detail.wxml:99` 确认结束会议 | `btn-danger` | `btn-confirm-yellow` |
+| `tasks/detail.wxml:222` 提交凭证确认 | `btn-primary` | `btn-confirm-yellow` |
+| `tasks/detail.wxml:237` 关单确认 | `btn-danger` | `btn-confirm-yellow` |
+| `tasks/detail.wxml:254` 审核确认 | `btn-primary` | `btn-confirm-yellow` |
+
+（危险操作如"确认驳回""确认删除"保留 `btn-danger` 正确 ✅）
+
+**（中等）硬编码残留**
+
+| 文件 | 残留 |
+|------|------|
+| `tasks.wxss:9` | 搜索栏 `background: #fff` — 应改 3D pill input |
+| `tasks.wxss:72` | FAB 阴影 `rgba(22,119,255,0.3)` 蓝色光晕 — 应改暖色 |
+| `messages.wxss:32` | FAB 同上 |
+| `leave/apply.wxss:1-5` | `@import "../publish/publish.wxss"` + `border: #e8e8e8` + `color: #666` + `color: #333` |
+| `settings.wxss:1` | `@import "../publish/publish.wxss"`（虽已无害但语义不对） |
+| `meetings/detail.wxss:2` | `color: #666` — 应 `var(--color-text-secondary)` |
+| `others/profile.wxss:2` | `background: #f0f0f0` — 应 `var(--color-bg-secondary)` |
+
+**（轻微）登录页**
+
+`login.wxss:41` `btn-ghost` 的 `background: #fff` 应改为 `var(--color-bg-content)`。
+
+### 11.4 逐维度评分变化
+
+| 维度 | 第一轮 | 第二轮（校准后）| 第三轮（当前） |
+|------|:--:|:--:|:--:|
+| 背景纹理 | 1 | 1 | **7** |
+| 卡片阴影 | 4 | 4 | **9** |
+| 按钮交互 | 5 | 5 | **7** |
+| publish 页面 | 2 | 2 | **7** |
+| Tabs | 5 | 5 | **9** |
+| CSS 变量完整度 | 3 | 3 | **9** |
+| 铁律 #1（颜色） | 5 | 5 | **7** |
+| 铁律 #3（3D 阴影） | 5 | 5 | **7** |
+| Modal 黄色按钮 | — | — | **4**（已定义未使用） |
+| 全局一致性 | 4 | 5 | **7** |
+
+**总评：第一轮 3.0 → 第二轮（校准）4.5 → 第三轮（当前）6.5/10**
+
+### 11.5 冲刺 7.5/10 的 6 项收尾
+
+| # | 任务 | 改动 |
+|:--:|------|:--:|
+| 1 | 4 处弹窗确认改用 `btn-confirm-yellow` | 改 4 行 WXML |
+| 2 | 搜索栏改 3D pill input | 改 2 行 WXML + 2 行 WXSS |
+| 3 | leave/apply 硬编码 + import 清理 | 6 行 CSS |
+| 4 | FAB 阴影蓝→暖 | 改 2 处 WXSS |
+| 5 | settings/meetings/others 硬编码改 theme 变量 | 4 行 CSS |
+| 6 | login `btn-ghost` `#fff` → `var(--color-bg-content)` | 1 行 CSS |
+
+**全部 6 项合计约 20 行，耗时 < 10 分钟。**
+
+---
+
+## 十二、视觉资产 TODO — 换模型后的执行计划
+
+> **瓶颈分析**：纯文本模型已将 CSS 体系（配色/阴影/3D pill/纹理）对齐官方 SKILL.md，评分从 3.0 → 6.5/10。剩余差距全部是**具体视觉素材**（SVG 图标、插图、装饰图案），纯文本模型无法生成。本节为有生图/SVG 能力的模型编写。
+
+### 12.1 CSS 收尾（当前模型即可，6 项 < 20 行）
+
+| # | 文件 | 改什么 |
+|:--:|------|------|
+| 1 | `tasks/detail.wxml` `meetings/detail.wxml` | 4 处弹窗确认按钮 `btn-primary`/`btn-danger` → `btn-confirm-yellow` |
+| 2 | `tasks/tasks.wxml` `tasks/tasks.wxss` | 搜索栏改用 `app.wxss .input` 3D pill |
+| 3 | `tasks/tasks.wxss:72` `messages/messages.wxss:32` | FAB `box-shadow` 蓝 `rgba(22,119,255,0.3)` → 暖 `rgba(107,92,67,0.35)` |
+| 4 | `leave/apply.wxss` | 删 `@import "../publish/publish.wxss"`；`#e8e8e8`/`#666`/`#333` → theme 变量 |
+| 5 | `settings.wxss:1` | 删 `@import "../publish/publish.wxss"` |
+| 6 | `meetings/detail.wxss:2` `others/profile.wxss:2` | `#666`/`#f0f0f0` → theme 变量 |
+
+### 12.2 Button Loading 斜纹动画（纯 CSS，不需要素材）
+
+```css
+.btn-primary.loading {
+  background: #0ec4b6;
+  background-image: repeating-linear-gradient(
+    -45deg, #0ec4b6, #0ec4b6 10px, #01b0a7 10px, #01b0a7 20px
+  );
+  background-size: 28.28px 28.28px;
+  animation: animal-btn-loading 1s linear infinite;
+}
+@keyframes animal-btn-loading {
+  0%   { background-position: 0 0; }
+  100% { background-position: -28.28px 0; }
+}
+```
+
+### 12.3 图标系统 — 10 个 SVG 图标（优先级：最高）
+
+**当前状态**：全项目用 emoji（🍃📋📝📊💬👤📢）替代图标。  
+**目标**：用官方 10 个 SVG 图标或等质量替代。
+
+**提取路径**（先 `npm i animal-island-vue`）：
+```
+node_modules/animal-island-vue/src/components/Icon/img/
+  icon-miles.svg       icon-camera.svg      icon-chat.svg
+  icon-critterpedia.svg icon-design.svg      icon-diy.svg
+  icon-helicopter.svg   icon-map.svg         icon-shopping.svg
+  icon-variant.svg
+```
+
+**使用方式**（小程序）：
+- 方案 A：SVG 内联到 WXML 的 `<image src="data:image/svg+xml,..." />`
+- 方案 B：上传到 CDN，URL 引用
+- 方案 C：注册为 `utils/icon.js` 模块
+
+**映射表**（emoji → 官方 icon）：
+
+| 当前 | 场景 | 替换为 |
+|------|------|--------|
+| 📋 | 任务空状态 | `icon-diy` 或 `icon-design` |
+| 💬 | 消息空状态 | `icon-chat` |
+| 📝 | 请假空状态 | `icon-design` |
+| 📊 | 统计空状态 | `icon-miles` |
+| 🍃 | 叶片装饰 | 保留（CSS 动画已实现） |
+| 👤 | 头像占位 | `icon-camera`（或保留文字） |
+| 📢 | 公告 FAB | `icon-chat` |
+| + | 发布 FAB | `icon-design` 或 `icon-diy` |
+| ❤️ | 登录 logo 备用 | `icon-miles` 或 `icon-helicopter` |
+
+### 12.4 Footer 底部装饰（优先级：高）
+
+**当前**：`.footer-wave` 是纯 CSS 渐变 + `〰` 字符。  
+**目标**：官方 SVG/WEBP Footer。
+
+| 类型 | 素材路径 | 规格 |
+|------|---------|------|
+| sea | `.../img/footer-sea.svg` (viewBox 0 0 1440 186) | width 100%, height 80px, center/contain |
+| tree | `.../img/footer-tree.webp` | width 100%, height 60px, bottom center/cover |
+
+**CSS 降级**（素材不可用时）：
+- `sea`：`repeating-linear-gradient` 多层海浪
+- `tree`：`radial-gradient` + polygon clip-path 树冠剪影
+
+### 12.5 Divider 分割线（优先级：中）
+
+**当前**：仅 `.divider-line` 纯色条。  
+**目标**：至少 `wave-yellow` + `line-brown`。
+
+官方 5 种均为 12px 高 SVG/PNG：`divider-line-brown/teal/white/yellow.svg` + `wave-yellow.svg`。
+
+CSS 降级 `wave-yellow`：
+```css
+.divider-wave-yellow {
+  height: 24rpx;
+  background: repeating-linear-gradient(
+    90deg, transparent, transparent 16rpx, #f7cd67 16rpx, #f7cd67 24rpx
+  );
+  border-radius: 12rpx; opacity: 0.5;
+}
+```
+
+### 12.6 TabBar 自定义图标（优先级：中）
+
+**规格**：81×81px PNG，透明背景，线条风格，暖棕 `#725d42`（普通）/ 主色 `#19c8b9`（选中）。
+
+| Tab | 建议图标 | 官方参考 |
+|-----|---------|---------|
+| 任务 | 设计图纸/工具 | `icon-diy` / `icon-design` |
+| 消息 | 对话气泡 | `icon-chat` |
+| 考勤 | 里程/成就 | `icon-miles` |
+| 我的 | 相机/护照 | `icon-camera` / `icon-map` |
+
+### 12.7 空状态/加载态插图（优先级：低）
+
+- 加载中：NookPhone 叶片旋转动画（纯 CSS 可实现）
+- 空列表：手绘风格小动物剪影 + 对话框
+- 错误态：NookPhone 风格重试提示
+
+### 12.8 执行顺序
+
+```
+Phase 1（纯 CSS，< 20 行，当前模型即可）
+  ├── §12.1 全部 6 项收尾
+  └── §12.2 Loading 斜纹动画
+
+Phase 2（需要 SVG/生图能力，换模型后执行）
+  ├── §12.3 10 个 SVG 图标 ⭐ 最高优先级
+  ├── §12.4 Footer 底部装饰
+  └── §12.5 Divider 分割线
+
+Phase 3（锦上添花）
+  ├── §12.6 TabBar 自定义图标
+  └── §12.7 空状态/加载态插图
+```
