@@ -178,15 +178,21 @@
   color: var(--color-error);
 }
 .btn-sm {
-  height: 56rpx; line-height: 56rpx; padding: 0 10rpx; width: 140rpx;
-  font-size: 26rpx; text-align: center;
-  border-radius: 8rpx;
+  height: 64rpx; line-height: 64rpx; padding: 0 24rpx; width: 140rpx;
+  font-size: 24rpx; font-weight: 600; text-align: center;
+  border-radius: 100rpx;
   box-sizing: border-box;
+  letter-spacing: 0.02em;
+  box-shadow: 0 8rpx 0 0 var(--color-shadow-btn);
+}
+.btn-sm:active {
+  transform: translateY(4rpx);
+  box-shadow: 0 1rpx 0 0 var(--color-shadow-btn);
 }
 .btn-danger-text {
   color: var(--color-error) !important;
-  background: transparent !important;
-  border: 1rpx solid var(--color-error) !important;
+  background: var(--color-bg-content) !important;
+  border: 5rpx solid var(--color-error) !important;
 }
 
 /* 证据图片 */
