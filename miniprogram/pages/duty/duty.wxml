@@ -36,6 +36,10 @@
 
 <!-- ====== 值班表 Tab ====== -->
 <view wx:if="{{activeTab === 0}}" class="tab-content">
+  <view class="flex-row" style="padding: 20rpx 32rpx 0;">
+    <view class="leaf-decor">🍃</view>
+    <view class="card-title" style="margin:0 0 0 8rpx;">值班表</view>
+  </view>
   <view wx:if="{{dutyLoading}}" class="load-more">加载中...</view>
   <view wx:else class="duty-table">
     <view class="duty-header">
@@ -74,7 +78,7 @@
         <view wx:else class="form-input duty-select hint">加载中...</view>
         <view class="form-label mt-16">部门/分组（选填）</view>
         <input class="form-input" placeholder="如 办公室、宣传部" value="{{dutyDeptLabel}}" bindinput="onDutyDeptLabelInput" maxlength="50" />
-        <button class="btn-primary btn-full mt-24" bindtap="onConfirmAdd">确认添加</button>
+        <button class="btn-primary btn-full mt-24 anisland-btn-pill" bindtap="onConfirmAdd">确认添加</button>
       </view>
     </view>
   </view>
@@ -82,6 +86,10 @@
 
 <!-- ====== 会议 Tab ====== -->
 <view wx:if="{{activeTab === 1}}" class="tab-content">
+  <view class="flex-row" style="padding: 20rpx 32rpx 0;">
+    <view class="leaf-decor">📋</view>
+    <view class="card-title" style="margin:0 0 0 8rpx;">会议列表</view>
+  </view>
   <view wx:if="{{meetingsLoading}}" class="load-more">加载中...</view>
   <block wx:elif="{{meetings.length > 0}}">
     <view wx:for="{{meetings}}" wx:key="id" class="card meeting-card" data-id="{{item.id}}" bindtap="onMeetingTap">
@@ -96,14 +104,14 @@
     <view class="load-more">— 已加载全部 —</view>
   </block>
   <view wx:else class="empty">
-    <view class="empty-icon">📅</view>
+    <view class="empty-icon">🍃</view>
     <view>暂无会议</view>
   </view>
 </view>
 
 <!-- ====== 请假 Tab ====== -->
 <view wx:if="{{activeTab === 2}}" class="tab-content">
-  <button wx:if="{{!isAdmin}}" class="btn-primary" style="margin:20rpx;" bindtap="onApplyLeave">申请请假</button>
+  <button wx:if="{{!isAdmin}}" class="btn-primary" style="margin:20rpx 32rpx;" bindtap="onApplyLeave">申请请假</button>
   <view wx:if="{{leavesLoading}}" class="load-more">加载中...</view>
   <block wx:elif="{{leaves.length > 0}}">
     <view wx:for="{{leaves}}" wx:key="id" class="card leave-card" data-id="{{item.id}}" data-status="{{item.status}}" bindtap="onLeaveTap">

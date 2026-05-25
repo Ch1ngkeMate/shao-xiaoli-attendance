@@ -16,10 +16,10 @@
     "pages/others/profile"
   ],
   "tabBar": {
-    "color": "#999999",
-    "selectedColor": "#1677ff",
-    "backgroundColor": "#ffffff",
-    "borderStyle": "black",
+    "color": "#9f927d",
+    "selectedColor": "#19c8b9",
+    "backgroundColor": "#f8f8f0",
+    "borderStyle": "white",
     "list": [
       {
         "pagePath": "pages/tasks/tasks",
