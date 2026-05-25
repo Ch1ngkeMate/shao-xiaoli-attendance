@@ -16,17 +16,16 @@ export async function GET(req: Request) {
   if (!month) return NextResponse.json({ message: "缺少 month 参数" }, { status: 400 });
 
   const snapshot = await prisma.monthlyReport.findUnique({ where: { month } });
+  const sortDesc = (p: { totalPoints?: number }[]) => p.sort((a, b) => (b.totalPoints ?? 0) - (a.totalPoints ?? 0));
   if (snapshot) {
     const parsed = JSON.parse(snapshot.statsJson) as MonthlyReportStats;
     const stats = await hydrateMonthlyReportPeopleFromDb(parsed);
-    return NextResponse.json({
-      month,
-      snapshot: true,
-      stats,
-    });
+    sortDesc(stats.people);
+    return NextResponse.json({ month, snapshot: true, stats });
   }
 
   const stats = await computeMonthlyReportStats(month);
+  sortDesc(stats.people);
   return NextResponse.json({ month, snapshot: false, stats });
 }
 

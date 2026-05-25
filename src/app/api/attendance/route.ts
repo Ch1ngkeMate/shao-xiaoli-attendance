@@ -14,6 +14,7 @@ export async function GET(req: Request) {
   if (!month) return NextResponse.json({ message: "缺少 month 参数" }, { status: 400 });
 
   const stats = await computeMonthlyReportStats(month);
+  stats.people.sort((a, b) => (b.totalPoints ?? 0) - (a.totalPoints ?? 0));
   return NextResponse.json({ stats });
 }
 

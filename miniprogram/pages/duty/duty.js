@@ -355,7 +355,7 @@ Page({
     this.setData({ statsLoading: true });
     try {
       const res = await api.getAttendanceStats(this.data.currentMonth);
-      const people = res.stats?.people || [];
+      const people = (res.stats?.people || []).sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0));
       this.setData({ stats: people, statsLoading: false });
     } catch (err) {
       this.setData({ statsLoading: false });
