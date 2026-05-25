@@ -53,3 +53,11 @@
     </view>
   </view>
 </view>
+
+<!-- 空状态 & 加载中 -->
+<view wx:else class="empty">
+  <image wx:if="{{!loading}}" class="empty-img" src="/assets/empty-profile.png" mode="aspectFit" />
+  <view wx:if="{{!loading}}" class="empty-text">请先登录</view>
+  <view wx:if="{{loading}}" class="leaf-spin">🍃</view>
+  <view wx:if="{{loading}}" class="empty-text">加载中...</view>
+</view>

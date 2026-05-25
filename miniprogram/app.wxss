@@ -382,3 +382,32 @@ page::before {
 .card-yellow-green   { background: #ecdf52 !important; color: #725d42 !important; }
 .card-brown          { background: #9a835a !important; color: #fff !important; }
 .card-warm-peach-pink{ background: #e18c6f !important; color: #fff !important; }
+
+/* ===========================================
+ * 空状态 & 加载动画（全局）
+ * =========================================== */
+.empty {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 80rpx 40rpx;
+}
+.empty-img {
+  width: 400rpx; height: 400rpx; margin-bottom: 32rpx;
+}
+.empty-text {
+  font-size: var(--font-size-base); color: var(--color-text-secondary);
+  letter-spacing: 0.05em;
+}
+
+/* 加载中 — 叶片旋转动画（NookPhone 风格）*/
+.leaf-spin {
+  font-size: 64rpx;
+  animation: leafSpin 1.2s ease-in-out infinite;
+  transform-origin: center center;
+}
+@keyframes leafSpin {
+  0%   { transform: rotate(0deg) scale(1); }
+  25%  { transform: rotate(8deg) scale(1.05); }
+  50%  { transform: rotate(0deg) scale(1); }
+  75%  { transform: rotate(-8deg) scale(1.05); }
+  100% { transform: rotate(0deg) scale(1); }
+}

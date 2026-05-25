@@ -68,8 +68,14 @@
 </view>
 
 <view wx:elif="{{!loading}}" class="empty">
-  <icon name="chat" size="80" />
-  <view>暂无消息</view>
+  <image class="empty-img" src="/assets/empty-messages.png" mode="aspectFit" />
+  <view class="empty-text">暂无消息</view>
+</view>
+
+<!-- 加载中 -->
+<view wx:if="{{loading}}" class="empty">
+  <view class="leaf-spin">🍃</view>
+  <view class="empty-text">加载中...</view>
 </view>
 
 <!-- 发布公告 FAB（MINISTER/ADMIN） -->

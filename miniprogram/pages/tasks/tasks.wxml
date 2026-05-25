@@ -109,12 +109,15 @@
 
 <!-- 空状态 -->
 <view wx:elif="{{!loading}}" class="empty">
-  <icon name="diy" size="80" />
-  <view>暂无任务</view>
+  <image class="empty-img" src="/assets/empty-tasks.png" mode="aspectFit" />
+  <view class="empty-text">暂无任务</view>
 </view>
 
 <!-- 加载中 -->
-<view wx:if="{{loading}}" class="load-more">加载中...</view>
+<view wx:if="{{loading}}" class="empty">
+  <view class="leaf-spin">🍃</view>
+  <view class="empty-text">加载中...</view>
+</view>
 
 <!-- 发布按钮（仅 MINISTER/ADMIN） -->
 <view wx:if="{{showFab}}" class="fab" bindtap="onPublish">

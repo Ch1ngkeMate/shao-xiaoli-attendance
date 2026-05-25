@@ -40,7 +40,10 @@
     <view class="leaf-decor">🍃</view>
     <view class="card-title" style="margin:0 0 0 8rpx;">值班表</view>
   </view>
-  <view wx:if="{{dutyLoading}}" class="load-more">加载中...</view>
+  <view wx:if="{{dutyLoading}}" class="empty">
+    <view class="leaf-spin">🍃</view>
+    <view class="empty-text">加载中...</view>
+  </view>
   <view wx:else class="duty-table">
     <view class="duty-header">
       <view class="duty-cell duty-label"></view>
@@ -95,7 +98,10 @@
         <icon name="design" size="32" /> 发布
       </view>
   </view>
-  <view wx:if="{{meetingsLoading}}" class="load-more">加载中...</view>
+  <view wx:if="{{meetingsLoading}}" class="empty">
+    <view class="leaf-spin">🍃</view>
+    <view class="empty-text">加载中...</view>
+  </view>
   <block wx:elif="{{meetings.length > 0}}">
     <view wx:for="{{meetings}}" wx:key="id" class="card meeting-card" data-id="{{item.id}}" bindtap="onMeetingTap">
       <view class="flex-between">
@@ -110,15 +116,18 @@
     <divider type="brown" height="24" />
   </block>
   <view wx:else class="empty">
-    <view class="empty-icon">🍃</view>
-    <view>暂无会议</view>
+    <image class="empty-img" src="/assets/empty-duty.png" mode="aspectFit" />
+    <view class="empty-text">暂无会议</view>
   </view>
 </view>
 
 <!-- ====== 请假 Tab ====== -->
 <view wx:if="{{activeTab === 2}}" class="tab-content">
   <button wx:if="{{!isAdmin}}" class="btn-primary" style="margin:20rpx 32rpx;" bindtap="onApplyLeave">申请请假</button>
-  <view wx:if="{{leavesLoading}}" class="load-more">加载中...</view>
+  <view wx:if="{{leavesLoading}}" class="empty">
+    <view class="leaf-spin">🍃</view>
+    <view class="empty-text">加载中...</view>
+  </view>
   <block wx:elif="{{leaves.length > 0}}">
     <view wx:for="{{leaves}}" wx:key="id" class="card leave-card" data-id="{{item.id}}" data-status="{{item.status}}" bindtap="onLeaveTap">
       <view class="flex-between">
@@ -133,14 +142,17 @@
     <divider type="brown" height="24" />
   </block>
   <view wx:else class="empty">
-    <icon name="design" size="80" />
-    <view>暂无请假记录</view>
+    <image class="empty-img" src="/assets/empty-duty.png" mode="aspectFit" />
+    <view class="empty-text">暂无请假记录</view>
   </view>
 </view>
 
 <!-- ====== 统计 Tab ====== -->
 <view wx:if="{{activeTab === 3 && showStats}}" class="tab-content">
-  <view wx:if="{{statsLoading}}" class="load-more">加载中...</view>
+  <view wx:if="{{statsLoading}}" class="empty">
+    <view class="leaf-spin">🍃</view>
+    <view class="empty-text">加载中...</view>
+  </view>
   <block wx:elif="{{stats}}">
     <view class="card stat-card" wx:for="{{stats}}" wx:key="userId" wx:for-item="row" data-user-id="{{row.userId}}" bindtap="onStatTap">
       <view class="flex-between">
@@ -156,8 +168,8 @@
     <view class="load-more">— {{currentMonth}} 考勤统计 —</view>
   </block>
   <view wx:else class="empty">
-    <icon name="miles" size="80" />
-    <view>暂无统计数据</view>
+    <image class="empty-img" src="/assets/empty-duty.png" mode="aspectFit" />
+    <view class="empty-text">暂无统计数据</view>
   </view>
 </view>
 
