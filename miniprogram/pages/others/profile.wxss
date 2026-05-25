@@ -3,4 +3,4 @@
 .profile-name { font-size:34rpx;font-weight:700; }
 .section-title { font-size:28rpx;font-weight:600; }
 .stat-item { font-size:24rpx;color:#888; }
-.stat-item.primary { color:#1677ff;font-weight:600; }
+.stat-item.primary { color:var(--color-primary);font-weight:600; }

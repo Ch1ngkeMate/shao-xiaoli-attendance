@@ -2,14 +2,14 @@
 .meeting-desc { font-size: 26rpx; color: #666; line-height: 1.7; white-space: pre-wrap; }
 .section-title { font-size: 28rpx; font-weight: 600; margin-bottom: 16rpx; }
 .member-tag { display: inline-block; margin: 6rpx; }
-.leave-item { padding: 12rpx 0; border-bottom: 1rpx solid #f5f5f5; }
+.leave-item { padding: 12rpx 0; border-bottom: 1rpx solid var(--color-bg-secondary); }
 .leave-item:last-child { border-bottom: none; }
 .btn-full { width: 100%; }
 
 /* 关会成员勾选 */
 .member-check-row {
   padding: 16rpx 0;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid var(--color-bg-secondary);
 }
 .member-check-row:last-child { border-bottom: none; }
 .checkbox {

@@ -14,7 +14,7 @@
 }
 
 .cover-bg-empty {
-  background: linear-gradient(135deg, #1677ff 0%, #4096ff 40%, #69b1ff 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 40%, var(--color-primary) 100%);
 }
 
 /* 渐变遮罩 — 有背景图时 */

@@ -1,0 +1,243 @@
+/* ============================================
+ * Animal Island Theme — Component Styles
+ * ============================================ */
+
+/* ===== 页面背景 ===== */
+.anisland-bg {
+  background: var(--color-bg);
+  min-height: 100vh;
+}
+
+/* ===== 卡片 ===== */
+.anisland-card {
+  background: var(--color-bg-container);
+  border-radius: var(--border-radius-base);
+  padding: var(--spacing-md);
+  margin: var(--spacing-sm) var(--spacing-md);
+  border: 3rpx solid var(--color-border-light);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--motion-fast) var(--motion-ease);
+}
+.anisland-card:active {
+  box-shadow: var(--shadow-base);
+}
+
+/* ===== 主按钮 ===== */
+.anisland-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--height-base);
+  padding: 0 var(--spacing-lg);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  border-radius: var(--border-radius-sm);
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--motion-fast) var(--motion-ease);
+}
+.anisland-btn:active {
+  background: var(--color-primary-active);
+  box-shadow: var(--shadow-base);
+  transform: scale(0.97);
+}
+.anisland-btn[disabled] {
+  background: var(--color-bg-disabled);
+  color: var(--color-text-disabled);
+  box-shadow: none;
+}
+
+/* 描边按钮 */
+.anisland-btn-outline {
+  background: var(--color-bg-container);
+  color: var(--color-text);
+  border: 3rpx solid var(--color-border);
+}
+.anisland-btn-outline:active {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-bg);
+}
+
+/* 危险按钮 */
+.anisland-btn-danger {
+  background: var(--color-error);
+}
+.anisland-btn-danger:active {
+  background: var(--color-error-active);
+}
+
+/* 小按钮 */
+.anisland-btn-sm {
+  height: var(--height-sm);
+  padding: 0 var(--spacing-md);
+  font-size: var(--font-size-sm);
+  border-radius: var(--border-radius-sm);
+}
+
+/* ===== 标签 ===== */
+.anisland-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 40rpx;
+  padding: 0 16rpx;
+  font-size: var(--font-size-xs);
+  border-radius: var(--border-radius-sm);
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+  border: 2rpx solid var(--color-primary);
+}
+.anisland-tag-green {
+  background: #e8f5e0;
+  color: var(--color-success);
+  border-color: var(--color-success);
+}
+.anisland-tag-red {
+  background: #fde8e8;
+  color: var(--color-error);
+  border-color: var(--color-error);
+}
+.anisland-tag-gold {
+  background: #fef7e0;
+  color: #b8860b;
+  border-color: var(--color-warning);
+}
+.anisland-tag-blue {
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+/* ===== 输入框 ===== */
+.anisland-input {
+  height: var(--height-base);
+  padding: 0 var(--spacing-md);
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+  background: var(--color-bg-container);
+  border: 3rpx solid var(--color-border);
+  border-radius: var(--border-radius-sm);
+  box-sizing: border-box;
+  transition: border-color var(--motion-fast);
+}
+.anisland-input:focus {
+  border-color: var(--color-primary);
+}
+
+/* ===== 文本域 ===== */
+.anisland-textarea {
+  width: 100%;
+  padding: var(--spacing-md);
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+  background: var(--color-bg-container);
+  border: 3rpx solid var(--color-border);
+  border-radius: var(--border-radius-sm);
+  box-sizing: border-box;
+  transition: border-color var(--motion-fast);
+}
+
+/* ===== 分隔线 ===== */
+.anisland-divider {
+  height: 3rpx;
+  background: var(--color-border-light);
+  border-radius: 2rpx;
+  margin: var(--spacing-md) 0;
+}
+
+/* ===== 标题 ===== */
+.anisland-title {
+  font-size: var(--font-size-title);
+  font-weight: 700;
+  color: var(--color-text);
+}
+.anisland-subtitle {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* ===== 提示文字 ===== */
+.anisland-hint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+/* ===== 弹窗(Sheet) ===== */
+.anisland-sheet-overlay {
+  position: fixed; inset: 0;
+  background: var(--color-bg-mask);
+  z-index: 100;
+  display: flex; align-items: flex-end;
+  animation: anisland-fadein var(--motion-fast) var(--motion-ease);
+}
+.anisland-sheet {
+  width: 100%;
+  background: var(--color-bg-container);
+  border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+  padding: var(--spacing-lg);
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+}
+.anisland-sheet-title {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: var(--spacing-md);
+  text-align: center;
+}
+.anisland-sheet-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-xl);
+}
+
+/* ===== TabBar 底部导航 ===== */
+.anisland-tabbar {
+  display: flex;
+  background: var(--color-bg-container);
+  border-top: 3rpx solid var(--color-border-light);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.anisland-tabbar-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xs) 0;
+  font-size: 20rpx;
+  color: var(--color-text-secondary);
+  transition: color var(--motion-fast);
+}
+.anisland-tabbar-item.active {
+  color: var(--color-primary);
+}
+
+/* ===== 导航栏兼容 ===== */
+.anisland-navbar {
+  background: var(--color-bg-container);
+  border-bottom: 3rpx solid var(--color-border-light);
+}
+
+/* ===== 提示条 ===== */
+.anisland-notice {
+  background: var(--color-warning);
+  color: var(--color-text);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-sm);
+}
+
+/* ===== 动画 ===== */
+@keyframes anisland-fadein {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes anisland-slideup {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
