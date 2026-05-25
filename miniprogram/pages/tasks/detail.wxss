@@ -144,7 +144,7 @@
 }
 .review-body {
   font-size: 24rpx;
-  overflow: hidden;
+  overflow: visible;
 }
 .review-time {
   color: #999;
@@ -178,10 +178,10 @@
   color: #ff4d4f;
 }
 .btn-sm {
-  height: 52rpx; padding: 0 16rpx; min-width: 100rpx;
-  font-size: 24rpx;
+  height: 56rpx; line-height: 56rpx; padding: 0 10rpx; width: 140rpx;
+  font-size: 26rpx; text-align: center;
   border-radius: 8rpx;
-  flex: 1; max-width: 200rpx;
+  box-sizing: border-box;
 }
 .btn-danger-text {
   color: #ff4d4f !important;
