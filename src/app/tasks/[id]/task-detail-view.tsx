@@ -214,7 +214,7 @@ export default function TaskDetailView({
         message.error(data.message || "操作失败");
         return;
       }
-      message.success("已收工；已接取者中完成提交并审核通过的，按原规则计考勤/月报");
+      message.success("已收工；所有接取者均已自动计分（被驳回的除外）");
       setSettleOpen(false);
       router.refresh();
     } finally {
@@ -245,7 +245,7 @@ export default function TaskDetailView({
               </Button>
             </Space>
             <Typography.Text type="secondary" style={{ display: "block", marginTop: 8, fontSize: 12 }}>
-              收工：无需全员已提交/通过即可关单，<strong>仍计考勤</strong>（有提交且已通过的部员照规则统计）；
+              收工：所有接取者自动计分（已被手动驳回的除外），无需全员提交即可关单；
               当所有人已提交且部长已同意全部人时，任务会<strong>自动收工关单</strong>。
             </Typography.Text>
             <Typography.Text type="secondary" style={{ display: "block", fontSize: 12 }}>

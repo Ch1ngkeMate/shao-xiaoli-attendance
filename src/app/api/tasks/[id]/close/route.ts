@@ -9,7 +9,7 @@ type Params = { id: string };
 
 const BodySchema = z.object({
   /**
-   * `true`：提前结束，任务整体不计入部员月报/考勤；`false`：收工关单，仍计考勤（有提交且已通过的部员按规则统计）
+   * `true`：提前结束，任务整体不计入部员月报/考勤；`false`：收工关单，所有接取者自动计分（已被手动驳回的除外）
    * 未传时默认 `true`（兼容历史调用，界面应显式传 `false` 收工）
    */
   excludeFromAttendance: z.boolean().optional().default(true),
@@ -59,21 +59,56 @@ export async function POST(req: Request, ctx: { params: Promise<Params> }) {
   });
 
   if (!parsed.data.excludeFromAttendance) {
-    // 收工：自动审核所有待审批的提交（视为已通过，计入考勤/积分）
-    const pendingSubmissions = await prisma.taskSubmission.findMany({
-      where: { taskId, review: null },
-      select: { id: true },
+    // 收工：给所有接取者自动计分（除非已被手动驳回），无论是否提交工作
+    const claims = await prisma.taskClaim.findMany({
+      where: { taskId, status: "CLAIMED" },
+      select: { userId: true },
     });
-    for (const sub of pendingSubmissions) {
-      await prisma.taskReview.create({
-        data: {
-          submissionId: sub.id,
+    const claimantIds = [...new Set(claims.map((c) => c.userId))];
+
+    // 查询各接取者的已有提交和审核状态
+    const existingSubs = await prisma.taskSubmission.findMany({
+      where: { taskId, userId: { in: claimantIds } },
+      select: { id: true, userId: true, review: { select: { result: true } } },
+    });
+    const subByUser = new Map(existingSubs.map((s) => [s.userId, s]));
+
+    for (const userId of claimantIds) {
+      const sub = subByUser.get(userId);
+
+      // 已被手动驳回 → 跳过，不覆盖管理员的决定
+      if (sub?.review?.result === "REJECTED") continue;
+
+      let submissionId = sub?.id;
+
+      // 没有提交的 → 自动创建一条提交记录
+      if (!submissionId) {
+        const newSub = await prisma.taskSubmission.create({
+          data: { taskId, userId, submitTime: new Date() },
+        });
+        submissionId = newSub.id;
+      }
+
+      // 已通过 → 跳过
+      if (sub?.review?.result === "APPROVED") continue;
+
+      // 待审核或无提交 → 自动通过
+      await prisma.taskReview.upsert({
+        where: { submissionId },
+        create: {
+          submissionId,
+          result: "APPROVED",
+          reason: "收工自动确认",
+          reviewerId: session.sub,
+        },
+        update: {
           result: "APPROVED",
           reason: "收工自动确认",
           reviewerId: session.sub,
         },
       });
     }
+
     await notifyTaskCompletedToApprovedClaimants(taskId);
   }
   return NextResponse.json({ task: { id: updated.id, status: updated.status, excludeFromAttendance: updated.excludeFromAttendance } });

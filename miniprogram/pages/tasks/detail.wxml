@@ -119,7 +119,7 @@
     <view wx:if="{{mySubmission.evidenceImages && mySubmission.evidenceImages.length > 0}}" class="evidence-images mt-8">
       <image wx:for="{{mySubmission.evidenceImages}}" wx:key="id" src="{{item.url}}" mode="aspectFill" class="evidence-img-sm" data-url="{{item.url}}" bindtap="onPreviewEvidence" />
     </view>
-    <view wx:if="{{mySubmission.review && mySubmission.review.reason}}" class="hint mt-8" style="color:#ff4d4f;">驳回原因：{{mySubmission.review.reason}}</view>
+    <view wx:if="{{mySubmission.review && mySubmission.review.result === 'REJECTED' && mySubmission.review.reason}}" class="hint mt-8" style="color:#ff4d4f;">驳回原因：{{mySubmission.review.reason}}</view>
   </view>
 
   <!-- 我的操作 -->
@@ -185,7 +185,7 @@
           <button class="btn-ghost btn-sm btn-danger-text" data-submission-id="{{item.id}}" data-result="REJECTED" bindtap="onReview">驳回</button>
         </view>
       </view>
-      <view wx:if="{{item.review && item.review.reason}}" class="review-reject-reason">
+      <view wx:if="{{item.review && item.review.result === 'REJECTED' && item.review.reason}}" class="review-reject-reason">
         驳回原因：{{item.review.reason}}
       </view>
     </view>
