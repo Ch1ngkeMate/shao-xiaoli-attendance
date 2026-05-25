@@ -1,77 +1,98 @@
 /* ============================================
- * Animal Island Theme — Design Tokens
- * Inspired by Animal Crossing: New Horizons
+ * Animal Island Theme — Pixel-perfect Design Tokens
+ * Source: SKILL.md / variables.less
  * ============================================ */
 
 page {
-  /* ---------- 主色调 ---------- */
+  /* ===== 字体 ===== */
+  --animal-font: Nunito, 'Noto Sans SC', 'Zen Maru Gothic',
+    -apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+
+  /* ===== 主色（薄荷青绿）===== */
   --color-primary: #19c8b9;
   --color-primary-hover: #3dd4c6;
-  --color-primary-active: #50B9AB;
+  --color-primary-active: #11a89b;
   --color-primary-bg: #e6f9f6;
 
-  /* ---------- 功能色 ---------- */
-  --color-success: #6fba2c;
-  --color-success-hover: #85cc45;
-  --color-success-active: #5a9e1e;
-
-  --color-warning: #f5c31c;
-  --color-warning-hover: #f7d04a;
-  --color-warning-active: #dba90e;
-
-  --color-error: #e05a5a;
-  --color-error-hover: #e87878;
-  --color-error-active: #c94444;
-
-  /* ---------- 中性色 / 文字 ---------- */
-  --color-text: #794f27;
+  /* ===== 文字（温暖棕色系）===== */
+  --color-text: #794f27;           /* header / sidebar */
+  --color-text-body: #725d42;      /* 正文 */
   --color-text-secondary: #9f927d;
+  --color-text-muted: #8a7b66;
   --color-text-disabled: #c4b89e;
 
-  --color-border: #aaa69d;
-  --color-border-hover: #827157;
-  --color-border-light: #e8e2d6;
+  /* ===== 边框 ===== */
+  --color-border: #9f927d;
+  --color-border-light: #c4b89e;   /* 输入框边框 */
+  --color-border-hover: #a89878;
 
-  /* ---------- 背景 ---------- */
-  --color-bg: #f8f8f0;
-  --color-bg-container: #fffef5;
+  /* ===== 背景（奶油米白）===== */
+  --color-bg: #f8f8f0;             /* 主背景 */
+  --color-bg-content: rgb(247, 243, 223);  /* 内容区（卡片/弹窗）*/
+  --color-bg-container: rgb(247, 243, 223);
   --color-bg-secondary: #f0e8d8;
   --color-bg-disabled: #f0ece2;
-  --color-bg-mask: rgba(61, 52, 40, 0.45);
+  --color-bg-input: rgb(247, 243, 223);
+  --color-bg-input-dis: #ece8dc;
 
-  /* ---------- 间距 ---------- */
+  /* ===== 状态色 ===== */
+  --color-success: #6fba2c;
+  --color-success-active: #5a9e1e;
+  --color-warning: #f5c31c;
+  --color-warning-active: #dba90e;
+  --color-error: #e05a5a;
+  --color-error-active: #c94444;
+
+  /* ===== 游戏特殊色 ===== */
+  --color-focus-yellow: #ffcc00;
+  --color-focus-yellow-d: #e0b800;
+  --color-sidebar-active: #B7C6E5;
+  --color-sidebar-hover: #d6dff0;
+
+  /* ===== 3D 阴影色（核心特征）===== */
+  --color-shadow-btn: #bdaea0;
+  --color-shadow-input: #d4c9b4;
+  --color-shadow-switch: #5a9e1e;
+
+  /* ===== 圆角 ===== */
+  --border-radius-sm: 12px;
+  --border-radius-base: 18px;
+  --border-radius-lg: 20px;
+  --border-radius-pill: 50px;
+  --border-radius-organic: 40px 35px 45px 38px / 38px 45px 35px 40px;
+
+  /* ===== 字体大小 ===== */
+  --font-size-xs: 22rpx;
+  --font-size-sm: 24rpx;
+  --font-size-base: 28rpx;
+  --font-size-lg: 32rpx;
+  --font-size-xl: 36rpx;
+  --font-size-title: 40rpx;
+
+  /* ===== 间距（1px≈2rpx）===== */
   --spacing-xs: 8rpx;
   --spacing-sm: 16rpx;
   --spacing-md: 24rpx;
   --spacing-lg: 32rpx;
   --spacing-xl: 48rpx;
 
-  /* ---------- 圆角 ---------- */
-  --border-radius-sm: 16rpx;
-  --border-radius-base: 24rpx;
-  --border-radius-lg: 32rpx;
-  --border-radius-round: 999rpx;
-
-  /* ---------- 阴影 ---------- */
-  --shadow-sm: 0 4rpx 8rpx 0 rgba(61, 52, 40, 0.06);
-  --shadow-base: 0 6rpx 20rpx 0 rgba(61, 52, 40, 0.10);
-  --shadow-lg: 0 16rpx 48rpx 0 rgba(61, 52, 40, 0.14);
-
-  /* ---------- 字体 ---------- */
-  --font-size-xs: 22rpx;
-  --font-size-sm: 24rpx;
-  --font-size-base: 28rpx;
-  --font-size-lg: 32rpx;
-  --font-size-title: 36rpx;
-
-  /* ---------- 尺寸 ---------- */
-  --height-sm: 60rpx;
-  --height-base: 80rpx;
-  --height-lg: 96rpx;
-
-  /* ---------- 动画 ---------- */
+  /* ===== 动效 ===== */
   --motion-fast: 0.15s;
   --motion-base: 0.25s;
   --motion-slow: 0.35s;
   --motion-ease: cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+/* ===== NookPhone 调色板（13色）===== */
+.anisland-card-color-app-pink       { background: #f8a6b2 !important; color: #fff !important; }
+.anisland-card-color-purple         { background: #b77dee !important; color: #fff !important; }
+.anisland-card-color-app-blue       { background: #889df0 !important; color: #fff !important; }
+.anisland-card-color-app-yellow     { background: #f7cd67 !important; color: #725d42 !important; }
+.anisland-card-color-app-orange     { background: #e59266 !important; color: #fff !important; }
+.anisland-card-color-app-teal       { background: #82d5bb !important; color: #fff !important; }
+.anisland-card-color-app-green      { background: #8ac68a !important; color: #fff !important; }
+.anisland-card-color-app-red        { background: #fc736d !important; color: #fff !important; }
+.anisland-card-color-lime-green     { background: #d1da49 !important; color: #3d5a1a !important; }
+.anisland-card-color-yellow-green   { background: #ecdf52 !important; color: #725d42 !important; }
+.anisland-card-color-brown          { background: #9a835a !important; color: #fff !important; }
+.anisland-card-color-warm-peach-pink{ background: #e18c6f !important; color: #fff !important; }
