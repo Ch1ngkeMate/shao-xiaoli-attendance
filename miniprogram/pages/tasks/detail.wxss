@@ -144,6 +144,7 @@
 }
 .review-body {
   font-size: 24rpx;
+  overflow: hidden;
 }
 .review-time {
   color: #999;
@@ -163,11 +164,13 @@
   display: flex;
   gap: 8rpx;
   margin-left: auto;
+  flex-shrink: 0;
 }
 .review-actions-block {
   display: flex;
   gap: 12rpx;
   margin-top: 12rpx;
+  flex-wrap: wrap;
 }
 .review-reject-reason {
   margin-top: 8rpx;
@@ -175,9 +178,10 @@
   color: #ff4d4f;
 }
 .btn-sm {
-  height: 52rpx; padding: 0 20rpx;
+  height: 52rpx; padding: 0 16rpx; min-width: 100rpx;
   font-size: 24rpx;
   border-radius: 8rpx;
+  flex: 1; max-width: 200rpx;
 }
 .btn-danger-text {
   color: #ff4d4f !important;
