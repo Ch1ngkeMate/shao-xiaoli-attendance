@@ -16,16 +16,27 @@ page {
   box-sizing: border-box;
 }
 
+/* 背景纹理 — 模拟帆布触感 */
+page::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    radial-gradient(circle at 25% 25%, rgba(161, 140, 107, 0.06) 1rpx, transparent 1rpx),
+    radial-gradient(circle at 75% 75%, rgba(161, 140, 107, 0.04) 1rpx, transparent 1rpx);
+  background-size: 24rpx 24rpx, 20rpx 20rpx;
+}
+
 /* ============================================
  * 卡片（核心组件）
  * ============================================ */
 .card {
   background: var(--color-bg-content);
-  border-radius: 40rpx;                     /* 20px */
+  border-radius: 40rpx;
   padding: 32rpx 48rpx;
   margin: 16rpx 32rpx;
   color: #725d42;
   font-weight: 500;
+  box-shadow: 0 8rpx 20rpx rgba(107, 92, 67, 0.42);  /* 官方 0 4px 10px rgba(107,92,67,0.42) */
   transition: all 0.3s ease;
 }
 .card:active {
@@ -57,6 +68,10 @@ page {
   box-shadow: 0 10rpx 0 0 #bdaea0;         /* 3D阴影 */
   transition: all var(--motion-base) var(--motion-ease);
 }
+.btn-primary:hover {
+  transform: translateY(-2rpx);
+  box-shadow: 0 12rpx 0 0 #bdaea0;
+}
 .btn-primary:active {
   transform: translateY(4rpx);
   box-shadow: 0 2rpx 0 0 #bdaea0;
@@ -82,6 +97,10 @@ page {
   color: #fff;
   box-shadow: 0 10rpx 0 0 var(--color-error-active);
   transition: all var(--motion-base) var(--motion-ease);
+}
+.btn-danger:hover {
+  transform: translateY(-2rpx);
+  box-shadow: 0 12rpx 0 0 var(--color-error-active);
 }
 .btn-danger:active {
   transform: translateY(4rpx);
@@ -131,6 +150,28 @@ page {
 }
 .btn-link:active {
   opacity: 0.85;
+}
+
+/* 弹窗确认按钮 — 游戏黄色（动森经典交互色）*/
+.btn-confirm-yellow {
+  display: flex; align-items: center; justify-content: center;
+  height: 90rpx; padding: 0 40rpx;
+  font-size: 28rpx; font-weight: 600;
+  letter-spacing: 0.02em; line-height: 1;
+  border-radius: 100rpx;
+  background: var(--color-focus-yellow);
+  color: #725d42;
+  border: 2px solid var(--color-focus-yellow);
+  box-shadow: 0 10rpx 0 0 var(--color-focus-yellow-d);
+  transition: all var(--motion-base) var(--motion-ease);
+}
+.btn-confirm-yellow:hover {
+  transform: translateY(-2rpx);
+  box-shadow: 0 12rpx 0 0 var(--color-focus-yellow-d);
+}
+.btn-confirm-yellow:active {
+  transform: translateY(4rpx);
+  box-shadow: 0 2rpx 0 0 var(--color-focus-yellow-d);
 }
 
 /* ============================================

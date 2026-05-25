@@ -1,425 +1,696 @@
-# 微信小程序 UI / 交互校阅报告
+# 小程序 UI 复审报告：animal-island-ui 动森主题实现评估
 
-| 项目 | 说明 |
+**项目**：邵小利志愿服务队干事考勤系统  
+**审查日期**：2026-05-25  
+**审查范围**：全部 14 个页面的 WXML/WXSS + 全局样式 + anisland-theme 主题系统  
+**参照基准**：`animal-island-vue` 三份权威文档 → `AI_USAGE.md`（API）+ `SKILL.md`（像素级 CSS）+ `DESIGN_PROMPT.md`（色板速查）  
+**审查结论**：配色/卡片已精准对齐官方规范；**卡片缺阴影** + **Modal 确认按钮应为黄色** + publish 页面破窗是当前最大差距，核心评分约 5/10
+
+---
+
+## 附录：官方设计规范辅助文件
+
+本次审查使用的三份 animal-island-vue 官方权威文档（本地副本）：
+
+| 文件 | 本地路径 | 用途 |
+|------|---------|------|
+| AI_USAGE.md | `C:\Users\95345\Downloads\AI_USAGE.md` | API 手册：每个组件的 props、类型、默认值、合法取值 |
+| SKILL.md | `C:\Users\95345\Downloads\SKILL.md` | 像素级样式：设计 token、每组件精确 CSS（hex/px/keyframe） |
+| DESIGN_PROMPT.md | `C:\Users\95345\Downloads\DESIGN_PROMPT.md` | 设计提示词：色板速查表、铁律清单、AI 生图 prompt |
+
+> **给审阅 AI 的建议阅读顺序**：先读 `AI_USAGE.md` 了解组件 API 全貌 → 再读 `SKILL.md` 获取像素级 CSS 规格（尤其 §5 的 `:root` 模板和 §6 的 7 条设计铁律）→ `DESIGN_PROMPT.md` 末尾的"关键数值速查表"可作快速索引。
+
+---
+
+## 一、上次报告修复进度
+
+| 原问题 | 状态 | 变更内容 |
+|--------|:--:|------|
+| #1 任务详情 API 数据不足 | ⚠️ | API 端未变，但 WXML 加入 WXS 客户端 `getVisLabel`/`getVisClass` 四态判断 |
+| #2 会议关会功能缺失 | ✅ | `meetings/detail.js` 完整实现了关会选人 + `onToggleAbsent` + `onConfirmEnd` + 确认弹窗 |
+| #5 图片 URL 补全碎片化 | ✅ | 新建 `utils/format.js`（`fixUrl`/`formatTime`/`formatDate`/`formatTimeRelative`）+ `utils/format.wxs` |
+| #6 任务列表缺状态标签 | ✅ | `tasks.wxml` WXS 实现了四态 `getVisLabel`/`getVisClass`（可接取/名额已满/待处理/已结束） |
+| #10 变量命名误导 | ✅ | `isAdmin` 已改为 `isAdminOrMinister` 或 `isAdmin` 赋值为 `isAdminOrMinister` |
+| — 主题系统 | 新增 | `anisland-theme/theme.wxss` + `components.wxss` 完整 Design Token |
+| — 考勤页 UI | 重构 | `duty.wxss` 全面重写（3D pill、leave paper 请假条纸面纹理、sheet 弹窗） |
+
+---
+
+## 二、动森 UI 核心特征 vs 当前实现
+
+### 2.1 动物森友会 UI 的本质
+
+ACNH NookPhone 界面的质感来自：
+
+| 特征 | 说明 |
 |------|------|
-| **校阅对象** | `miniprogram/` 目录（原生微信小程序） |
-| **对照标准** | 已完成并上线的 **Web 移动端**（Next.js + Ant Design 6，`Grid.useBreakpoint()` 下 `isMobile` 布局） |
-| **校阅日期** | 2026-05-24 |
-| **设计基准色** | 主色 `#1677ff`（Ant Design 默认蓝）；页面底 `#f5f5f5`；卡片白底 + 浅灰描边 |
+| **底色** | 暖米白/奶油色/浅驼色 — 模拟纸张/布料的本色 |
+| **纹理** | **细密的织物/纸张肌理**（灯芯绒、亚麻、模造纸），无大面积纯色平面 |
+| **文字** | 温暖棕色调（#6B4C3B ~ #4A3528），非冷调黑灰 |
+| **圆角** | 大圆角（16-24px），略带有机不规则感 |
+| **按钮** | 厚实 3D pill：底部 4-6px 深色"底座"阴影，按下时底座缩进 |
+| **边框** | 不用纯色边框，靠 3D 阴影和底色对比区分层级 |
+| **图标** | 手绘风格，线条粗细不均，手工感 |
+| **字体** | 圆体/丸ゴシック，圆润可爱 |
+| **间距** | 宽松透气，留白充分 |
+| **点缀** | 叶片、果实、小动物、波浪线等自然元素 |
+
+### 2.2 逐维度评分
+
+| 维度 | 当前实现 | 动森标准 | 得分 |
+|------|---------|---------|:--:|
+| 背景色 | 奶油米白 `#f8f8f0` ✅ | 同 + 纹理层 | 6/10 |
+| 背景纹理 | **完全缺失** — 全项目零 CSS 纹理 | 织物/纸张纹理遍布所有背景 | **1/10** |
+| 主色调 | 薄荷青绿 `#19c8b9`（teal，偏冷） | 叶绿 `#6fba2c` 或暖陶土 `#d4a574` | 4/10 |
+| 文字颜色 | 暖棕 `#794f27` / `#725d42` ✅ | 一致 | 8/10 |
+| 3D 按钮 | `.btn-primary` `box-shadow: 0 10rpx 0 0 #bdaea0` ✅ | 一致 | 8/10 |
+| 按钮圆角 | `border-radius: 100rpx` pill ✅ | 一致 | 9/10 |
+| 字体 | `Nunito, 'Zen Maru Gothic'` → **小程序无法加载** | 系统圆体 | **3/10** |
+| 图标 | Emoji（🍃📋📝📊） | 手绘风格自定义图标 | **2/10** |
+| 卡片层级 | 无阴影，纯靠背景色区分 | 微阴影 + 底色差异 | 4/10 |
+| 底部弹窗 | `border-radius: 64rpx 64rpx 0 0` ✅ | 更厚顶圆角 + 背景模糊 | 6/10 |
+| 动效 | 基本 :active 反馈 | 弹性缓出、层级过渡 | 5/10 |
+
+**总分：4.5/10**（Design Token 层）
 
 ---
 
-## 一、校阅说明
+## 三、"不够动森"的根因分析
 
-### 1.1 对照方法
+### 根因 1：纹理完全缺失（最致命）
 
-- **视觉**：色彩、字号、圆角、间距、卡片形态、标签语义色是否与 Web 移动端正文/卡片一致。
-- **信息架构**：Tab / 侧栏菜单、页面层级、管理人员入口是否与 Web `AppShell` 一致。
-- **组件行为**：筛选、空状态、加载、弹窗、上传、角色可见性与 Web 同页面对齐。
-- **交互细节**：点击反馈、未读提示、跳转目标、表单校验提示。
+全项目没有一个 CSS 纹理。动森 UI 的核心记忆点是**"把 UI 画在布料/纸张上"**的触感：
 
-### 1.2 总体结论（UI 维度）
+- NookPhone 的背景是细帆布纹理
+- 对话框是手工纸质感
+- 卡片是亚麻布或灯芯绒
 
-| 维度 | 符合度 | 摘要 |
-|------|--------|------|
-| 设计令牌（颜色/字号） | ★★★★☆ | `app.wxss` 已系统复刻 Ant Design 变量，页面级执行较一致 |
-| 全局导航 | ★★★☆☆ | Tab 四栏与 Web 移动抽屉菜单大致对应，但 **Tab 图标缺失**、无消息角标 |
-| 任务模块 | ★★★☆☆ | 卡片列表形态接近；**状态标签语义**与 Web `getTaskClaimVisibility` 不一致 |
-| 消息模块 | ★★★☆☆ | 列表风格尚可；**类型图标/未读/公告发布**明显弱于 Web |
-| 考勤（值班/会议/请假） | ★★★☆☆ | Tab 内嵌合理；**管理端能力**（排班编辑、发会议）缺失 |
-| 个人主页 | ★★★★☆ | 封面+渐变与 Web 微信风大图 **高度一致**；考勤明细深度不足 |
-| 设置 | ★★☆☆☆ | 仅保留账号/密码/上传，**无主题、无版本号、无背景预览** |
-| 深色模式 | ☆☆☆☆☆ | Web 已支持浅/深/跟随系统；小程序 **未实现** |
-| 无障碍与规范 | ★★☆☆☆ | 大量 emoji 作图标；部分硬编码色未走 CSS 变量 |
+当前所有页面纯色平面 `background: var(--color-bg)`，无论颜色多接近，视觉上仍是"暖色扁平 App"而非"动森"。
 
-**综合**：小程序在「主色 + 卡片 + 个人封面」上较好地对齐了 Web；在「状态语义、管理端完整度、消息/公告、主题与导航细节」上仍有明显差距。下文按模块逐项列出。
+**修复只需 5 行 CSS，三个可选方案**：
 
----
+```css
+/* 方案 A：细密点阵（模拟帆布/麻布）— 推荐全局 page */
+page::before {
+  content: '';
+  position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background-image:
+    radial-gradient(circle at 25% 25%, rgba(161, 140, 107, 0.06) 0.5px, transparent 0.5px),
+    radial-gradient(circle at 75% 75%, rgba(161, 140, 107, 0.04) 0.5px, transparent 0.5px);
+  background-size: 24rpx 24rpx, 20rpx 20rpx;
+}
 
-## 二、设计系统对照（全局 UI）
+/* 方案 B：横纹纸（模拟和纸/便签纸）— 适合卡片内部 */
+.card {
+  background-color: var(--color-bg-content);
+  background-image: repeating-linear-gradient(
+    0deg, transparent, transparent 6rpx, rgba(161, 140, 107, 0.04) 6rpx, rgba(161, 140, 107, 0.04) 7rpx
+  );
+}
 
-### 2.1 已对齐项 ✅
-
-| 令牌 / 组件 | Web 移动端 | 小程序 `app.wxss` | 说明 |
-|-------------|------------|-------------------|------|
-| 主色 | `token.colorPrimary` ≈ `#1677ff` | `--color-primary: #1677ff` | 一致 |
-| 页面背景 | `colorBgLayout` `#f5f5f5` | `--color-bg-layout` | 一致 |
-| 卡片 | `Card` 白底、圆角、浅边框 | `.card` 16rpx 圆角 + `#f0f0f0` 边框 | 一致 |
-| 标签色板 | `Tag` green/blue/orange/red/… | `.tag-blue` … `.tag-volcano` | 色值与 Ant 预设基本一致 |
-| 主按钮 | `Button type="primary"` | `.btn-primary` 高度 64rpx | 一致 |
-| 危险按钮 | `Button danger` | `.btn-danger` | 一致 |
-| 辅助文案 | `Typography.Text type="secondary"` | `.hint` + `--color-text-secondary` | 一致 |
-| 导航栏 | 顶栏白底 + 底部分割线 | `app.json` `navigationBarBackgroundColor: #1677ff` | 小程序用 **整栏蓝色+白字**，Web 移动为 **白顶栏+黑字**（见 2.2） |
-
-### 2.2 差异项 ⚠️
-
-| 项目 | Web 移动端 | 小程序 | 建议 |
-|------|------------|--------|------|
-| **顶栏样式** | 白底 Header + 标题 + 头像 + 退出 | 系统导航栏 **蓝底白字**「邵小利考勤」 | 各页 `navigationBarBackgroundColor` 改为 `#ffffff`，`navigationBarTextStyle: black`，与 Web 统一；或保留品牌蓝但内页二级页用白顶栏 |
-| **品牌区** | 侧栏/登录页有 `DeptLogo` +「干事考勤系统」「宣传部」 | 登录页仅文字标题，**无 Logo** | 登录页增加 `dept-logo` 图片与副标题「宣传部」 |
-| **深色模式** | `ClientProviders` + `data-theme` + Ant `darkAlgorithm` | 无 | 短期可在设置说明「跟随系统暂未开放」；长期用 CSS 变量 + `prefers-color-scheme` 或手动切换 |
-| **安全区 / 底部** | 内容区 `padding: 12px` | Tab 页 FAB `bottom: 120rpx` 已避让 Tab | 需真机核对 iPhone 底部安全区；必要时 `padding-bottom: env(safe-area-inset-bottom)` |
-| **字体** | 系统栈 + Ant 默认 14px 正文 | 28rpx base（≈14px） | 一致；标题层级建议统一用 `--font-size-xl` / `--font-size-lg` |
-| **阴影** | Card 轻阴影 | 全局 `--shadow` 定义了但 **卡片多仅用边框** | 可选：任务卡片加 `box-shadow: var(--shadow)` 贴近 Ant Card |
-
-### 2.3 TabBar 专项（高优先级 UI 缺陷）
-
-**Web 移动端**：侧栏/抽屉菜单 — 任务、会议与值班、消息（带未读红点）、个人主页、设置；管理人员另有发布任务、月报、部员考勤、账号管理。
-
-**小程序**：底部 Tab — 任务 | 消息 | 考勤 | 我的。
-
-| 对比项 | Web | 小程序 | 问题 |
-|--------|-----|--------|------|
-| Tab 图标 | Ant Icons | `images/tab-*.png` | **仓库内无 png 文件**，Tab 图标空白或报错 |
-| 消息未读 | 侧栏 `Badge dot` + 事件刷新 | 仅页内标题「(N条未读)」 | **Tab 上无角标**，用户切走 Tab 后不易感知 |
-| 「考勤」命名 | 「会议与值班」 | Tab 文案「考勤」 | 可接受缩写，但页内仍是值班/会议/请假，建议在 Tab 或首屏副标题写全 |
-| 设置入口 | 独立菜单项 | 藏在「我的」内 | 符合小程序习惯，可保留 |
-| 发布任务 | 菜单项 | 任务页 FAB `+` | 位置不同但可发现；**FAB 与 Tab 重叠风险**需真机看 |
-
-**修改建议**：
-
-1. 补全 8 张 Tab 图标（81×81，普通/选中态），或实现 `custom-tab-bar` 用字体图标。
-2. `onShow` 消息页 / App `onLaunch` 时调用 `wx.setTabBarBadge({ index: 1, text: '3' })`（>99 显示 `99+`），已读清零 `removeTabBarBadge`。
-3. FAB 距底：`calc(120rpx + env(safe-area-inset-bottom))`。
+/* 方案 C：对角交叉（模拟亚麻布）— 适合大背景 */
+page {
+  background-color: #f8f8f0;
+  background-image:
+    repeating-linear-gradient(45deg, transparent, transparent 8rpx, rgba(181, 164, 125, 0.06) 8rpx, rgba(181, 164, 125, 0.06) 9rpx),
+    repeating-linear-gradient(-45deg, transparent, transparent 8rpx, rgba(181, 164, 125, 0.06) 8rpx, rgba(181, 164, 125, 0.06) 9rpx);
+}
+```
 
 ---
 
-## 三、分页面 UI 校阅
+### 根因 2：主色调偏离
 
-### 3.1 登录页 `pages/login/login`
+`#19c8b9` 是 Google Material Design 的 **teal 300**，色相偏蓝偏冷。动森的主色属于**大地色系**：
 
-| 项目 | Web 移动端 | 小程序 | 符合度 |
-|------|------------|--------|--------|
-| 布局 | 居中 Card，`min(420px,100%)` | 顶部 `.card` 贴边 | ★★★☆☆ |
-| 品牌 | Logo + 标题 +「宣传部」 | 仅「首次使用请绑定」文案 | ★★☆☆☆ |
-| 表单 | Ant `Form` + 标签 | 原生 `input` + 两个 `button` | ★★★☆☆ |
-| 主按钮 | 单个「登录」 | 「微信授权并绑定」+「已绑定，直接登录」 | ★★★★☆（业务差异合理） |
-| 背景 | `#f5f5f5` 全屏 | 继承 `page` 灰底 | ★★★★☆ |
+| 场景 | 当前 | 建议 | 色值 |
+|------|------|------|------|
+| 主按钮/强调色 | 薄荷青绿 `#19c8b9` | 叶绿色 | `#6fba2c` |
+| 主色悬停 | `#3dd4c6` | 亮叶绿 | `#8fd45a` |
+| 主色按下 | `#11a89b` | 深叶绿 | `#5a9e1e` |
+| 主色浅底 | `#e6f9f6`（白青） | 浅绿底 | `#eaf6e0` |
 
-**改进意见**：
+或改为**暖陶土色**（AC 对话框选择按钮的主色）：
+- `#d4a574` → hover `#e0bc96` → active `#c08d5a`
 
-- 增加与 Web 一致的 **Logo + 系统名 + 副标题** 区块（占屏高约 30%）。
-- 输入框改用全局 `.input` 类（与 `app.wxss` 一致），避免 `login.wxss` 单独一套 `#eee` 边框。
-- 已登录用户打开登录页时自动跳转任务 Tab（避免闪一下登录表单）。
+因为 `#6fba2c` 已在 theme 中用作 `--color-success`，主色可选暖陶土避免冲突。
 
 ---
 
-### 3.2 任务大厅 `pages/tasks/tasks`
+### 根因 3：部分页面完全未进入主题系统
 
-| 项目 | Web 移动端 | 小程序 | 符合度 |
-|------|------------|--------|--------|
-| 搜索 | `Input.Search` + 筛选 Select（可见性/是否结束/排序） | 搜索框 + 横向 **5 个筛选 pill** | ★★★☆☆ |
-| 列表形态 | 移动端 **表格单列**：标题行+状态 Tag+时间副行 | **卡片列表**：标题、描述、积分、时间、人数 | ★★★★☆（小程序卡片更适合触屏） |
-| 状态 Tag | `getTaskClaimVisibility`：**可接取 / 名额已满 / 待处理 / 已结束**（颜色绿/橙/灰） | 仅 `OPEN→进行中`、`CLOSED→已结束` | ★★☆☆☆ **重大差异** |
-| 标题展示 | 超长标题中间省略 `前两字…后两字` | 全文 `ellipsis` | ★★★☆☆ |
-| 接取人 | 列表可带头像 peek（管理端） | 仅「已接取 N/M 人」+ 已满 tag | ★★★☆☆ |
-| 发布入口 | 顶区按钮「发布任务」 | 右下 FAB `+` | ★★★★☆ |
-| 空状态 | `Empty` 组件 | emoji 📋 + 文案 | ★★★☆☆ |
-| 下拉刷新 | 浏览器刷新 | `enablePullDownRefresh` | ★★★★☆ |
+`publish.wxss` / `settings.wxss` / `leave/apply.wxss` 三个文件大量硬编码非 AC 色值：
 
-**改进意见（UI/交互）**：
-
-1. **状态 Tag 与 Web 对齐**：列表接口已含 `slotsOrTaskFull`、`allClaimantsApproved` 等字段时，前端应复刻四套文案与颜色（可在 wxs 中实现简化版 `getTaskClaimVisibility`）。
-2. 增加 Web 已有的 **「是否已结束」「排序」** 筛选（可用第二行 pill 或底部 ActionSheet）。
-3. 搜索框与筛选区间距统一为 `app.wxss` 的 `--spacing-md`。
-4. 空状态改用 Ant 风格插图（或 SVG），减少 emoji 依赖。
-5. 加载中：使用 **骨架屏**（3 条灰色卡片）替代纯文字「加载中...」。
+| 硬编码值 | 出现页面 | 问题 |
+|---------|---------|------|
+| `background: #fff` | publish, login, messages | 纯白，非暖米白 |
+| `background: #f0f0f0` | publish | 冷灰，非暖调 |
+| `background: #fafafa` | publish | 冷灰白 |
+| `color: #333` | publish, meetings/detail | 纯黑，非暖棕 |
+| `color: #666` | publish, meetings/detail | 深灰，非 `--color-text-secondary` |
+| `color: #999` | publish | 浅灰，非 `--color-text-muted` |
+| `border: 2rpx solid #e8e8e8` | leave/apply | 冷灰边框 |
 
 ---
 
-### 3.3 任务详情 `pages/tasks/detail`
+## 四、逐页面视觉诊断
 
-| 项目 | Web 移动端 | 小程序 | 符合度 |
-|------|------------|--------|--------|
-| 顶图 | `Carousel` 多图 | `swiper` 高 420rpx | ★★★★☆ |
-| 顶栏状态 | 大号 `Tag`（可接取/待处理等） | 「待处理/已结束」+ 积分 tag | ★★★☆☆ |
-| 信息区 | `Descriptions` 两列标签 | 手写 `info-row` / `info-label` | ★★★★☆ |
-| 接取人 | 分时段 + 头像 + 管理端移除 | 分时段 tag + 小头像 + ✕ 移除 | ★★★★☆ |
-| 提交凭证 | `TaskActions` 内 Modal + Upload | 底部 **半屏 sheet** + 图片网格 | ★★★★☆（sheet 更符合移动端） |
-| 审核 | 列表内联按钮 + 驳回原因 Modal | sheet 审核（部分）+ 内联通过/驳回 | ★★★☆☆（`submissionsForReview` 数据若未加载则 UI 不显示） |
-| 关单 | 「收工」「提前结束」分按钮 + 确认 Modal | 同类文案 + sheet | ★★★★☆ |
-| 图片预览 | 点击放大 | **未绑定** `previewImage` | ★★☆☆☆ |
+### 4.1 全局基础（`app.wxss` + `anisland-theme/`）
 
-**改进意见**：
+**做对的事**：
+- Design Token 完整，CSS 变量命名规范（参考 `variables.less`）
+- 3D pill 按钮主样式到位（`.btn-primary` / `.btn-danger` / `.btn-dashed` / `.btn-ghost` / `.btn-link`）
+- `.tag` 系统 pill 标签语义色统一
+- `.leaf-decor` 叶片装饰 + wiggle 动画
+- `.footer-wave` 波浪底部分隔有创意
+- `.card-app-*` NookPhone 13 色调色板已定义
 
-1. 顶栏状态 Tag 同任务列表，使用 **四套语义色**。
-2. 凭证图、任务轮播图支持 **点击全屏预览**（`wx.previewImage`）。
-3. 提交 sheet：上传中显示 **进度/禁用确认按钮**；图片加 **失败重试** 态。
-4. 审核区：与 Web 一致展示 **凭证缩略图**；驳回必填原因时红色提示。
-5. sheet 遮罩：增加 **上滑动画**（`transition`）与拖拽关闭（可选），提升「原生感」。
-6. 无图任务：轮播区不占 420rpx 空白，改为紧凑标题卡（与 Web 无图时一致）。
+**严重问题 — CSS 变量缺失**：
 
----
+以下变量在 6+ 个页面 WXSS 中被引用，但**未在 `theme.wxss` 中定义**，导致回退到浏览器默认值：
 
-### 3.4 发布任务 `pages/publish/publish`
+| 缺失变量 | 引用文件 |
+|---------|---------|
+| `--color-border-secondary` | tasks.wxss, messages.wxss, detail.wxss |
+| `--color-fill-alter` | tasks.wxss, detail.wxss |
+| `--color-split` | tasks.wxss, detail.wxss, profile.wxss |
+| `--color-bg-layout` | detail.wxss, settings.wxss |
+| `--color-text-tertiary` | settings.wxss |
+| `--border-radius`（应为 `--border-radius-base`） | messages.wxss, settings.wxss |
 
-| 项目 | Web 移动端 | 小程序 | 符合度 |
-|------|------------|--------|--------|
-| 表单 | Ant `Form` 分段、日期时间选择器 | 原生 input + `datetime` 选择 | ★★★☆☆ |
-| 多时段 | 动态增减 `Form.List` | 手动添加时段列表 | ★★★☆☆ |
-| 配图 | `Upload` 卡片列表 | 九宫格 + 上传 | ★★★★☆ |
-| 校验提示 | 字段下红色错误文案 |  mostly Toast | ★★☆☆☆ |
-| 必填时段 | Web 强制至少一段 | 小程序 **未强制**，易提交失败 | ★★☆☆☆（属交互，但表现为主按钮点击后 Toast） |
-
-**改进意见**：
-
-- 发布页顶加 **步骤提示**或「* 必填」标识，与 Web 表单 label 一致。
-- 时段用 **两行 picker**（开始/结束）替代单个 `datetime-local` 字符串，避免格式歧义。
-- 提交中：全屏 **loading 蒙层** + 禁用返回。
+**建议补充到 `theme.wxss`**：
+```css
+--color-border-secondary: #d9cfb4;
+--color-fill-alter: #f5efe0;
+--color-split: #e8dfcc;
+--color-bg-layout: #f0e8d8;
+--color-text-tertiary: #b8a890;
+```
 
 ---
 
-### 3.5 消息 `pages/messages/messages`
+### 4.2 登录页 `pages/login/`
 
-| 项目 | Web 移动端 | 小程序 | 符合度 |
-|------|------------|--------|--------|
-| 管理端发公告 | 页顶 `AnnouncementEditor` 卡片（标题/正文/图/弹窗天数） | **双次 `showModal` 输入** | ★☆☆☆☆ **差距最大** |
-| 说明文案 | 灰色说明 Card（消息类型说明） | 无 | ★★☆☆☆ |
-| 列表项 | `Card` + 类型 `Tag`（公告/任务/请假…）+ 标题 + 摘要 + 「查看详情」 | 圆形 emoji 图标 + 标题 + 摘要 | ★★★☆☆ |
-| 未读背景 | 未读项 `colorFillAlter` 浅灰底 | 仅 **红点**（且字段 `readAt` 错误应为 `read`） | ★★☆☆☆ |
-| 全部已读 | 卡片右上角 Link 按钮 | 蓝色文字「全部已读」 | ★★★★☆ |
-| 类型图标 | Ant `Tag` 颜色区分 | emoji 固定映射（且 **类型名与后端不一致**） | ★★☆☆☆ |
-
-**改进意见**：
-
-1. **公告发布 UI**：单独页面 `pages/announcements/publish`，字段对齐 Web `AnnouncementEditor`（标题、正文、多图、弹窗开关、天数）。
-2. 列表项左侧改为 **彩色圆角 Tag**（公告/任务/会议/请假），与 Web `typeLabel` 一致，少用 emoji。
-3. 未读：修正 `read` 字段；未读项整卡 **浅蓝/浅灰底**（`#fafafa` 或 `#e6f4ff`）。
-4. 列表项右侧增加 **「查看详情 ›」** 链接样式（灰色小字）。
-5. 顶部增加与 Web 相同的 **说明折叠 Panel**（可默认收起）。
+| 问题 | 严重度 | 说明 |
+|------|:--:|------|
+| Logo `brand-logo` 为 teal 渐变纯色 | 中 | `linear-gradient(135deg, var(--color-primary), var(--color-primary-active))` — 缺纹理 |
+| 背景无任何叶片/小动物装饰 | 中 | 应加 `leaf-decor` 或背景纹理 |
+| 备用态 ♥️ 太简单 | 轻 | 建议用叶片 emoji 🌿 或部徽 |
+| `btn-ghost` 硬编码 `background: #fff` | 轻 | 破坏主题一致性 |
+| 两个按钮之间无视觉分隔 | 轻 | 与动森"透气宽松"的间距哲学不符 |
 
 ---
 
-### 3.6 消息/公告/通知详情页
+### 4.3 任务大厅 `pages/tasks/`
 
-| 页面 | Web | 小程序 | 符合度 |
-|------|-----|--------|--------|
-| 公告详情 | 独立页 + 图片 + 已读统计（管理端） | `announcements/detail` 基础展示 | ★★★☆☆ |
-| 通知详情 | 消息详情 + 跳转按钮 | `notifications/detail` | ★★★☆☆ |
-
-**改进意见**：公告详情管理端展示 **已读人数/列表**（与 Web `announcements/[id]` 一致）；正文支持 **富文本换行**；图片宽度 100% 圆角 8px。
-
----
-
-### 3.7 考勤 Tab `pages/duty/duty`（会议与值班）
-
-| 项目 | Web 移动端 | 小程序 | 符合度 |
-|------|------------|--------|--------|
-| 结构 | `Tabs`：值班表 / 会议 / 请假 /（管理）统计 | 顶部 **sticky Tab 条** 同结构 | ★★★★☆ |
-| 值班表 | 可编辑表格（管理端添加/删除格子） | **只读** 5×5 网格 + 蓝色姓名 tag | ★★★☆☆（部员只读合理；管理端缺编辑 UI） |
-| 会议列表 | `Table` / 卡片 + 发布会议按钮 | 卡片列表，无发布 | ★★★☆☆ |
-| 请假 | 部员表单 + 管理端 `LeaveSlipModal` | 跳转 `leave/apply` + 点击审批 ActionSheet | ★★★☆☆ |
-| 统计 | 部员考勤页独立；此处可跳转 | Tab 内简表 | ★★★☆☆ |
-
-**改进意见**：
-
-1. 值班表：管理端格子 **点击弹出** 添加/编辑（对齐 Web Modal）；部员仅读。
-2. 会议 Tab：管理端右上角 **「发布会议」** 主按钮。
-3. 请假列表：展示 **申请人头像**；待审批项左侧色条（橙色）。
-4. Tab 条：增加 **滑动下划线动画**；字体 28rpx → 选中 30rpx 加粗（已部分实现）。
-5. 值班表小屏：横向 **scroll-view** 包裹表格，避免 5 列挤压（字号 22rpx 过小难读）。
+| 问题 | 严重度 | 说明 |
+|------|:--:|------|
+| 搜索栏为纯白 + 细边框（扁平风） | **高** | `background: #fff; border: 2rpx solid` — 应改为 `app.wxss .input` 3D pill |
+| 筛选标签选中态为亮 teal | 高 | `background: var(--color-primary)` 视觉跳跃，建议用暖陶土或叶绿 |
+| 任务卡片 `task-card` 无阴影 | 中 | 仅 `border` 无 `box-shadow`，层级不分明 |
+| FAB 阴影偏蓝 | 中 | `box-shadow: rgba(22,119,255,0.3)` — 蓝色光晕与暖色主题冲突 |
+| 顶部缺叶片装饰 | 轻 | 标题区应加 `leaf-decor` |
+| 搜索栏和筛选区无视觉分组 | 轻 | 应加虚线分隔或浅色背景区分 |
 
 ---
 
-### 3.8 请假申请 `pages/leave/apply`
+### 4.4 任务详情 `pages/tasks/detail`
 
-| 项目 | Web | 小程序 | 符合度 |
-|------|-----|--------|--------|
-| 表单 | `MemberLeaveForm` 分类、会议选择、原因 | 独立页表单 | 需对照字段完整度 ★★★☆☆ |
-
-**改进意见**：表单项使用统一 `.form-group` / `.form-label`；提交按钮吸底固定（`submit-area` 与 publish 一致）。
-
----
-
-### 3.9 个人主页 `pages/profile/profile`
-
-| 项目 | Web 移动端 | 小程序 | 符合度 |
-|------|------------|--------|--------|
-| 封面 | 高 220px、圆角 14、渐变遮罩、底左头像+姓名 | 高 440rpx、底圆角 28rpx、**视觉非常接近** | ★★★★★ |
-| 无背景 | 透明底 + 头像区 | 蓝色渐变 `cover-bg-empty` | ★★★★☆ |
-| 更换头像 | 封面区右侧 Button + 裁切 `ImgCrop` | 在 **设置页** 更换，不在封面 | ★★★☆☆ |
-| 考勤摘要 | `Table` 六列 + 说明文案 + **月份选择器** | 四格数字 stat（参与/提交/完成/积分） | ★★★☆☆ |
-| 明细 | 当月通过任务列表、旷会列表 | **无** | ★★☆☆☆ |
-| 角色文案 | `username · 部员` | WXML 中 `roleLabel()` **无效** | ★☆☆☆☆ **Bug** |
-| 统计字段 | `claimCount` | 误写 `claimedCount` | ★☆☆☆☆ **Bug** |
-
-**改进意见**：
-
-1. 修复 `roleText` 与 `claimCount` 绑定。
-2. 考勤区增加 **月份 picker**（与 Web `DatePicker month` 一致）。
-3. 增加折叠区块「当月完成任务」「例会旷会」（列表或简单卡片）。
-4. 封面右下角可增加 **「更换头像」** 文字按钮（部员常用）。
-5. 管理端入口「月报」已在菜单行 — 与 Web 一致。
+| 问题 | 严重度 | 说明 |
+|------|:--:|------|
+| 图片轮播 420rpx 过高 | 中 | 占屏幕 60%+，无图时不应占位 |
+| 接取人标签用未定义 `--color-fill-alter` | 中 | 回退为透明/浏览器默认色 |
+| 审核卡片 `border-radius: 12rpx` | 中 | 太小，应为 28-32rpx 与其他 pill 统一 |
+| `.sheet-content` 为扁平色块 | 高 | 缺顶部圆角 3D 质感 |
+| `.info-divider` 用实线 | 轻 | 应为虚线/波浪线更有动森味 |
+| `.btn-danger-inline` 为方角 `border-radius: 8rpx` | 中 | 应为 pill |
 
 ---
 
-### 3.10 他人主页 `pages/others/profile`
+### 4.5 发布任务 `pages/publish/`（动森味最淡）
 
-应对齐 Web `profile/[userId]` peek 模式：停用标签、只读考勤、无编辑按钮。
-
-**改进意见**：封面角标 **「已停用」** 灰色 Tag；无数据时说明文案与 Web 一致。
-
----
-
-### 3.11 设置 `pages/settings/settings`
-
-| 项目 | Web 移动端 | 小程序 | 符合度 |
-|------|------------|--------|--------|
-| 分区 | 账号 / 密码 / 主题 / 主页背景 / 版本号 | 头像、背景、账号、密码 | ★★☆☆☆ |
-| 主题 | `Radio.Group` 浅色/深色/跟随系统 | **无** | ☆☆☆☆☆ |
-| 背景 | 预览图 + 上传 + 清除 | 仅按钮「更换背景」 | ★★☆☆☆ |
-| 头像裁切 | `antd-img-crop` | 无裁切，直接上传 | ★★★☆☆ |
-| 版本 | 展示 `buildId` | **无** | ★★☆☆☆ |
-| 布局 | 多张 `Card` 分组 | `form-page` 平铺 | ★★★☆☆ |
-
-**改进意见**：
-
-1. 拆分为多张 **`.card` 分组**：「外观」「账号与安全」「关于」。
-2. 背景区显示 **当前背景缩略图** + 清除按钮（对齐 Web）。
-3. 底部「当前版本：xxxx」灰色小字。
-4. 主题：若短期不做深色，显示 **禁用态 Radio + 说明「小程序版即将支持」**。
+| 问题 | 严重度 | 说明 |
+|------|:--:|------|
+| 所有 `.form-group` 为 `background: #fff` | **严重** | 应改为 `var(--color-bg-content)` 奶油米白 + 3D 阴影 |
+| 所有 `.form-label` 为 `color: #333` | **严重** | 应改为 `var(--color-text)` 暖棕 |
+| 输入框 `background: var(--color-bg-secondary)` + `border-radius: 12rpx` | 高 | 应复用 `app.wxss .input` 3D pill |
+| 积分选择器未应用 AC 按钮 | 高 | 当前仅用 `background/border-color` 高亮 |
+| `.slot-picker-item` 为 `background: #f0f0f0` 冷灰 | 高 | 应改为暖色 + pill 圆角 |
+| `.slot-add` 为 `background: #fafafa` 冷灰 | 高 | 应改为奶油色底 + 虚线边框 |
+| `.share-tip-card` 为 `background: #fff` | 高 | 纯白扁平卡，应 3D + 暖色 |
+| 分享按钮用微信绿 `#07c160` | 中 | 应使用动森主色 |
 
 ---
 
-### 3.12 月报 `pages/reports/reports`
+### 4.6 考勤页 `pages/duty/`（动森味最浓，5.7/10）
 
-| 项目 | Web 移动端 | 小程序 | 符合度 |
-|------|------------|--------|--------|
-| 月份 | `DatePicker` | `picker mode="date" fields="month"` | ★★★★☆ |
-| 数据展示 | `Table` 多列 | 卡片 + 三行 stat | ★★★☆☆ |
-| 导出 Excel | 有导出按钮 | **无** | ★★☆☆☆（能力缺失，UI 上无入口） |
-| 生成快照 | 「生成月报」按钮 | **无** | ★★☆☆☆ |
+**亮点**：
+- Tab 切换 pill 3D 阴影 + 位移动画（`transform: translateY(-2rpx)`）
+- 值班表网格卡片阴影 + 虚线分隔（`border-top-style: dashed`）
+- 请假条 `.leave-paper` 纸张纹理 + 双层边框 + 手写感排版 — **全项目最佳设计元素**
+- 审批按钮 3D pill 规范
+- Focus 黄色高亮符合动森
 
-**改进意见**：管理端顶部工具栏：**生成** | **导出** 两按钮（与 Web `reports` 页一致）；表格列过多时用横向滚动 `scroll-view` 表格式列表。
-
----
-
-### 3.13 会议详情 `pages/meetings/detail`
-
-应对齐 Web `duty-and-meetings/meetings/[id]`：会议信息、结束会议、旷会勾选（管理端）。
-
-**改进意见**：管理端结束会议用 **底部固定双按钮**；旷会部员用 **多选列表+头像**（而非纯 ID）。
-
----
-
-## 四、全局交互与反馈（UI 相关）
-
-| 项目 | Web 移动端 | 小程序 | 建议 |
-|------|------------|--------|------|
-| 加载失败 | `message.error` + 可重试 | 多数静默 | 列表页展示 **「加载失败，点击重试」** 居中文案 |
-| 操作成功 | `message.success` | `showToast` | 已对齐 |
-| 确认危险操作 | `Popconfirm` | `showModal` | 已对齐 |
-| 每日公告弹窗 | `AppShell` 内 `Modal` 大图+正文 | **无** | 首页/任务 Tab `onShow` 拉 `/api/announcements/popup` 用 **自定义弹窗** 复刻 |
-| 图片 URL | 自动同源 | 手动 `fixUrl` 分散 | 统一 `resolveMediaUrl` 避免重复逻辑 |
-| 页面切换 | 无闪屏 | `navigateTo` 默认右滑 | 保持；登录用 `reLaunch` 合理 |
+| 问题 | 严重度 | 说明 |
+|------|:--:|------|
+| 值班表 tag 字号 18rpx 过小 | 高 | 几乎不可读，建议 ≥ 22rpx |
+| 表头 `var(--color-primary-bg)` teal 浅底 | 中 | 改为 `#eaf6e0` 叶绿浅底更协调 |
+| 值班删除按钮高饱和红 + 3D 阴影 | 中 | 动森倾向暖橙/陶土色示警 |
+| `@keyframes` 与 components.wxss 重复 | 轻 | 应删除页面级重复，统一引用 |
+| 会议/统计卡片无阴影 | 轻 | 仅 `.card` 基础样式，缺视觉层次 |
+| 请假审批弹窗仅 ADMIN 可见 | 中 | 应为 ADMIN + MINISTER（代码中 `isAdmin` = `isAdminOrMinister`，变量名误导但行为正确） |
 
 ---
 
-## 五、可访问性与视觉规范
+### 4.7 消息页 `pages/messages/`
 
-| 问题 | 说明 | 建议 |
-|------|------|------|
-| emoji 作图标 | 消息、空状态、Tab 占位 | 逐步换 **SVG/PNG 图标库**（如 iconfont） |
-| 对比度 | 部分 `.hint` 为 `#999` | 确保不低于 WCAG 4.5:1（可用 `#8c8c8c` 替代） |
-| 点击热区 | 部分 tag、✕ 移除按钮偏小 | 最小热区 **88rpx×88rpx** |
-| 硬编码色 | `messages.wxss`、`duty.wxss` 大量 `#fff` `#333` | 改为 `var(--color-*)` 便于日后深色模式 |
-| 按钮默认样式 | 原生 `button` 带边框 | 全局 `button::after { border: none }` 去默认描边 |
-
----
-
-## 六、功能与 UI 交叉问题（影响界面正确显示）
-
-以下虽属逻辑/数据，但会直接导致 **UI 显示错误**，列入校阅报告：
-
-| # | 问题 | UI 表现 |
-|---|------|---------|
-| 1 | TabBar 图标文件缺失 | Tab 栏图标空白 |
-| 2 | 消息 `readAt` → 应为 `read` | 未读红点不显示 |
-| 3 | 消息类型与 `taskId` 等字段不一致 | 点击消息无法跳转 |
-| 4 | 个人页 `roleLabel()` 在 WXML 无效 | 角色行显示空白或异常 |
-| 5 | `claimedCount` 字段名错误 | 「参与任务」永远为 0 |
-| 6 | 任务列表状态仅 OPEN/CLOSED | 与 Web 四态 Tag 不一致，用户误判能否接取 |
-| 7 | `submissionsForReview` 未在详情接口赋值 | 「待审核」区块永不出现 |
+| 问题 | 严重度 | 说明 |
+|------|:--:|------|
+| `var(--border-radius)` 应为 `var(--border-radius-base)` | 中 | 拼写错误，圆角回退 |
+| `--color-border-secondary` 未定义 | 中 | 边框色回退 |
+| FAB 阴影偏蓝 | 中 | 同任务页 |
+| 公告发布用 `wx.showModal` 两次弹窗 | 高 | 体验差，应跳转独立发布页 |
+| 未读态仅红点 + `background: rgba(0,0,0,0.02)` | 中 | 太微弱，应使用浅色填充整卡 |
 
 ---
 
-## 七、修改优先级建议（UI 向）
+### 4.8 个人中心 `pages/profile/`
 
-### P0 — 阻塞体验 / 与 Web 严重不符
-
-1. 补全 TabBar 图标 + 消息 Tab 角标  
-2. 修复个人页角色与考勤数字展示  
-3. 修复消息未读与跳转（列表项 UI 才能正常工作）  
-4. 任务列表/详情 **状态 Tag 四态** 与 Web 对齐  
-
-### P1 — 主要视觉与流程对齐
-
-5. 登录页品牌区（Logo + 宣传部）  
-6. 消息页公告发布改为独立表单页（对齐 `AnnouncementEditor`）  
-7. 设置页分组 + 背景预览 + 版本号  
-8. 任务详情图片 `previewImage`  
-9. 导航栏白底样式与 Web 统一  
-
-### P2 — 体验打磨
-
-10. 骨架屏、加载失败重试、sheet 动画  
-11. 个人页月份选择 + 任务/旷会明细折叠  
-12. 深色模式或设置内说明  
-13. 去除 emoji 图标，统一 icon 资源  
-14. 管理端值班编辑、会议发布入口  
-
-### P3 — 长期
-
-15. 月报导出/生成 UI  
-16. custom-tab-bar 完全自定义  
-17. 与 Web 一致的每日公告弹窗组件  
+| 问题 | 严重度 | 说明 |
+|------|:--:|------|
+| 封面空底色 `cover-bg-empty` 为 teal 渐变 | **高** | `linear-gradient(135deg, var(--color-primary)...)` — teal 与暖色系冲突 |
+| 封面文字白色 + 硬 text-shadow | 中 | AC 倾向深色文字在浅色卡片上 |
+| `--color-split` 未定义 | 中 | 菜单分割线回退 |
+| 积分 `stat-num` 未用暖棕 | 轻 | |
 
 ---
 
-## 八、页面对照清单（速查）
+### 4.9 设置页 `pages/settings/`
 
-| 小程序页面 | Web 对应路由 | UI 对齐优先级 |
-|------------|--------------|---------------|
-| `login/login` | `/login` | P1 |
-| `tasks/tasks` | `/tasks` | P0 |
-| `tasks/detail` | `/tasks/[id]` | P0 |
-| `publish/publish` | `/publish` | P1 |
-| `messages/messages` | `/messages` | P0 |
-| `notifications/detail` | `/messages/[id]` | P1 |
-| `announcements/detail` | `/announcements/[id]` | P1 |
-| `duty/duty` | `/duty-and-meetings` | P1 |
-| `meetings/detail` | `/duty-and-meetings/meetings/[id]` | P2 |
-| `leave/apply` | 值班页内嵌表单 | P2 |
-| `profile/profile` | `/profile` | P0 |
-| `others/profile` | `/profile/[userId]` | P2 |
-| `settings/settings` | `/settings` | P1 |
-| `reports/reports` | `/reports` | P2 |
+| 问题 | 严重度 | 说明 |
+|------|:--:|------|
+| `@import "../publish/publish.wxss"` 引入非 AC 样式 | 高 | 大量 `#fff`/`#333`/`#f0f0f0` 污染 |
+| `--border-radius` 应为 `--border-radius-base` | 中 | |
+| `--color-bg-layout` / `--color-text-tertiary` 未定义 | 中 | |
+| 背景预览区纯灰 placeholder | 轻 | |
 
 ---
 
-## 九、附录：Web 移动端关键 UI 文件索引
+### 4.10 会议详情 `pages/meetings/`
 
-| 模块 | 文件路径 |
-|------|----------|
-| 壳层/导航/公告弹窗 | `src/components/AppShell.tsx` |
-| 主题 | `src/components/ClientProviders.tsx` |
-| 任务列表 | `src/app/tasks/page.tsx`（`isMobile` 列） |
-| 任务详情 | `src/app/tasks/[id]/task-detail-view.tsx` |
-| 消息 | `src/app/messages/page.tsx`、`announcement-editor.tsx` |
-| 值班会议 | `src/app/duty-and-meetings/page.tsx` |
-| 个人主页 | `src/app/profile/profile-view.tsx` |
-| 设置 | `src/app/settings/page.tsx` |
-| 状态语义 | `src/lib/task-availability.ts` |
-
-## 十、附录：小程序 UI 文件索引
-
-| 模块 | 路径 |
-|------|------|
-| 设计令牌 | `miniprogram/app.wxss` |
-| Tab 配置 | `miniprogram/app.json` |
-| 各页样式 | `miniprogram/pages/*/*.wxss` |
-| 各页结构 | `miniprogram/pages/*/*.wxml` |
+| 问题 | 严重度 | 说明 |
+|------|:--:|------|
+| `color: #222` / `color: #666` 硬编码 | 中 | 应改为 theme 暖棕变量 |
+| checkbox 未选中色 `color: #ccc` | 中 | 应改为暖灰或浅棕 |
+| 关会检查列表无 3D 层次 | 轻 | 整体扁平 |
 
 ---
 
-*本报告仅针对 UI/交互与视觉对齐；接口、鉴权、部署等问题见 `docs/DEVELOPMENT_REPORT.md` 与 `docs/MINIPROGRAM.md`。*
+### 4.11 其他页面
+
+| 页面 | 主要问题 |
+|------|---------|
+| `leave/apply` | 继承 `publish.wxss` 非 AC 样式；类别选项 `border: #e8e8e8` 冷灰 |
+| `announcements/detail` | 正确使用 `var(--color-text)` ✅；图片轮播偏高 |
+| `notifications/detail` | 基本无页面级样式，内容裸奔 |
+| `others/profile` | 基本无页面级样式，与 profile 差距大 |
+| `reports` | 日期 picker 色 `#1677ff`（旧 Ant Design 蓝），未迁移到 theme |
+
+---
+
+## 五、各页面动森味评分
+
+| 页面 | 配色 | 纹理 | 按钮 | 装饰 | 层级 | 总分 |
+|------|:--:|:--:|:--:|:--:|:--:|:--:|
+| 登录 | 4 | 1 | 6 | 2 | 3 | **3.2** |
+| 任务大厅 | 5 | 1 | 4 | 3 | 4 | **3.4** |
+| 任务详情 | 4 | 1 | 6 | 2 | 4 | **3.4** |
+| **发布任务** | **2** | **1** | **3** | **1** | **2** | **1.8** |
+| **考勤** | **7** | **2** | **8** | **6** | **7** | **6.0** |
+| 消息 | 5 | 1 | 4 | 2 | 4 | **3.2** |
+| 个人中心 | 5 | 1 | 4 | 2 | 4 | **3.2** |
+| 设置 | 3 | 1 | 4 | 1 | 2 | **2.2** |
+| 会议详情 | 4 | 1 | 5 | 2 | 3 | **3.0** |
+| 请假申请 | 3 | 1 | 3 | 1 | 2 | **2.0** |
+
+**加权平均：3.0 / 10（对照官方规范修正后约 4.5/10，见 §7-8）**
+
+---
+
+## 六、优先修复路线（基于官方 AI_USAGE.md 校准后）
+
+### 第一优先级（与官方规范对齐）
+
+| # | 任务 | 工作量 | 对应规范 |
+|:--:|------|:--:|------|
+| 1 | **为 `page` 添加 CSS 背景纹理** | 5 行 CSS | 官方组件自带纹理 → 小程序需手动弥补 |
+| 2 | **重写 `publish.wxss`** — 硬编码色替换为 theme 变量；输入框改用 3D pill | 中 | AI_USAGE.md 规则 #20 |
+| 3 | **补充缺失 CSS 变量**（`--color-border-secondary`、`--color-fill-alter`、`--color-split`） | 小 | 规则 #18 |
+| 4 | **补充 Divider 体系**：至少加 `wave-yellow` 和 `line-teal` | 小 | §1.11 |
+| 5 | **获取 `skill/SKILL.md`**：`npm install animal-island-vue` 后从 node_modules 提取 | 极小 | — |
+
+### 第二优先级（增强氛围）
+
+| # | 任务 | 工作量 | 对应规范 |
+|:--:|------|:--:|------|
+| 6 | 搜索栏改为 `app.wxss .input` 3D pill | 小 | §1.2 Input `shadow` |
+| 7 | 全局 `.card` 增加柔和 `box-shadow`（层级阴影） | 小 | — |
+| 8 | 登录页添加 `leaf-decor` + `leaf-bg` 背景装饰 | 小 | — |
+| 9 | 补充 Footer tree 剪影样式 | 小 | §1.10 |
+| 10 | 值班表 tag 字号 18 → 22rpx | 极小 | — |
+| 11 | Tabs 添加 leaf wiggle 动画（模拟官方 `leafAnimation`） | 小 | §1.13 |
+
+### 第三优先级（打磨完善）
+
+| # | 任务 | 对应规范 |
+|:--:|------|------|
+| 12 | custom-tab-bar 替代默认 tabBar | — |
+| 13 | 公告发布改为独立页面（对齐 Web `AnnouncementEditor`） | — |
+| 14 | 10 种 Icon SVG → 小程序可用 `background-image` 实现 | §1.14 |
+| 15 | 各页统一引用 `utils/format.wxs` 替代内联 WXS | — |
+| 16 | settings 不再 `@import publish.wxss`，独立定义 | — |
+
+---
+
+## 七、对照官方 AI_USAGE.md 的校准分析
+
+基于 `animal-island-vue` AI_USAGE.md（v0.1.0）的权威规范，对上文结论做以下修正和补充：
+
+### 7.1 对上文结论的修正
+
+**修正 1：主色 `#19c8b9` 不是错误，是官方规范**
+
+AI_USAGE.md §1.16 Checkbox 明确写道：`Checked box fills with #19c8b9`。这说明 teal 就是官方设计系统的强调色。之前的"改为叶绿/暖陶土"建议**撤回**——当前主色已经与官方对齐。
+
+**修正 2：卡片色板 100% 对齐官方**
+
+AI_USAGE.md §1.5 Card 定义的 13 个 `CardColor`：
+```
+default, app-pink, purple, app-blue, app-yellow, app-orange,
+app-teal, app-green, app-red, lime-green, yellow-green, brown, warm-peach-pink
+```
+
+小程序 `app.wxss` 和 `theme.wxss` 中的 `.card-app-*` / `.anisland-card-color-*` 色值（`#f8a6b2`, `#b77dee`, `#889df0`, `#f7cd67`, `#e59266`, `#82d5bb`, `#8ac68a`, `#fc736d`, `#d1da49`, `#ecdf52`, `#9a835a`, `#e18c6f`）**与官方规范完全一致**。这是做得很准确的部分。
+
+**修正 3：卡片默认色 `rgb(247,243,223)` + 文字 `#725d42` 对齐官方**
+
+AI_USAGE.md 中 Card default = `rgb(247,243,223)` / `#725d42` text。小程序的 `--color-bg-content: rgb(247, 243, 223)` 和 `--color-text-body: #725d42` **精确匹配**。
+
+**修正 4：3D 阴影"不可覆盖"**
+
+AI_USAGE.md 第 20 条硬性规则：
+> Never override the 3D bottom shadow on Button/Input/Switch — it is the core identity.
+
+当前小程序的 `.btn-primary` 保留了完整的 3D shadow ✅。但 publish.wxss 中的输入框**破坏了这条规则**——用的是 `border-radius: 12rpx` 扁平样式而非 3D pill。这是违反官方规范的。
+
+**修正 5：圆角系统不可归零**
+
+AI_USAGE.md 第 19 条硬性规则：
+> Never use `style="border-radius: 0"` or force sharp corners on any interactive element — it breaks the design language.
+
+当前 publish.wxss 中 `.form-input-sm: border-radius: 8rpx`、`.slot-picker-item: border-radius: 8rpx` 偏小但不违规。settings.wxss 中的 `.bg-preview` 变量引用错误（`--border-radius` 不存在）导致回退是实际风险。
+
+### 7.2 官方设计 token 命名规范对照
+
+AI_USAGE.md §3 第 18 条：
+> Design tokens (colors, radii, shadows) are exposed as CSS custom properties (`--color-animal-*`, `--spacing-animal-*`, `--radius-animal-*`, `--shadow-animal-*`).
+
+| 官方前缀 | 小程序当前 | 对齐状态 |
+|---------|-----------|:--:|
+| `--color-animal-*` | `--color-*` | ⚠️ 前缀不同，但功能等价 |
+| `--spacing-animal-*` | `--spacing-*` | ⚠️ 同上 |
+| `--radius-animal-*` | `--border-radius-*` | ⚠️ 命名不同 |
+| `--shadow-animal-*` | `--color-shadow-*` | ⚠️ 语义不同（官方可能是完整 shadow 值） |
+
+虽然不是 Vue 项目不需要照搬命名，但官方 token 体系中还包括了 `--shadow-animal-*` 作为**完整 box-shadow 值**（而非只存颜色），这一点小程序可以借鉴——当前小程序的阴影颜色 + 阴影值的分离方式在不同组件间不够统一。
+
+### 7.3 官方组件体系中缺失的部分
+
+AI_USAGE.md 列出了 **19 个组件**，以下是小程序覆盖情况：
+
+| 组件 | 小程序等效 | 覆盖 |
+|------|----------|:--:|
+| Button | `.btn-primary` / `.btn-danger` / `.btn-dashed` / `.btn-ghost` / `.btn-link` | ✅ 完整 |
+| Input | `.input` 3D pill | ✅ 有，但 publish 页未使用 |
+| Switch | 无 | ❌ |
+| Modal | Sheet 弹窗 | ⚠️ 缺 typewriter 动画、缺 SVG blob clip-path |
+| Card | `.card` + `.card-app-*` 13 色 | ✅ 完整 |
+| Collapse | 无 | ❌ |
+| Cursor | 无（移动端不需要） | — |
+| Time | 无 | ❌ |
+| Phone | 无（装饰性组件） | ❌ |
+| Footer | `.footer-wave`（波浪）+ 缺 tree 剪影 | ⚠️ 部分 |
+| Divider | `.divider-line`（实线）缺 wave-yellow 等 5 种 | ⚠️ 仅 1 种 |
+| Typewriter | 无（Modal 内建依赖） | ❌ |
+| Tabs | `.tab-bar` / `.tab-item` | ⚠️ 缺 `leafAnimation` |
+| Icon | emoji 替代（非 10 种 SVG 图标） | ❌ 严重缺失 |
+| Select | 原生 picker | ⚠️ |
+| Checkbox | `☑`/`☐` 文本模拟 | ⚠️ 关会页使用 |
+| CodeBlock | 无（不需要） | — |
+| Loading | "加载中..." 文字 | ❌ 无动画 |
+| Table | 无 | ❌ |
+
+### 7.4 官方 Divider 体系（小程序严重缺失）
+
+AI_USAGE.md §1.11：
+```
+type DividerType = 'line-brown' | 'line-teal' | 'line-white' | 'line-yellow' | 'wave-yellow';
+```
+
+小程序只有 `.divider-line`（`background: var(--color-text-disabled)`）一种样式。缺失了最具动森特色的 `wave-yellow`（波浪黄）分隔线。建议补充：
+
+```css
+.divider-wave-yellow {
+  height: 24rpx;
+  background: repeating-linear-gradient(
+    90deg, transparent, transparent 16rpx, #f7cd67 16rpx, #f7cd67 24rpx
+  );
+  border-radius: 12rpx;
+  opacity: 0.5;
+}
+```
+
+### 7.5 官方 Footer 体系
+
+AI_USAGE.md §1.10：
+- `tree` — 森林剪影，60px 高（默认）
+- `sea` — 海浪，80px 高
+
+小程序 `.footer-wave` 实现的是波浪+`〰`字符，只有一种。可补充 tree 剪影 footer（CSS 伪元素 + gradient 模拟树冠轮廓）。
+
+### 7.6 还需获取的关键文件
+
+AI_USAGE.md §4 指出 npm 包内还包含以下未公开在 GitHub 的文件：
+
+| 文件 | 重要性 | 说明 |
+|------|:--:|------|
+| `skill/SKILL.md` | **极高** | 每个组件的像素级 CSS 规格（Less 变量 + BEM + 关键帧） |
+| `DESIGN_PROMPT.md` | 高 | v0 / Figma AI / MJ / DALL-E 生图提示词 |
+
+这两个文件未包含在 AI_USAGE.md 中，但 `SKILL.md` 是**实现像素级还原**的必需品。建议通过 `npm install animal-island-vue` 后从 `node_modules/animal-island-vue/skill/SKILL.md` 获取，或直接从 GitHub 仓库读取。
+
+---
+
+## 八、SKILL.md 像素级对照（官方 CSS 规格 vs 小程序实现）
+
+SKILL.md 是官方 Less 变量 + 每个组件的精确 CSS（hex/px/keyframe）。以下是关键差距：
+
+### 8.1 7 条设计铁律合规检查
+
+| # | 铁律 | 小程序 | 合规 |
+|:--:|------|------|:--:|
+| 1 | 大地棕色文字 + 薄荷青绿主色 + 奶油米白背景，禁止纯黑/冷灰 | 全局对齐 ✅，publish 违规 ❌ | ⚠️ |
+| 2 | 最小 12px 圆角；按钮/输入框 50px pill | 全局对齐 ✅，publish 输入框 12rpx ❌ | ⚠️ |
+| 3 | 可点击元素底部厚阴影 + hover 上浮 + active 下压 | `.btn-primary` ✅，卡片**无阴影** ❌ | ⚠️ |
+| 4 | Nunito 圆体，按钮/标题 weight 600+，不用细体 | 小程序**无法加载** Google Fonts ❌ | ❌ |
+| 5 | 过渡 0.15~0.35s，cubic-bezier(0.4,0,0.2,1) | `--motion-*` 变量已定义 ✅ | ✅ |
+| 6 | 输入框焦点黄色 #ffcc00，按钮焦点青绿 #19c8b9 | `.input:focus` 有黄色 ✅，按钮有 outline ✅ | ✅ |
+| 7 | 禁止直角矩形、纯黑 #000、冷蓝、扁平无阴影 | publish 页面违规 ❌ | ⚠️ |
+
+### 8.2 逐组件精确 CSS 对照
+
+**Button**（SKILL.md §2）：
+
+| 属性 | 官方 middle 值 | 小程序 `.btn-primary` | 匹配 |
+|------|--------------|---------------------|:--:|
+| height | 45px | 90rpx (≈45px) | ✅ |
+| padding | 0 20px | 0 40rpx (≈20px) | ✅ |
+| font-size | 14px | 28rpx (≈14px) | ✅ |
+| border-radius | 50px | 100rpx (≈50px) | ✅ |
+| color | **#794f27** | **#794f27** | ✅ |
+| background | #f8f8f0 | #f8f8f0 | ✅ |
+| box-shadow (default) | 0 5px 0 0 #bdaea0 | 0 10rpx 0 0 #bdaea0 (≈5px) | ✅ |
+| box-shadow (active) | 0 1px 0 0 #bdaea0 | 0 2rpx 0 0 #bdaea0 | ✅ |
+| hover transform | translateY(-1px) | 无（缺 hover 态） | ❌ |
+| loading 斜纹 | repeating-linear-gradient -45deg | **未实现** | ❌ |
+
+**Input**（SKILL.md §2）：
+
+| 属性 | 官方 middle 值 | 小程序 `.input` | 匹配 |
+|------|--------------|----------------|:--:|
+| height | 40px | 80rpx (≈40px) | ✅ |
+| font-size | 14px | 28rpx (≈14px) | ✅ |
+| border-radius | 50px | 100rpx (≈50px) | ✅ |
+| border | 2.5px solid #c4b89e | 5rpx solid var(--color-border-light) | ✅ |
+| background | rgb(247, 243, 223) | rgb(247, 243, 223) | ✅ |
+| color | #725d42 | #725d42 | ✅ |
+| placeholder color | **#c4b89e** | var(--color-text-disabled) = #c4b89e | ✅ |
+| box-shadow | 0 3px 0 0 #d4c9b4 | 0 6rpx 0 0 var(--color-shadow-input) | ✅ |
+| focus border | **#ffcc00** | var(--color-focus-yellow) = #ffcc00 | ✅ |
+| focus shadow | 0 3px 0 0 #e0b800, 0 0 0 3px rgba(255,204,0,0.15) | 0 6rpx 0 0 #e0b800, 0 0 0 6rpx rgba(255,204,0,0.15) | ✅ |
+| prefix/suffix color | #a0936e | **未定义** | ❌ |
+| error shadow | 0 3px 0 0 #c94444 | **未定义** | ❌ |
+
+**Card**（SKILL.md §2）：
+
+| 属性 | 官方 | 小程序 `.card` | 匹配 |
+|------|------|---------------|:--:|
+| border-radius | 20px | 40rpx (≈20px) | ✅ |
+| background | rgb(247, 243, 223) | var(--color-bg-content) | ✅ |
+| padding | 16px 24px | 32rpx 48rpx | ✅ |
+| color | #725d42 | #725d42 | ✅ |
+| font-weight | 500 | 500 | ✅ |
+| **box-shadow** | **0 4px 10px rgba(107, 92, 67, 0.42)** | **无** | **❌ 严重** |
+| hover | translateY(-4px) | translateY(-4rpx) | ✅ |
+
+**Title Card**（官方有机形状）：
+```css
+/* 官方 */
+border-radius: 40px 35px 45px 38px / 38px 45px 35px 40px;
+background: #fdfdf5;
+padding: 12px 32px;
+font-weight: 600;
+```
+小程序 `.anisland-card-title` 用了 `border-radius: 80rpx 70rpx 90rpx 76rpx / 76rpx 90rpx 70rpx 80rpx`（rpx 翻倍），方向对但**实际值比官方大了一倍**（应为 40px 系列）。背景 `#fdfdf5` ✅。
+
+**Tabs**（SKILL.md §2）：
+
+| 属性 | 官方 | 小程序 `.tab-item.active` | 匹配 |
+|------|------|--------------------------|:--:|
+| 标签列表背景 | rgba(255,255,255,0.6) | 未实现 | ❌ |
+| 激活背景 | rgba(25,200,185,0.15) | var(--color-bg-content) | ❌ |
+| 激活颜色 | #19c8b9 | var(--color-text) | ❌ |
+| 激活 font-weight | 600 | 600 | ✅ |
+| 激活 shadow | 0 3px 0 0 #d4c9b4 | 0 6rpx 0 0 var(--color-shadow-input) | ✅ |
+| 叶子动画 | leafWiggle 2s, ±10deg | leaf-wiggle 3s, ±8deg | ⚠️ |
+| 内容区动画 | fadeIn 0.25s ease | anisland-fadeup 0.3s ease | ⚠️ |
+
+**Modal 确认按钮**（SKILL.md §2）：
+
+```
+THIS IS A MAJOR FINDING:
+官方 Modal footer 主按钮 = background: rgba(255, 204, 0, 1)  // 游戏黄色！
+```
+
+小程序所有弹窗的确认按钮用的都是 teal 系（`.btn-primary`），但官方 Modal 确认按钮使用的是 **游戏黄色 `#ffcc00`**，这是动森的经典交互色。只有在 Modal footer 中如此，普通页面按钮仍用 teal。
+
+### 8.3 官方 `:root` 变量模板 vs 小程序对照
+
+SKILL.md §5 提供了完整的 `:root` 自实现模板。关键差异：
+
+| 官方变量名 | 官方值 | 小程序当前 |
+|-----------|--------|-----------|
+| `--animal-primary` | #19c8b9 | `--color-primary` ✅ 同值 |
+| `--animal-text-body` | #725d42 | `--color-text-body` ✅ 同值 |
+| `--animal-bg-content` | rgb(247, 243, 223) | `--color-bg-content` ✅ 同值 |
+| `--animal-shadow-btn` | #bdaea0 | `--color-shadow-btn` ✅ 同值 |
+| `--animal-shadow-input` | #d4c9b4 | `--color-shadow-input` ✅ 同值 |
+| `--animal-radius-pill` | 50px | `--border-radius-pill: 50px` ✅ |
+| `--animal-ease` | cubic-bezier(0.4,0,0.2,1) | `--motion-ease` ✅ 同值 |
+| `--animal-focus-yellow` | #ffcc00 | `--color-focus-yellow` ✅ 同值 |
+
+**建议**：将小程序 `theme.wxss` 变量名改为官方 `--animal-*` 前缀，方便后续对照维护。
+
+### 8.4 Divider/Footer：官方是图片素材
+
+SKILL.md 确认 Divider 和 Footer 是 **SVG/PNG/WEBP 图像**，不是纯 CSS：
+
+- Divider 5 种：`url('./img/divider-line-brown.svg')` 等
+- Footer sea：SVG `viewBox="0 0 1440 186"`，多色插画
+- Footer tree：webp 森林剪影 `height: 60px`
+
+小程序无法使用这些素材（npm 包内图片在小程序中不可引用），需要**提取 SVG 内联到 WXML** 或**用 CSS 近似模拟**。
+
+### 8.5 官方 Loading 动画
+
+SKILL.md 定义的 Button loading 斜纹动画：
+```css
+background: #0ec4b6;
+background-image: repeating-linear-gradient(
+  -45deg, #0ec4b6, #0ec4b6 10px, #01b0a7 10px, #01b0a7 20px
+);
+background-size: 28.28px 28.28px;
+animation: animal-btn-loading 1s linear infinite;
+```
+
+小程序**未实现**任何 loading 动画（仅用文字"加载中..."）。
+
+---
+
+## 九、对照官方规范的修正后评分
+
+| 维度 | 原评分 | 修正后 | 修正理由 |
+|------|:--:|:--:|------|
+| 背景色 | 6 | **8** | `rgb(247,243,223)` / `#f8f8f0` 与官方精确匹配 |
+| 背景纹理 | 1 | 1 | 仍完全缺失，官方组件自带纹理但小程序无法直接使用 |
+| 主色调 | 4 | **8** | `#19c8b9` 是官方规范色，上轮结论有误 |
+| 文字颜色 | 8 | 8 | `#794f27` / `#725d42` 与官方对齐 |
+| 3D 按钮 | 8 | 8 | 阴影体系正确，publish 页违规需修正 |
+| 卡片色板 | 不适用 | **10** | 13 色完全一致，最精准的对齐项 |
+| 图标 | 2 | 2 | 官方有 10 种 SVG icon，小程序用 emoji |
+| Divider 体系 | 不适用 | **2** | 官方 5 种，小程序仅 1 种 |
+| Footer 体系 | 不适用 | **4** | 官方 2 种，小程序有 1 种波浪 |
+| Tabs | 不适用 | **5** | 缺 leafAnimation |
+| Modal | 不适用 | **4** | 缺 typewriter + blob clip-path |
+| 全局 Token 命名 | 不适用 | **5** | 功能等价但命名体系不同 |
+
+**修正后加权平均：约 4.5/10**（较原结论 3.0 上调，因配色/卡片已基本对齐官方标准）
+
+---
+
+## 十、总结（完整版——含 SKILL.md + DESIGN_PROMPT.md 对照）
+
+### 已精准对齐官方规范的部分
+
+| 组件/属性 | 官方值 | 小程序值 | 精确度 |
+|----------|--------|---------|:--:|
+| Button 主色/背景/阴影 | #794f27 / #f8f8f0 / 0 5px 0 #bdaea0 | 完全一致 | 100% |
+| Input 背景/边框/阴影/焦点 | rgb(247,243,223) / 2.5px #c4b89e / 0 3px 0 #d4c9b4 / #ffcc00 | 完全一致 | 100% |
+| Card 13 色调色板 | 13 种 NookPhone 配色 | 完全一致 | 100% |
+| Design Token 色值 | 主色/文字/背景/状态色 | 完全一致 | 100% |
+| 动效缓动/速度 | cubic-bezier(0.4,0,0.2,1) / 0.25s | 完全一致 | 100% |
+
+### 三份文档确认的关键差距
+
+| # | 差距 | 官方规范 | 严重度 |
+|:--:|------|---------|:--:|
+| 1 | **`.card` 无 box-shadow** | `0 4px 10px rgba(107,92,67,0.42)` | **严重** |
+| 2 | **Modal 确认按钮应为黄色** | `background: rgba(255,204,0,1)` | **严重** |
+| 3 | **publish 页面未用 3D pill** | 输入/按钮必须 50px pill + 底部阴影 | **严重** |
+| 4 | **Tab 激活态未用 teal 高亮** | `background: rgba(25,200,185,0.15); color: #19c8b9` | 中等 |
+| 5 | **Loading 斜纹动画未实现** | 45° 条纹 + 1s linear 循环 | 中等 |
+| 6 | **Title Card 有机圆角偏大** | 40px 系列 → 小程序 80rpx 翻倍 | 中等 |
+| 7 | **Button 缺 hover 上浮** | `translateY(-1px)` hover 态 | 轻微 |
+| 8 | **字体不可加载** | Nunito Google Fonts → 小程序不支持 | 平台限制 |
+| 9 | **Divider/Footer 缺图片素材** | SVG/PNG/WEBP 资源文件 | 平台限制 |
+| 10 | **CSS 变量命名不一致** | 官方 `--animal-*` vs 小程序 `--color-*` | 轻微 |
+
+### 7 条设计铁律合规总结
+
+- ✅ 铁律 #5（动效）：完全合规
+- ✅ 铁律 #6（焦点色）：完全合规
+- ⚠️ 铁律 #1（颜色）：全局合规，publish 违规
+- ⚠️ 铁律 #2（圆角）：全局合规，publish 违规
+- ⚠️ 铁律 #3（3D 阴影）：按钮合规，**卡片缺失**，publish 违规
+- ❌ 铁律 #4（字体）：小程序平台限制，无法加载 Google Fonts
+- ⚠️ 铁律 #7（禁止扁平）：publish 页面多处违规
+
+### 最高 ROI 修复（5 项，投入极小/收益极大）
+
+1. **`.card` 加 `box-shadow: 0 4px 10px rgba(107, 92, 67, 0.42)`** — 全局 1 行 CSS
+2. **按钮加 `hover` 态** `transform: translateY(-1px)` — 全局 3 行 CSS
+3. **重写 `publish.wxss`** — 输入框改 3D pill + 色值替换为 theme 变量
+4. **Tabs 激活态改为官方 teal 高亮** — duty.wxss 5 行
+5. **Sheet 弹窗确认按钮用黄色** `background: #ffcc00; color: #725d42` — 关键视觉区分
+
+修复这 5 项后，产品质感可从 **5/10 → 7/10**。

@@ -1,216 +1,247 @@
-/* 发布任务 */
+/* ============================================
+ * 发布任务 — Animal Island 动森主题
+ * ============================================ */
 
 .form-page {
   padding: 20rpx 0 120rpx;
 }
 
+/* ===== 表单分组 ===== */
 .form-group {
-  background: #fff;
-  margin: 16rpx 20rpx;
-  padding: 24rpx;
-  border-radius: 16rpx;
+  background: var(--color-bg-content);
+  margin: 16rpx 24rpx;
+  padding: 32rpx;
+  border-radius: 40rpx;
+  box-shadow: 0 8rpx 20rpx rgba(107, 92, 67, 0.42);
 }
 
 .form-label {
   font-size: 28rpx;
-  font-weight: 600;
-  color: #333;
+  font-weight: 700;
+  color: var(--color-text);
   margin-bottom: 16rpx;
+  letter-spacing: 0.02em;
 }
 
+/* ===== 输入框 — 3D pill ===== */
 .form-input {
   height: 80rpx;
-  background: var(--color-bg-secondary);
-  border-radius: 12rpx;
-  padding: 0 20rpx;
-  font-size: 28rpx;
+  padding: 0 36rpx;
+  font-size: 28rpx; font-weight: 500;
+  letter-spacing: 0.01em;
+  color: #725d42;
+  background: rgb(247, 243, 223);
+  border: 5rpx solid var(--color-border-light);
+  border-radius: 100rpx;
+  box-shadow: 0 6rpx 0 0 var(--color-shadow-input);
+  box-sizing: border-box;
+  width: 100%;
+  transition: all var(--motion-base) var(--motion-ease);
+}
+.form-input:focus {
+  border-color: var(--color-focus-yellow) !important;
+  box-shadow: 0 6rpx 0 0 var(--color-focus-yellow-d),
+              0 0 0 6rpx rgba(255, 204, 0, 0.15);
 }
 
 .form-input-sm {
-  height: 60rpx;
-  background: var(--color-bg-secondary);
-  border-radius: 8rpx;
-  padding: 0 12rpx;
-  font-size: 26rpx;
-  width: 120rpx;
-  text-align: center;
-}
-
-.form-textarea {
-  width: 100%;
-  min-height: 160rpx;
-  background: var(--color-bg-secondary);
-  border-radius: 12rpx;
-  padding: 16rpx 20rpx;
-  font-size: 26rpx;
+  height: 64rpx; padding: 0 20rpx;
+  font-size: 26rpx; width: 120rpx; text-align: center;
+  background: var(--color-bg-input);
+  border: 4rpx solid var(--color-border-light);
+  border-radius: 100rpx;
+  box-shadow: 0 5rpx 0 0 var(--color-shadow-input);
   box-sizing: border-box;
 }
 
-/* 积分选择器 */
-.point-active {
-  background: var(--color-primary-bg) !important;
-  border-color: var(--color-primary) !important;
-  color: var(--color-primary) !important;
+.form-textarea {
+  width: 100%; min-height: 160rpx;
+  padding: 24rpx 36rpx;
+  font-size: 28rpx; font-weight: 500;
+  color: #725d42;
+  background: rgb(247, 243, 223);
+  border: 5rpx solid var(--color-border-light);
+  border-radius: 32rpx;
+  box-shadow: 0 6rpx 0 0 var(--color-shadow-input);
+  box-sizing: border-box;
+}
+.form-textarea:focus {
+  border-color: var(--color-focus-yellow) !important;
+  box-shadow: 0 6rpx 0 0 var(--color-focus-yellow-d),
+              0 0 0 6rpx rgba(255, 204, 0, 0.15);
 }
 
-/* 时间段 */
+/* ===== 积分选择器 — pill 按钮组 ===== */
+.point-active {
+  background: var(--color-primary) !important;
+  border-color: var(--color-primary-active) !important;
+  color: #fff !important;
+  box-shadow: 0 4rpx 0 0 var(--color-primary-active) !important;
+}
+
+/* ===== 时间段 ===== */
 .slot-tag {
   background: var(--color-primary-bg);
-  border-radius: 10rpx;
-  padding: 12rpx 16rpx;
+  border-radius: 100rpx;
+  padding: 12rpx 24rpx;
   margin-bottom: 12rpx;
   font-size: 24rpx;
+  border: 3rpx solid var(--color-primary);
 }
 .slot-remove {
   color: var(--color-error);
   font-size: 32rpx;
   padding: 0 8rpx;
+  font-weight: 700;
 }
 
 .slot-add {
-  background: #fafafa;
-  border-radius: 12rpx;
-  padding: 16rpx;
+  background: var(--color-bg-content);
+  border-radius: 40rpx;
+  padding: 24rpx;
+  border: 5rpx dashed var(--color-border-light);
+  box-shadow: 0 4rpx 12rpx rgba(107, 92, 67, 0.25);
 }
 .slot-row {
-  display: flex;
-  align-items: center;
-  gap: 12rpx;
-  margin-bottom: 12rpx;
+  display: flex; align-items: center;
+  gap: 12rpx; margin-bottom: 12rpx;
 }
 .slot-label {
-  width: 72rpx;
-  font-size: 26rpx;
-  font-weight: 600;
-  color: #333;
-  flex-shrink: 0;
+  width: 72rpx; font-size: 26rpx; font-weight: 700;
+  color: var(--color-text); flex-shrink: 0;
 }
 .slot-picker-item {
-  flex: 1;
-  height: 60rpx;
-  line-height: 60rpx;
-  background: #f0f0f0;
-  border-radius: 8rpx;
-  padding: 0 12rpx;
-  font-size: 24rpx;
-  color: #333;
+  flex: 1; height: 64rpx; line-height: 64rpx;
+  background: var(--color-bg-input);
+  border: 4rpx solid var(--color-border-light);
+  border-radius: 100rpx;
+  padding: 0 16rpx; font-size: 24rpx;
+  color: var(--color-text-body);
   text-align: center;
+  box-shadow: 0 5rpx 0 0 var(--color-shadow-input);
 }
 .slot-picker-placeholder {
-  color: #999;
+  color: var(--color-text-disabled);
 }
 .btn-sm-inline {
-  flex-shrink: 0;
-  padding: 12rpx 24rpx;
-  font-size: 24rpx;
-  margin-left: auto;
+  flex-shrink: 0; padding: 12rpx 24rpx;
+  font-size: 24rpx; font-weight: 600;
+  border-radius: 100rpx;
+  background: var(--color-bg);
+  color: var(--color-text);
+  box-shadow: 0 8rpx 0 0 var(--color-shadow-btn);
+  line-height: 1;
+}
+.btn-sm-inline:active {
+  transform: translateY(4rpx);
+  box-shadow: 0 1rpx 0 0 var(--color-shadow-btn);
 }
 
-/* 图片 */
+/* ===== 图片区 ===== */
 .evidence-images {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16rpx;
+  display: flex; flex-wrap: wrap; gap: 16rpx;
 }
 .evidence-img-wrap {
   position: relative;
-  width: 150rpx;
-  height: 150rpx;
-  border-radius: 12rpx;
-  overflow: hidden;
+  width: 150rpx; height: 150rpx;
+  border-radius: 24rpx; overflow: hidden;
+  box-shadow: 0 6rpx 14rpx rgba(107, 92, 67, 0.35);
 }
-.evidence-img {
-  width: 100%;
-  height: 100%;
-}
+.evidence-img { width: 100%; height: 100%; }
 .evidence-remove {
-  position: absolute;
-  top: -4rpx;
-  right: -4rpx;
-  width: 40rpx;
-  height: 40rpx;
-  background: rgba(0,0,0,0.6);
-  color: #fff;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24rpx;
+  position: absolute; top: -6rpx; right: -6rpx;
+  width: 44rpx; height: 44rpx;
+  background: var(--color-error);
+  color: #fff; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24rpx; font-weight: 700;
+  box-shadow: 0 4rpx 0 0 var(--color-error-active);
 }
 .evidence-add {
-  width: 150rpx;
-  height: 150rpx;
-  border: 2rpx dashed var(--color-border);
-  border-radius: 12rpx;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: #999;
+  width: 150rpx; height: 150rpx;
+  border: 5rpx dashed var(--color-border-light);
+  border-radius: 24rpx;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  color: var(--color-text-muted);
 }
 .evidence-add-icon {
-  font-size: 48rpx;
-  color: var(--color-primary);
+  font-size: 48rpx; color: var(--color-primary);
 }
 
-.submit-area {
-  padding: 32rpx 20rpx;
-}
+.submit-area { padding: 32rpx 24rpx; }
+.btn-full { width: 100%; }
 
-.btn-full {
-  width: 100%;
-}
-
-/* 转发引导弹窗 */
+/* ===== 转发引导弹窗 ===== */
 .share-tip-mask {
   position: fixed; inset: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.35);
   z-index: 999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
+  animation: anisland-fadein var(--motion-base) ease;
 }
 .share-tip-card {
   width: 560rpx;
-  background: #fff;
-  border-radius: 24rpx;
-  padding: 48rpx 40rpx 40rpx;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  background: var(--color-bg-content);
+  border-radius: 64rpx;
+  padding: 48rpx 48rpx 40rpx;
+  display: flex; flex-direction: column; align-items: center;
+  box-shadow: 0 16rpx 48rpx rgba(61, 52, 40, 0.14);
+  animation: anisland-zoomin 0.3s ease;
 }
 .share-tip-icon {
-  font-size: 80rpx;
-  margin-bottom: 16rpx;
+  font-size: 80rpx; margin-bottom: 16rpx;
 }
 .share-tip-title {
   font-size: 36rpx; font-weight: 700;
+  color: var(--color-text);
   margin-bottom: 8rpx;
 }
 .share-tip-body {
-  font-size: 26rpx; color: #666;
-  text-align: center;
-  margin-bottom: 32rpx;
+  font-size: 26rpx; color: var(--color-text-secondary);
+  text-align: center; margin-bottom: 32rpx;
 }
 .share-tip-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 16rpx;
-  width: 100%;
+  display: flex; flex-direction: column;
+  gap: 16rpx; width: 100%;
 }
 .btn-share {
-  width: 100%; height: 80rpx;
-  background: linear-gradient(135deg, #07c160, #06ad56);
-  color: #fff; font-size: 30rpx; font-weight: 600;
-  border-radius: 12rpx; border: none;
+  width: 100%; height: 90rpx;
+  font-size: 28rpx; font-weight: 600;
+  letter-spacing: 0.02em; line-height: 1;
+  border-radius: 100rpx;
+  background: var(--color-primary);
+  color: #fff;
+  border: 2px solid var(--color-primary);
+  box-shadow: 0 10rpx 0 0 var(--color-primary-active);
   display: flex; align-items: center; justify-content: center;
-  line-height: 80rpx;
+  transition: all var(--motion-base) var(--motion-ease);
+}
+.btn-share:active {
+  transform: translateY(4rpx);
+  box-shadow: 0 2rpx 0 0 var(--color-primary-active);
 }
 .btn-close-share {
   width: 100%; height: 72rpx;
-  background: var(--color-bg-secondary); color: #999;
-  font-size: 26rpx;
-  border-radius: 12rpx; border: none;
+  font-size: 26rpx; font-weight: 600;
+  border-radius: 100rpx;
+  background: var(--color-bg-secondary);
+  color: var(--color-text-muted);
+  border: none;
   display: flex; align-items: center; justify-content: center;
-  line-height: 72rpx;
+  transition: all var(--motion-fast);
+}
+.btn-close-share:active {
+  background: var(--color-bg-disabled);
+  color: var(--color-text-secondary);
+}
+
+/* ===== 动画 ===== */
+@keyframes anisland-fadein {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes anisland-zoomin {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
 }

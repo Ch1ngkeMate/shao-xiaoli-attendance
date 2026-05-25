@@ -25,8 +25,8 @@
   letter-spacing: 0.02em;
 }
 .tab-active {
-  color: var(--color-text);
-  background: var(--color-bg-content);
+  color: var(--color-primary);
+  background: rgba(25, 200, 185, 0.15);
   box-shadow: 0 6rpx 0 0 var(--color-shadow-input);
   transform: translateY(-2rpx);
 }

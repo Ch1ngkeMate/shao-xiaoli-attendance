@@ -81,6 +81,14 @@ page {
   --motion-base: 0.25s;
   --motion-slow: 0.35s;
   --motion-ease: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ===== 补充变量（页面引用但未定义）===== */
+  --color-border-secondary: #d9cfb4;
+  --color-fill-alter: #f5efe0;
+  --color-split: #e8dfcc;
+  --color-bg-layout: #f0e8d8;
+  --color-text-tertiary: #b8a890;
+  --border-radius: var(--border-radius-base);
 }
 
 /* ===== NookPhone 调色板（13色）===== */
