@@ -1,4 +1,4 @@
-@import "../publish/publish.wxss";
+/* settings — 动森主题 */
 
 .form-page { padding: 0 0 80rpx; }
 
@@ -15,7 +15,7 @@
 .bg-preview {
   width: 100%; height: 160rpx;
   background-size: cover; background-position: center;
-  border-radius: var(--border-radius); border: 1rpx solid var(--color-border);
+  border-radius: var(--border-radius-base); border: 1rpx solid var(--color-border);
 }
 .bg-preview-empty {
   background: var(--color-bg-layout);

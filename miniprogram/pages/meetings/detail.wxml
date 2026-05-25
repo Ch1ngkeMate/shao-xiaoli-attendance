@@ -96,7 +96,7 @@
     </view>
     <view class="sheet-actions mt-24">
       <button class="btn-ghost" bindtap="onCloseEndConfirm" style="flex:1">取消</button>
-      <button class="btn-danger" bindtap="onConfirmEnd" style="flex:2" loading="{{ending}}">确认结束</button>
+      <button class="btn-confirm-yellow" bindtap="onConfirmEnd" style="flex:2;" loading="{{ending}}">确认结束</button>
     </view>
   </view>
 </view>

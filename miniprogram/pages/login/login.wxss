@@ -38,6 +38,6 @@ image.brand-logo {
 
 .btn-ghost {
   margin-top: 24rpx;
-  background: #fff; color: var(--color-primary);
+  background: var(--color-bg-content); color: var(--color-primary);
   border: 1rpx solid var(--color-primary);
 }

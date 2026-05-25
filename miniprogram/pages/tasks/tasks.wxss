@@ -1,14 +1,17 @@
 /* 任务大厅 — 复刻 Web 端 Ant Design */
 
-/* 搜索栏 */
-.search-bar {
-  padding: var(--spacing-sm) var(--spacing-md);
-}
-.search-bar input {
-  height: 64rpx; padding: 0 24rpx;
-  background: #fff; border: 2rpx solid var(--color-border);
-  border-radius: var(--border-radius-sm); font-size: var(--font-size-base);
+/* 搜索栏 — 3D pill */
+.search-bar { padding: var(--spacing-sm) var(--spacing-md); }
+.search-bar .input {
+  height: 80rpx; padding: 0 32rpx;
+  background: var(--color-bg-content); border: 2rpx solid var(--color-border-light);
+  border-radius: var(--border-radius-pill); font-size: var(--font-size-base);
   width: 100%; box-sizing: border-box;
+  box-shadow: 0 6rpx 0 0 var(--color-shadow-input);
+}
+.search-bar .input:focus {
+  border-color: var(--color-focus-yellow);
+  box-shadow: 0 6rpx 0 0 var(--color-focus-yellow-dark), 0 0 0 6rpx rgba(255,204,0,0.15);
 }
 
 /* 筛选标签 */

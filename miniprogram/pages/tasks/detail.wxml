@@ -218,8 +218,8 @@
       </view>
     </view>
     <view class="sheet-actions mt-24">
-      <button class="btn-ghost" bindtap="onCloseSubmitSheet" style="flex:1">取消</button>
-      <button class="btn-primary" bindtap="onSubmit" style="flex:2">确认提交</button>
+      <button class="btn-ghost" bindtap="onCloseSubmitSheet" style="flex:1;">取消</button>
+      <button class="btn-confirm-yellow" bindtap="onSubmit" style="flex:2;">确认提交</button>
     </view>
   </view>
 </view>
@@ -234,7 +234,7 @@
     </view>
     <view class="sheet-actions mt-24">
       <button class="btn-ghost" bindtap="onCloseCloseConfirm" style="flex:1">取消</button>
-      <button class="btn-danger" bindtap="onConfirmClose" style="flex:2">确认</button>
+      <button class="btn-confirm-yellow" bindtap="onConfirmClose" style="flex:2;">确认</button>
     </view>
   </view>
 </view>
@@ -251,7 +251,7 @@
     </view>
     <view class="sheet-actions mt-24">
       <view class="btn-ghost" bindtap="onCloseReviewSheet" style="flex:1;text-align:center;padding:16rpx;">取消</view>
-      <view class="btn-primary" bindtap="onReviewSubmit" style="flex:2;text-align:center;padding:16rpx;">确认</view>
+      <view class="btn-confirm-yellow" bindtap="onReviewSubmit" style="flex:2;text-align:center;padding:16rpx;">确认</view>
     </view>
   </view>
 </view>
