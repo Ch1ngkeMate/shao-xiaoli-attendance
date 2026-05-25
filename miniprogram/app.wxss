@@ -1,5 +1,7 @@
-/* 全局样式 — Animal Island 动森主题 v2 */
-/* Pixel-perfect from SKILL.md */
+/* ============================================
+ * 全局样式 — Animal Island 动森主题 v3
+ * 像素级还原源码
+ * ============================================ */
 
 @import "./anisland-theme/theme.wxss";
 
@@ -15,52 +17,49 @@ page {
 }
 
 /* ============================================
- * 卡片（NookPhone 奶油纸质感）
+ * 卡片（核心组件）
  * ============================================ */
 .card {
   background: var(--color-bg-content);
   border-radius: 40rpx;                     /* 20px */
-  padding: 32rpx 48rpx;                    /* 16px 24px */
+  padding: 32rpx 48rpx;
   margin: 16rpx 32rpx;
-  color: var(--color-text-body);
+  color: #725d42;
   font-weight: 500;
-  box-shadow: 0 8rpx 20rpx rgba(107, 92, 67, 0.42);
   transition: all 0.3s ease;
 }
 .card:active {
-  transform: translateY(-8rpx);             /* -4px hover float */
+  transform: translateY(-4rpx);
 }
 
 .card-sm {
   background: var(--color-bg-content);
-  border-radius: 36rpx;                     /* 18px */
+  border-radius: 36rpx;
   padding: 24rpx 32rpx;
   margin: 12rpx 32rpx;
-  box-shadow: 0 6rpx 14rpx rgba(107, 92, 67, 0.35);
 }
 
 /* ============================================
- * 3D Pill 按钮（默认样式，全站使用）
+ * 3D Pill 按钮（动森核心特征）
  * ============================================ */
-/* 主按钮 */
+
+/* 主按钮 — 奶油色+棕字+3D厚底阴影 */
 .btn-primary {
   display: flex; align-items: center; justify-content: center;
   height: 90rpx;                            /* 45px */
   padding: 0 40rpx;
-  font-size: 28rpx;                        /* 14px */
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  line-height: 1;
-  border-radius: 100rpx;                   /* 50px pill */
-  border: 2px solid var(--color-bg);
-  background: var(--color-bg);             /* 奶油白 */
-  color: var(--color-text);               /* 暖棕 */
-  box-shadow: 0 10rpx 0 0 var(--color-shadow-btn);
+  font-size: 28rpx; font-weight: 600;
+  letter-spacing: 0.02em; line-height: 1;
+  border-radius: 100rpx;                    /* 50px pill */
+  border: 2px solid #f8f8f0;
+  background: #f8f8f0;                     /* 奶油白 */
+  color: #794f27;                          /* 暖棕字 */
+  box-shadow: 0 10rpx 0 0 #bdaea0;         /* 3D阴影 */
   transition: all var(--motion-base) var(--motion-ease);
 }
 .btn-primary:active {
-  transform: translateY(4rpx);             /* 2px down press */
-  box-shadow: 0 2rpx 0 0 var(--color-shadow-btn);
+  transform: translateY(4rpx);
+  box-shadow: 0 2rpx 0 0 #bdaea0;
 }
 .btn-primary:focus-visible {
   outline: 4rpx solid var(--color-primary);
@@ -72,7 +71,7 @@ page {
   box-shadow: none !important;
 }
 
-/* 危险按钮 */
+/* 危险按钮 — 红色+3D阴影 */
 .btn-danger {
   display: flex; align-items: center; justify-content: center;
   height: 90rpx; padding: 0 40rpx;
@@ -89,36 +88,40 @@ page {
   box-shadow: 0 2rpx 0 0 var(--color-error-active);
 }
 
-/* 描边按钮 */
-.btn-ghost {
-  display: flex; align-items: center; justify-content: center;
-  height: 90rpx; padding: 0 40rpx;
-  font-size: 28rpx; font-weight: 600;
-  letter-spacing: 0.02em; line-height: 1;
-  border-radius: 100rpx;
-  background: var(--color-bg-content);
-  color: var(--color-text-body);
-  border: 5rpx solid var(--color-border-light);
-  box-shadow: 0 6rpx 0 0 var(--color-shadow-input);
-  transition: all var(--motion-base) var(--motion-ease);
-}
-.btn-ghost:active {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-}
-
-/* 虚线按钮 */
+/* 描边按钮 — 透明背景+虚线边框 */
 .btn-dashed {
   display: flex; align-items: center; justify-content: center;
   height: 90rpx; padding: 0 40rpx;
   font-size: 28rpx; font-weight: 600;
   border-radius: 100rpx;
   background: var(--color-bg-content);
-  color: var(--color-primary);
+  color: var(--color-text);
   border: 5rpx dashed var(--color-border);
 }
+.btn-dashed:active {
+  border-style: solid;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
 
-/* 文字链接按钮 */
+/* 幽灵按钮 — 扁平无阴影 */
+.btn-ghost {
+  display: flex; align-items: center; justify-content: center;
+  height: 90rpx; padding: 0 40rpx;
+  font-size: 28rpx; font-weight: 600;
+  border-radius: 100rpx;
+  background: transparent;
+  color: var(--color-text);
+  border: 5rpx solid var(--color-border);
+  box-shadow: none;
+}
+.btn-ghost:active {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: rgba(25, 200, 185, 0.08);
+}
+
+/* 文字链接 */
 .btn-link {
   display: inline-flex; align-items: center;
   padding: 8rpx 0;
@@ -126,19 +129,22 @@ page {
   border: none;
   font-size: var(--font-size-base); font-weight: 600;
 }
+.btn-link:active {
+  opacity: 0.85;
+}
 
 /* ============================================
  * 3D Pill 输入框
  * ============================================ */
 .input {
-  height: 80rpx;                            /* 40px */
+  height: 80rpx;
   padding: 0 36rpx;
   font-size: 28rpx; font-weight: 500;
   letter-spacing: 0.01em;
-  color: var(--color-text-body);
-  background: var(--color-bg-input);
+  color: #725d42;
+  background: rgb(247, 243, 223);
   border: 5rpx solid var(--color-border-light);
-  border-radius: 100rpx;                    /* 50px pill */
+  border-radius: 100rpx;
   box-shadow: 0 6rpx 0 0 var(--color-shadow-input);
   box-sizing: border-box;
   width: 100%;
@@ -165,10 +171,10 @@ page {
   padding: 24rpx 36rpx;
   font-size: 28rpx; font-weight: 500;
   letter-spacing: 0.01em;
-  color: var(--color-text-body);
-  background: var(--color-bg-input);
+  color: #725d42;
+  background: rgb(247, 243, 223);
   border: 5rpx solid var(--color-border-light);
-  border-radius: 40rpx;                     /* 20px card-like */
+  border-radius: 40rpx;
   box-shadow: 0 6rpx 0 0 var(--color-shadow-input);
   box-sizing: border-box;
   transition: all var(--motion-base) var(--motion-ease);
@@ -180,12 +186,12 @@ page {
 }
 
 /* ============================================
- * 标签
+ * 标签（pill 圆角）
  * ============================================ */
 .tag {
   display: inline-flex; align-items: center;
   padding: 4rpx 16rpx;
-  border-radius: 20rpx;                     /* 10px */
+  border-radius: 100rpx;                    /* pill */
   font-size: var(--font-size-xs);
   font-weight: 500;
   border: 3rpx solid transparent;
@@ -197,19 +203,89 @@ page {
 .tag-orange { background: #fef4e6; color: #d4730b; border-color: var(--color-warning); }
 .tag-gold   { background: #fef7e0; color: #b8860b; border-color: var(--color-warning); }
 .tag-gray   { background: var(--color-bg-disabled); color: var(--color-text-disabled); border-color: var(--color-border-light); }
-.tag-geekblue { background: #edf0fc; color: #3d5cc4; border-color: #8fa0e0; }
-.tag-magenta { background: #fdf0f5; color: #c63678; border-color: #e892b9; }
-.tag-volcano { background: #fef2e8; color: #c44a1a; border-color: #e8956e; }
 
 /* ============================================
- * 工具类
+ * 分隔装饰（Divider）
+ * ============================================ */
+.divider-line {
+  width: 100%; height: 24rpx;              /* 12px */
+  background: var(--color-text-disabled);
+  opacity: 0.5;
+  border-radius: 4rpx;
+  margin: var(--spacing-md) 0;
+}
+
+/* 波浪底部分隔 */
+.footer-wave {
+  width: 100%;
+  height: 160rpx;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(25, 200, 185, 0.1) 50%,
+    rgba(25, 200, 185, 0.2) 100%
+  );
+  border-radius: 50% 50% 0 0 / 20rpx 20rpx 0 0;
+  margin-top: 48rpx;
+  position: relative;
+}
+.footer-wave::before {
+  content: '〰';
+  position: absolute;
+  bottom: 20rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 60rpx;
+  color: var(--color-primary);
+  opacity: 0.6;
+  letter-spacing: 20rpx;
+}
+
+/* ============================================
+ * 装饰元素
+ * ============================================ */
+.leaf-decor {
+  display: inline-block;
+  font-size: 32rpx;
+  opacity: 0.7;
+  animation: leaf-wiggle 3s ease-in-out infinite;
+}
+@keyframes leaf-wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-8deg) scale(1.05); }
+  75% { transform: rotate(8deg) scale(1.05); }
+}
+
+.animal-decor {
+  font-size: 40rpx;
+  filter: drop-shadow(0 4rpx 4rpx rgba(61, 52, 40, 0.15));
+}
+
+/* 叶子背景装饰 */
+.leaf-bg {
+  position: fixed;
+  font-size: 120rpx;
+  opacity: 0.08;
+  pointer-events: none;
+  z-index: 0;
+}
+.leaf-bg-1 { top: 100rpx; right: -20rpx; transform: rotate(45deg); }
+.leaf-bg-2 { bottom: 200rpx; left: -30rpx; transform: rotate(-30deg); }
+
+/* ============================================
+ * 卡片标题
  * ============================================ */
 .card-title {
   font-size: var(--font-size-lg);
   font-weight: 700;
   color: var(--color-text);
   margin-bottom: 24rpx;
+  letter-spacing: 0.02em;
 }
+
+/* ============================================
+ * 工具类
+ * ============================================ */
 .hint { font-size: var(--font-size-sm); color: var(--color-text-secondary); }
 .primary { color: var(--color-primary); }
 .error { color: var(--color-error); }
@@ -234,7 +310,8 @@ page {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   padding: 96rpx 32rpx; color: var(--color-text-muted); font-size: var(--font-size-base);
 }
-.empty-icon { font-size: 80rpx; margin-bottom: 24rpx; opacity: 0.5; }
+.empty-icon { font-size: 80rpx; margin-bottom: 24rpx; opacity: 0.6; }
+
 .load-more { text-align: center; padding: 32rpx; font-size: var(--font-size-sm); color: var(--color-text-secondary); }
 
 /* 头像 */
@@ -248,5 +325,19 @@ page {
   font-weight: 700; font-size: var(--font-size-base);
   overflow: hidden;
 }
-.avatar-lg { width: 96rpx; height: 96rpx; font-size: var(--font-size-lg); }
-.avatar-sm { width: 56rpx; height: 56rpx; font-size: var(--font-size-sm); }
+
+/* ============================================
+ * NookPhone 色板卡片（可选）
+ * ============================================ */
+.card-app-pink       { background: #f8a6b2 !important; color: #fff !important; }
+.card-purple         { background: #b77dee !important; color: #fff !important; }
+.card-app-blue       { background: #889df0 !important; color: #fff !important; }
+.card-app-yellow     { background: #f7cd67 !important; color: #725d42 !important; }
+.card-app-orange     { background: #e59266 !important; color: #fff !important; }
+.card-app-teal       { background: #82d5bb !important; color: #fff !important; }
+.card-app-green      { background: #8ac68a !important; color: #fff !important; }
+.card-app-red        { background: #fc736d !important; color: #fff !important; }
+.card-lime-green     { background: #d1da49 !important; color: #3d5a1a !important; }
+.card-yellow-green   { background: #ecdf52 !important; color: #725d42 !important; }
+.card-brown          { background: #9a835a !important; color: #fff !important; }
+.card-warm-peach-pink{ background: #e18c6f !important; color: #fff !important; }

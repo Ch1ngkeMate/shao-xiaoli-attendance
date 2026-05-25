@@ -1,162 +1,14 @@
 /* ============================================
- * Animal Island Theme — Component Styles
- * Pixel-perfect from SKILL.md
+ * Animal Island Theme — 辅助组件样式
+ * 主样式已移至 app.wxss
  * ============================================ */
 
-/* ===== 3D Pill 按钮（核心特征！）===== */
-.anisland-btn-pill {
-  display: flex; align-items: center; justify-content: center;
-  height: 90rpx;                /* 45px */
-  padding: 0 40rpx;            /* 20px */
-  font-size: 28rpx;            /* 14px */
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  line-height: 1;
-  border-radius: 100rpx;       /* 50px pill */
-  border: 2px solid #f8f8f0;
-  background: var(--color-bg);
-  color: var(--color-text);
-  box-shadow: 0 10rpx 0 0 var(--color-shadow-btn);  /* 5px */
-  transition: all var(--motion-base) var(--motion-ease);
-  box-sizing: border-box;
-}
-.anisland-btn-pill:active {
-  transform: translateY(4rpx);  /* 2px */
-  box-shadow: 0 2rpx 0 0 var(--color-shadow-btn);    /* 1px */
-}
-
-/* 3D 小按钮 */
-.anisland-btn-pill-sm {
-  height: 64rpx;                /* 32px */
-  padding: 0 32rpx;            /* 16px */
-  font-size: 24rpx;            /* 12px */
-  border-radius: 24rpx;        /* 12px */
-  box-shadow: 0 8rpx 0 0 var(--color-shadow-btn);    /* 4px */
-}
-.anisland-btn-pill-sm:active {
-  transform: translateY(4rpx);
-  box-shadow: 0 1rpx 0 0 var(--color-shadow-btn);
-}
-
-/* 3D 大按钮 */
-.anisland-btn-pill-lg {
-  height: 96rpx;                /* 48px */
-  padding: 0 64rpx;            /* 32px */
-  font-size: 32rpx;            /* 16px */
-  border-radius: 48rpx;        /* 24px */
-}
-.anisland-btn-pill-lg:active {
-  transform: translateY(4rpx);
-  box-shadow: 0 2rpx 0 0 var(--color-shadow-btn);
-}
-
-/* ===== 按钮变体 ===== */
-.anisland-btn-primary {
-  background: var(--color-primary);
-  color: var(--color-text);
-  border-color: var(--color-primary);
-}
-.anisland-btn-primary:focus-visible {
-  outline: 4rpx solid var(--color-primary);
-  outline-offset: 4rpx;
-}
-
-.anisland-btn-danger {
-  color: #fff !important;
-  box-shadow: 0 10rpx 0 0 var(--color-error-active);
-}
-
-.anisland-btn-outline {
-  background: var(--color-bg-container);
-  border: 2px solid var(--color-border);
-  color: var(--color-text);
-  box-shadow: 0 10rpx 0 0 var(--color-shadow-input);
-}
-
-/* disabled */
-.anisland-btn-pill[disabled] {
-  opacity: 0.5;
-  transform: none !important;
-  box-shadow: none !important;
-}
-
-/* ===== 3D Pill 输入框 ===== */
-.anisland-input-pill {
-  height: 80rpx;                /* 40px */
-  padding: 0 36rpx;            /* 18px */
-  font-size: 28rpx;            /* 14px */
-  font-weight: 500;
-  letter-spacing: 0.01em;
-  color: var(--color-text-body);
-  background: var(--color-bg-input);
-  border: 5rpx solid var(--color-border-light);   /* 2.5px */
-  border-radius: 100rpx;       /* 50px */
-  box-shadow: 0 6rpx 0 0 var(--color-shadow-input);
-  box-sizing: border-box;
-  transition: all var(--motion-base) var(--motion-ease);
-}
-.anisland-input-pill::placeholder {
-  color: var(--color-text-disabled);
-  font-weight: 400;
-}
-.anisland-input-pill:focus {
-  border-color: var(--color-focus-yellow) !important;
-  box-shadow: 0 6rpx 0 0 var(--color-focus-yellow-d),
-              0 0 0 6rpx rgba(255, 204, 0, 0.15);
-}
-.anisland-input-pill[disabled] {
-  background: var(--color-bg-input-dis);
-  border-color: var(--color-shadow-input);
-  box-shadow: none;
-  opacity: 0.6;
-  color: var(--color-text-disabled);
-}
-
-/* ===== 卡片 ===== */
-.anisland-card {
-  background: var(--color-bg-content);
-  border-radius: 40rpx;               /* 20px */
-  padding: 32rpx 48rpx;              /* 16px 24px */
-  margin: 16rpx 32rpx;
-  color: var(--color-text-body);
-  font-weight: 500;
-  box-shadow: 0 8rpx 20rpx rgba(107, 92, 67, 0.42);
-  transition: all 0.3s ease;
-}
-.anisland-card:active {
-  transform: translateY(-8rpx);      /* -4px */
-}
-
-/* 有机形状标题卡片 */
+/* ===== 有机形状标题卡片 ===== */
 .anisland-card-title {
   background: #fdfdf5;
   border-radius: 80rpx 70rpx 90rpx 76rpx / 76rpx 90rpx 70rpx 80rpx;
   padding: 24rpx 64rpx;
   font-weight: 600;
-}
-
-/* ===== 标签 ===== */
-.anisland-tag {
-  display: inline-flex; align-items: center;
-  padding: 4rpx 16rpx;
-  border-radius: 20rpx;   /* 10px */
-  font-size: var(--font-size-xs);
-  font-weight: 500;
-  border: 4rpx solid transparent;
-  letter-spacing: 0.01em;
-}
-.anisland-tag-green  { background: #e8f5e0; color: var(--color-success); border-color: var(--color-success); }
-.anisland-tag-red    { background: #fde8e8; color: var(--color-error); border-color: var(--color-error); }
-.anisland-tag-gold   { background: #fef7e0; color: #b8860b; border-color: var(--color-warning); }
-.anisland-tag-blue   { background: var(--color-primary-bg); color: var(--color-primary); border-color: var(--color-primary); }
-
-/* ===== 分隔线 ===== */
-.anisland-divider {
-  width: 100%; height: 24rpx;        /* 12px */
-  background: var(--color-text-disabled);
-  border-radius: 4rpx;
-  opacity: 0.5;
-  margin: var(--spacing-md) 0;
 }
 
 /* ===== 弹窗(Sheet) ===== */
@@ -170,7 +22,7 @@
 .anisland-sheet {
   width: 100%;
   background: var(--color-bg-content);
-  border-radius: 64rpx 64rpx 0 0;  /* 32px */
+  border-radius: 64rpx 64rpx 0 0;
   padding: 48rpx 48rpx 32rpx 48rpx;
   max-height: 80vh;
   overflow-y: auto;
@@ -178,44 +30,17 @@
   animation: anisland-zoomin 0.3s ease;
 }
 .anisland-sheet-title {
-  font-size: 56rpx;                  /* 28px */
+  font-size: 56rpx;
   font-weight: 700;
   color: rgba(114, 93, 66, 1);
   text-align: center;
   margin-bottom: 30rpx;
 }
 
-/* ===== 导航栏 ===== */
-.anisland-navbar {
-  background: var(--color-bg-container);
-  border-bottom: 4rpx solid var(--color-border-light);
-}
-
-/* ===== 头像 ===== */
-.anisland-avatar {
-  width: 72rpx; height: 72rpx;
-  border-radius: 50%;
-  border: 5rpx solid var(--color-primary);
-  background: var(--color-primary-bg);
-  display: flex; align-items: center; justify-content: center;
-  color: var(--color-primary);
-  font-weight: 700;
-  font-size: var(--font-size-base);
-  overflow: hidden;
-}
-
-/* ===== 空状态 ===== */
-.anisland-empty {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 96rpx 0;
-  font-size: var(--font-size-base);
-  color: var(--color-text-muted);
-}
-
 /* ===== TabBar 底部导航 ===== */
 .anisland-tabbar {
   display: flex;
-  background: var(--color-bg-content);
+  background: var(--color-bg);
   border-top: 4rpx solid var(--color-border-light);
   padding-bottom: env(safe-area-inset-bottom);
 }
@@ -230,13 +55,6 @@
 .anisland-tabbar-item.active {
   color: var(--color-primary);
   font-weight: 600;
-}
-
-/* ===== 加载 ===== */
-.anisland-loading {
-  text-align: center; padding: 32rpx;
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
 }
 
 /* ===== 动画 ===== */
