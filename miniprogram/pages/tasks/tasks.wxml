@@ -109,7 +109,7 @@
 
 <!-- 空状态 -->
 <view wx:elif="{{!loading}}" class="empty">
-  <image class="empty-img" src="/assets/empty-tasks.png" mode="aspectFit" />
+  <image class="empty-img" src="/assets/empty-tasks.webp" mode="aspectFit" />
   <view class="empty-text">暂无任务</view>
 </view>
 

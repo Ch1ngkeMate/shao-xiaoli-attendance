@@ -68,7 +68,7 @@
 </view>
 
 <view wx:elif="{{!loading}}" class="empty">
-  <image class="empty-img" src="/assets/empty-messages.png" mode="aspectFit" />
+  <image class="empty-img" src="/assets/empty-messages.webp" mode="aspectFit" />
   <view class="empty-text">暂无消息</view>
 </view>
 

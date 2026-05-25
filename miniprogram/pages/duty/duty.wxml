@@ -116,7 +116,7 @@
     <divider type="brown" height="24" />
   </block>
   <view wx:else class="empty">
-    <image class="empty-img" src="/assets/empty-duty.png" mode="aspectFit" />
+    <image class="empty-img" src="/assets/empty-duty.webp" mode="aspectFit" />
     <view class="empty-text">暂无会议</view>
   </view>
 </view>
@@ -142,7 +142,7 @@
     <divider type="brown" height="24" />
   </block>
   <view wx:else class="empty">
-    <image class="empty-img" src="/assets/empty-duty.png" mode="aspectFit" />
+    <image class="empty-img" src="/assets/empty-duty.webp" mode="aspectFit" />
     <view class="empty-text">暂无请假记录</view>
   </view>
 </view>
@@ -168,7 +168,7 @@
     <view class="load-more">— {{currentMonth}} 考勤统计 —</view>
   </block>
   <view wx:else class="empty">
-    <image class="empty-img" src="/assets/empty-duty.png" mode="aspectFit" />
+    <image class="empty-img" src="/assets/empty-duty.webp" mode="aspectFit" />
     <view class="empty-text">暂无统计数据</view>
   </view>
 </view>
