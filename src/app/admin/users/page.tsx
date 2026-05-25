@@ -11,6 +11,7 @@ import {
   Space,
   Switch,
   Table,
+  Tag,
   Typography,
   Upload,
   message,
@@ -30,6 +31,7 @@ type UserRow = {
   role: Role;
   isActive: boolean;
   avatarUrl: string | null;
+  wxOpenId: string | null;
 };
 
 type CreateUserForm = {
@@ -100,6 +102,28 @@ export default function AdminUsersPage() {
         render: (v: boolean, record) => (
           <Switch checked={v} onChange={(checked) => patch(record.id, { isActive: checked })} />
         ),
+      },
+      {
+        title: "小程序",
+        dataIndex: "wxOpenId",
+        width: 160,
+        render: (wxOpenId: string | null, record) =>
+          wxOpenId ? (
+            <Space size={4}>
+              <Tag color="green">已绑定</Tag>
+              <Popconfirm
+                title="解绑微信"
+                description="解绑后该用户将无法使用小程序登录，需在小程序端重新授权。确认解绑？"
+                onConfirm={() => patch(record.id, { unbindWx: true })}
+                okText="确认"
+                cancelText="取消"
+              >
+                <Button size="small" danger>解绑</Button>
+              </Popconfirm>
+            </Space>
+          ) : (
+            <Tag>未绑定</Tag>
+          ),
       },
       {
         title: "操作",

@@ -26,6 +26,7 @@ export async function GET() {
       isActive: true,
       createdAt: true,
       avatarUrl: true,
+      wxOpenId: true,
     },
   });
   return NextResponse.json({ users });

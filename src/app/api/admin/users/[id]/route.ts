@@ -14,6 +14,8 @@ const PatchUserSchema = z.object({
   isActive: z.boolean().optional(),
   /** 由管理员直接设为新密码（会覆盖原密码） */
   resetPassword: z.string().min(6, "新密码至少 6 位").optional(),
+  /** 解绑微信：设为 true 时清空 wxOpenId 和 wxUnionId，用户小程序端需重新授权 */
+  unbindWx: z.boolean().optional(),
 });
 
 export async function PATCH(req: Request, ctx: { params: Promise<Params> }) {
@@ -46,6 +48,8 @@ export async function PATCH(req: Request, ctx: { params: Promise<Params> }) {
     role?: "ADMIN" | "MINISTER" | "MEMBER";
     isActive?: boolean;
     passwordHash?: string;
+    wxOpenId?: null;
+    wxUnionId?: null;
   } = {};
   if (parsed.data.username !== undefined) data.username = parsed.data.username;
   if (parsed.data.displayName !== undefined) data.displayName = parsed.data.displayName;
@@ -53,6 +57,10 @@ export async function PATCH(req: Request, ctx: { params: Promise<Params> }) {
   if (parsed.data.isActive !== undefined) data.isActive = parsed.data.isActive;
   if (parsed.data.resetPassword !== undefined) {
     data.passwordHash = await bcrypt.hash(parsed.data.resetPassword, 10);
+  }
+  if (parsed.data.unbindWx) {
+    data.wxOpenId = null;
+    data.wxUnionId = null;
   }
 
   if (Object.keys(data).length === 0) {
@@ -62,7 +70,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<Params> }) {
   const user = await prisma.user.update({
     where: { id },
     data,
-    select: { id: true, username: true, displayName: true, role: true, isActive: true },
+    select: { id: true, username: true, displayName: true, role: true, isActive: true, wxOpenId: true },
   });
 
   return NextResponse.json({ user });
