@@ -1,51 +1,61 @@
 <view class="form-page">
   <!-- 请假类型 -->
-  <view class="form-group">
-    <view class="form-label">请假类型</view>
-    <view class="flex-row">
-      <view class="cat-option {{category === 'DUTY' ? 'cat-active' : ''}}" data-cat="DUTY" bindtap="onCategoryChange">值班请假</view>
-      <view class="cat-option {{category === 'MEETING' ? 'cat-active' : ''}}" data-cat="MEETING" bindtap="onCategoryChange">会议请假</view>
+  <view class="leave-form-group">
+    <view class="leave-form-label">请假类型</view>
+    <view class="leave-cat-row">
+      <view
+        class="leave-cat-option {{category === 'DUTY' ? 'leave-cat-active' : ''}}"
+        data-cat="DUTY"
+        bindtap="onCategoryChange"
+      >值班请假</view>
+      <view
+        class="leave-cat-option {{category === 'MEETING' ? 'leave-cat-active' : ''}}"
+        data-cat="MEETING"
+        bindtap="onCategoryChange"
+      >会议请假</view>
     </view>
   </view>
 
   <!-- 值班请假参数 -->
-  <view wx:if="{{category === 'DUTY'}}" class="form-group">
-    <view class="form-label">值班时间</view>
+  <view wx:if="{{category === 'DUTY'}}" class="leave-form-group">
+    <view class="leave-form-label">值班时间</view>
     <!-- 有值班安排时：只显示自己的时段 -->
     <view wx:if="{{hasDuty}}">
       <picker mode="selector" range="{{myDutySlots}}" range-key="label" value="{{dutySlotIndex}}" bindchange="onDutySlotChange">
-        <view class="picker-value">{{myDutySlots[dutySlotIndex] ? myDutySlots[dutySlotIndex].label : '请选择'}}</view>
+        <view class="leave-picker {{!myDutySlots[dutySlotIndex] ? 'placeholder' : ''}}">
+          {{myDutySlots[dutySlotIndex] ? myDutySlots[dutySlotIndex].label : '请选择值班时段'}}
+        </view>
       </picker>
     </view>
-    <!-- 无值班安排时：回退到全量选择（后端会校验） -->
+    <!-- 无值班安排时：回退到全量选择 -->
     <view wx:else>
       <picker mode="selector" range="{{weekdayLabels}}" value="{{dutyWeekday}}" bindchange="onWeekdayChange">
-        <view class="picker-value">星期: {{weekdayLabels[dutyWeekday]}}</view>
+        <view class="leave-picker">{{weekdayLabels[dutyWeekday]}}</view>
       </picker>
       <picker mode="selector" range="{{periodLabels}}" value="{{dutyPeriod}}" bindchange="onPeriodChange">
-        <view class="picker-value mt-16">节次: {{periodLabels[dutyPeriod]}}</view>
+        <view class="leave-picker">{{periodLabels[dutyPeriod]}}</view>
       </picker>
     </view>
   </view>
 
   <!-- 会议请假参数 -->
-  <view wx:if="{{category === 'MEETING'}}" class="form-group">
-    <view class="form-label">选择会议</view>
+  <view wx:if="{{category === 'MEETING'}}" class="leave-form-group">
+    <view class="leave-form-label">选择会议</view>
     <picker mode="selector" range="{{meetings}}" range-key="title" bindchange="onMeetingChange">
-      <view class="picker-value">
-        {{meetingId ? '已选择' : '请选择会议'}}
+      <view class="leave-picker {{!meetingId ? 'placeholder' : ''}}">
+        {{meetingId ? (meetings[meetingIndex] ? meetings[meetingIndex].title : '已选择') : '请选择会议'}}
       </view>
     </picker>
   </view>
 
   <!-- 请假原因 -->
-  <view class="form-group">
-    <view class="form-label">请假原因</view>
-    <textarea class="form-textarea" placeholder="请说明请假原因..." value="{{reason}}" bindinput="onReasonInput" maxlength="500" />
+  <view class="leave-form-group">
+    <view class="leave-form-label">请假原因</view>
+    <textarea class="leave-textarea" placeholder="请说明请假原因..." value="{{reason}}" bindinput="onReasonInput" maxlength="500" placeholder-class="textarea-placeholder" />
   </view>
 
   <!-- 提交 -->
-  <view class="submit-area">
+  <view class="leave-submit-area">
     <button class="btn-primary btn-full" bindtap="onSubmit" loading="{{submitting}}" disabled="{{submitting}}">
       {{submitting ? '提交中...' : '提交请假'}}
     </button>

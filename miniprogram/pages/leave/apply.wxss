@@ -1,6 +1,105 @@
-/* leave/apply — 动森主题 */
+/* leave/apply — 动森主题 v2，对齐 duty 页设计 */
 
-.cat-option { flex:1; text-align:center; padding:20rpx; border:2rpx solid var(--color-border); border-radius:var(--border-radius); font-size:var(--font-size-sm); color:var(--color-text-secondary); margin-right:16rpx; }
-.cat-option:last-child { margin-right:0; }
-.cat-active { border-color:var(--color-primary); background:var(--color-primary-bg); color:var(--color-primary); font-weight:600; }
-.picker-value { background:var(--color-bg-content); border-radius:var(--border-radius); padding:16rpx 20rpx; font-size:var(--font-size-sm); color:var(--color-text); }
+.form-page {
+  padding: 24rpx 32rpx 60rpx;
+}
+
+/* ===== 表单分组 — 卡片风格 ===== */
+.leave-form-group {
+  margin-bottom: 32rpx;
+}
+
+.leave-form-label {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 16rpx;
+  letter-spacing: 0.02em;
+}
+
+/* ===== 类别选项 — 3D pill 按钮 ===== */
+.leave-cat-row {
+  display: flex;
+  gap: 16rpx;
+}
+
+.leave-cat-option {
+  flex: 1;
+  text-align: center;
+  padding: 20rpx 0;
+  font-size: 28rpx;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background: var(--color-bg);
+  border: 2.5px solid var(--color-border-light);
+  border-radius: 100rpx;
+  box-shadow: 0 5rpx 0 0 var(--color-shadow-input);
+  transition: all 0.15s ease;
+}
+
+.leave-cat-option:active {
+  box-shadow: 0 1rpx 0 0 var(--color-shadow-input);
+  transform: translateY(2rpx);
+}
+
+.leave-cat-option.leave-cat-active {
+  border-color: var(--color-primary);
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+  font-weight: 600;
+  box-shadow: 0 5rpx 0 0 #0ea094;
+}
+
+.leave-cat-option.leave-cat-active:active {
+  box-shadow: 0 1rpx 0 0 #0ea094;
+}
+
+/* ===== Picker 选择器 — 3D 输入框风格 ===== */
+.leave-picker {
+  display: flex;
+  align-items: center;
+  min-height: 80rpx;
+  padding: 0 28rpx;
+  font-size: 28rpx;
+  color: var(--color-text);
+  background: var(--color-bg-content);
+  border: 2.5px solid var(--color-border-light);
+  border-radius: 100rpx;
+  box-shadow: 0 5rpx 0 0 var(--color-shadow-input);
+  margin-bottom: 16rpx;
+}
+
+.leave-picker.placeholder {
+  color: var(--color-text-disabled);
+}
+
+/* ===== Textarea — 3D 输入区 ===== */
+.leave-textarea {
+  width: 100%;
+  min-height: 200rpx;
+  padding: 24rpx 28rpx;
+  font-size: 28rpx;
+  color: var(--color-text);
+  background: var(--color-bg-content);
+  border: 2.5px solid var(--color-border-light);
+  border-radius: 32rpx;
+  box-shadow: 0 5rpx 0 0 var(--color-shadow-input);
+  box-sizing: border-box;
+  line-height: 1.6;
+}
+
+.leave-textarea:focus {
+  border-color: var(--color-focus-yellow);
+  box-shadow: 0 5rpx 0 0 #e0b800, 0 0 0 6rpx rgba(255, 204, 0, 0.15);
+}
+
+.textarea-placeholder {
+  color: var(--color-text-disabled);
+  font-weight: 400;
+}
+
+/* ===== 提交区 ===== */
+.leave-submit-area {
+  margin-top: 48rpx;
+  padding: 0 8rpx;
+}
