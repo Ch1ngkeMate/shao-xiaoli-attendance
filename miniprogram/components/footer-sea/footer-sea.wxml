@@ -1,6 +1,6 @@
 <view class="footer-sea" style="height:{{height}}rpx;">
   <image
-    src="/miniprogram/assets/icons/footer-sea.svg"
+    src="/assets/icons/footer-sea.svg"
     mode="aspectFill"
     class="footer-sea-img"
   />

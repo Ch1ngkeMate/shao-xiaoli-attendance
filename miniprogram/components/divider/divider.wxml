@@ -1,25 +1,25 @@
 <view class="divider divider-{{type}}" style="height:{{height}}rpx;">
   <image
     wx:if="{{type === 'brown'}}"
-    src="/miniprogram/assets/icons/divider-line-brown.svg"
+    src="/assets/icons/divider-line-brown.svg"
     mode="aspectFill"
     class="divider-img"
   />
   <image
     wx:elif="{{type === 'teal'}}"
-    src="/miniprogram/assets/icons/divider-line-teal.svg"
+    src="/assets/icons/divider-line-teal.svg"
     mode="aspectFill"
     class="divider-img"
   />
   <image
     wx:elif="{{type === 'yellow'}}"
-    src="/miniprogram/assets/icons/divider-line-yellow.svg"
+    src="/assets/icons/divider-line-yellow.svg"
     mode="aspectFill"
     class="divider-img"
   />
   <image
     wx:elif="{{type === 'wave'}}"
-    src="/miniprogram/assets/icons/wave-yellow.svg"
+    src="/assets/icons/wave-yellow.svg"
     mode="aspectFill"
     class="divider-img"
   />
