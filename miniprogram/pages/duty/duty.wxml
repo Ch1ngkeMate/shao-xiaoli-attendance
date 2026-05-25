@@ -91,7 +91,9 @@
       <view class="leaf-decor">📋</view>
       <view class="card-title" style="margin:0 0 0 8rpx;">会议列表</view>
     </view>
-    <view wx:if="{{isAdmin}}" class="btn-primary btn-sm" bindtap="onAddMeeting" style="height:60rpx;padding:0 24rpx;font-size:24rpx;">+ 发布</view>
+    <view wx:if="{{isAdmin}}" class="btn-primary btn-sm" bindtap="onAddMeeting" style="height:60rpx;padding:0 24rpx;font-size:24rpx;display:flex;align-items:center;gap:8rpx;">
+        <icon name="design" size="32" /> 发布
+      </view>
   </view>
   <view wx:if="{{meetingsLoading}}" class="load-more">加载中...</view>
   <block wx:elif="{{meetings.length > 0}}">
@@ -105,6 +107,7 @@
       <view wx:if="{{item.place}}" class="hint mt-8">📍 {{item.place}}</view>
     </view>
     <view class="load-more">— 已加载全部 —</view>
+    <divider type="brown" height="24" />
   </block>
   <view wx:else class="empty">
     <view class="empty-icon">🍃</view>
@@ -127,9 +130,10 @@
       <view class="hint mt-8">{{utils.formatTime(item.createdAt)}}</view>
     </view>
     <view class="load-more">— 已加载全部 —</view>
+    <divider type="brown" height="24" />
   </block>
   <view wx:else class="empty">
-    <view class="empty-icon">📝</view>
+    <icon name="design" size="80" />
     <view>暂无请假记录</view>
   </view>
 </view>
@@ -152,7 +156,7 @@
     <view class="load-more">— {{currentMonth}} 考勤统计 —</view>
   </block>
   <view wx:else class="empty">
-    <view class="empty-icon">📊</view>
+    <icon name="miles" size="80" />
     <view>暂无统计数据</view>
   </view>
 </view>
@@ -234,4 +238,6 @@
       <button class="btn-primary btn-full mt-24" bindtap="onConfirmMeeting">确认发布</button>
     </view>
   </view>
+
+  <footer-sea />
 </view>

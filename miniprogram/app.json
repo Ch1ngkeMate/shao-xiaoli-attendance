@@ -55,5 +55,10 @@
   },
   "style": "v2",
   "lazyCodeLoading": "requiredComponents",
-  "sitemapLocation": "sitemap.json"
+  "sitemapLocation": "sitemap.json",
+  "usingComponents": {
+    "icon": "/components/icon/icon",
+    "divider": "/components/divider/divider",
+    "footer-sea": "/components/footer-sea/footer-sea"
+  }
 }

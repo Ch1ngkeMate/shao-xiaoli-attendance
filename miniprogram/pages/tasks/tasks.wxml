@@ -104,11 +104,12 @@
   </view>
 
   <view class="load-more">— 已加载全部 —</view>
+  <divider type="brown" height="24" />
 </view>
 
 <!-- 空状态 -->
 <view wx:elif="{{!loading}}" class="empty">
-  <view class="empty-icon">📋</view>
+  <icon name="diy" size="80" />
   <view>暂无任务</view>
 </view>
 
@@ -116,4 +117,6 @@
 <view wx:if="{{loading}}" class="load-more">加载中...</view>
 
 <!-- 发布按钮（仅 MINISTER/ADMIN） -->
-<view wx:if="{{showFab}}" class="fab" bindtap="onPublish">+</view>
+<view wx:if="{{showFab}}" class="fab" bindtap="onPublish">
+  <icon name="design" size="48" />
+</view>

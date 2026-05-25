@@ -64,12 +64,15 @@
   </view>
 
   <view class="load-more">— 已加载全部 —</view>
+  <divider type="brown" height="24" />
 </view>
 
 <view wx:elif="{{!loading}}" class="empty">
-  <view class="empty-icon">💬</view>
+  <icon name="chat" size="80" />
   <view>暂无消息</view>
 </view>
 
 <!-- 发布公告 FAB（MINISTER/ADMIN） -->
-<view wx:if="{{showFab}}" class="fab" bindtap="onPublishAnnouncement">📢</view>
+<view wx:if="{{showFab}}" class="fab" bindtap="onPublishAnnouncement">
+  <icon name="chat" size="48" />
+</view>
