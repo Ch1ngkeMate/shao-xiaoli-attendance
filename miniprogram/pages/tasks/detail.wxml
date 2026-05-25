@@ -238,3 +238,20 @@
     </view>
   </view>
 </view>
+
+<view wx:if="{{showReviewSheet}}" class="sheet-overlay" bindtap="onCloseReviewSheet">
+  <view class="sheet-content" catchtap="onSheetStop">
+    <view class="sheet-title">审核提交</view>
+    <view class="mt-8">
+      <view class="flex-row gap-16" style="margin-bottom:12rpx;">
+        <view class="tag {{reviewResult === 'APPROVED' ? 'tag-green' : 'tag-gold'}}" bindtap="onReviewResultChange" data-result="APPROVED">通过</view>
+        <view class="tag {{reviewResult === 'REJECTED' ? 'tag-red' : 'tag-gold'}}" bindtap="onReviewResultChange" data-result="REJECTED">驳回</view>
+      </view>
+      <textarea wx:if="{{reviewResult === 'REJECTED'}}" class="textarea" placeholder="驳回原因（选填）" value="{{reviewReason}}" bindinput="onReviewReasonInput" maxlength="200" />
+    </view>
+    <view class="sheet-actions mt-24">
+      <view class="btn-ghost" bindtap="onCloseReviewSheet" style="flex:1;text-align:center;padding:16rpx;">取消</view>
+      <view class="btn-primary" bindtap="onReviewSubmit" style="flex:2;text-align:center;padding:16rpx;">确认</view>
+    </view>
+  </view>
+</view>
