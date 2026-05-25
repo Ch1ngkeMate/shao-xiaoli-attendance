@@ -96,6 +96,11 @@ function getMeetings() {
   return request({ url: "/api/meetings" });
 }
 
+/** 发布会议 */
+function createMeeting(data) {
+  return request({ url: "/api/meetings", method: "POST", data });
+}
+
 /** 会议详情 */
 function getMeetingDetail(id) {
   return request({ url: `/api/meetings/${id}` });
@@ -257,7 +262,7 @@ module.exports = {
   reviewSubmission,
   getTaskSubmissions,
   // 会议
-  getMeetings, getMeetingDetail, endMeeting,
+  getMeetings, createMeeting, getMeetingDetail, endMeeting,
   // 值班
   getDuty, addDuty, removeDuty,
   // 请假

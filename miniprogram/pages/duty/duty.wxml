@@ -86,9 +86,12 @@
 
 <!-- ====== 会议 Tab ====== -->
 <view wx:if="{{activeTab === 1}}" class="tab-content">
-  <view class="flex-row" style="padding: 20rpx 32rpx 0;">
-    <view class="leaf-decor">📋</view>
-    <view class="card-title" style="margin:0 0 0 8rpx;">会议列表</view>
+  <view class="flex-row" style="padding: 20rpx 32rpx 0;justify-content:space-between;">
+    <view class="flex-row">
+      <view class="leaf-decor">📋</view>
+      <view class="card-title" style="margin:0 0 0 8rpx;">会议列表</view>
+    </view>
+    <view wx:if="{{isAdmin}}" class="btn-primary btn-sm" bindtap="onAddMeeting" style="height:60rpx;padding:0 24rpx;font-size:24rpx;">+ 发布</view>
   </view>
   <view wx:if="{{meetingsLoading}}" class="load-more">加载中...</view>
   <block wx:elif="{{meetings.length > 0}}">
@@ -202,6 +205,33 @@
         <button class="btn-leave-approve btn-danger" loading="{{leaveSubmitting}}" bindtap="onConfirmReject">确认驳回</button>
         <button class="btn-leave-close" disabled="{{leaveSubmitting}}" bindtap="onCancelReject">返回</button>
       </view>
+    </view>
+  </view>
+</view>
+
+<!-- ====== 发布会议弹窗 ====== -->
+<view wx:if="{{showMeetingSheet}}" class="duty-sheet-mask" bindtap="onCloseMeetingSheet" catchtouchmove="noop">
+  <view class="duty-sheet" catchtap="noop">
+    <view class="duty-sheet-header">
+      <view class="duty-sheet-title">发布会议</view>
+      <view class="duty-sheet-close" bindtap="onCloseMeetingSheet">✕</view>
+    </view>
+    <view class="duty-sheet-body">
+      <view class="form-label">会议主题</view>
+      <input class="form-input" placeholder="请输入会议主题" value="{{meetingTitle}}" bindinput="onMeetingTitleInput" maxlength="200" />
+      <view class="form-label mt-16">开始时间</view>
+      <picker mode="multiSelector" range="{{dateTimeRange}}" value="{{meetingStartIdx}}" bindchange="onMeetingStartChange">
+        <view class="form-input duty-select">{{meetingStartLabel || '请选择开始时间'}}</view>
+      </picker>
+      <view class="form-label mt-16">结束时间（选填）</view>
+      <picker mode="multiSelector" range="{{dateTimeRange}}" value="{{meetingEndIdx}}" bindchange="onMeetingEndChange">
+        <view class="form-input duty-select">{{meetingEndLabel || '请选择结束时间'}}</view>
+      </picker>
+      <view class="form-label mt-16">地点（选填）</view>
+      <input class="form-input" placeholder="如 会议室A" value="{{meetingPlace}}" bindinput="onMeetingPlaceInput" maxlength="100" />
+      <view class="form-label mt-16">说明（选填）</view>
+      <textarea class="form-textarea" placeholder="会议议程或备注..." value="{{meetingDesc}}" bindinput="onMeetingDescInput" maxlength="1000" />
+      <button class="btn-primary btn-full mt-24" bindtap="onConfirmMeeting">确认发布</button>
     </view>
   </view>
 </view>

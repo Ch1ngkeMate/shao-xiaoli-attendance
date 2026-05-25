@@ -204,6 +204,44 @@ Page({
     wx.navigateTo({ url: `/pages/meetings/detail?id=${id}` });
   },
 
+  // ===== 发布会议 =====
+  onAddMeeting() {
+    const now = new Date();
+    const dates = []; const hours = []; const mins = ['00', '15', '30', '45'];
+    for (let d = 0; d < 14; d++) { const day = new Date(now); day.setDate(day.getDate()+d); dates.push(`${day.getMonth()+1}月${day.getDate()}日`); }
+    for (let h = 0; h < 24; h++) hours.push(`${h.toString().padStart(2,'0')}时`);
+    this.setData({
+      showMeetingSheet: true, meetingTitle: '', meetingPlace: '', meetingDesc: '',
+      meetingStartIdx: [0,12,0], meetingEndIdx: [0,14,0],
+      meetingStartLabel: '', meetingEndLabel: '',
+      dateTimeRange: [dates, hours, mins],
+    });
+  },
+  onMeetingTitleInput(e) { this.setData({ meetingTitle: e.detail.value }); },
+  onMeetingPlaceInput(e) { this.setData({ meetingPlace: e.detail.value }); },
+  onMeetingDescInput(e) { this.setData({ meetingDesc: e.detail.value }); },
+  onMeetingStartChange(e) { this.setData({ meetingStartIdx: e.detail.value }); },
+  onMeetingEndChange(e) { this.setData({ meetingEndIdx: e.detail.value }); },
+  onCloseMeetingSheet() { this.setData({ showMeetingSheet: false }); },
+  async onConfirmMeeting() {
+    if (!this.data.meetingTitle.trim()) { wx.showToast({ title: '请输入主题', icon: 'none' }); return; }
+    const now = new Date();
+    const mins = ['00', '15', '30', '45'];
+    const mk = (idx) => { const d = new Date(now); d.setDate(d.getDate()+idx[0]); d.setHours(idx[1], parseInt(mins[idx[2]]), 0, 0); return d.toISOString(); };
+    try {
+      await api.createMeeting({
+        title: this.data.meetingTitle.trim(),
+        startTime: mk(this.data.meetingStartIdx),
+        endTime: mk(this.data.meetingEndIdx),
+        place: this.data.meetingPlace.trim() || undefined,
+        description: this.data.meetingDesc.trim() || undefined,
+      });
+      wx.showToast({ title: '已发布', icon: 'success' });
+      this.setData({ showMeetingSheet: false });
+      this.loadMeetings();
+    } catch (err) { wx.showToast({ title: err.message || '发布失败', icon: 'none' }); }
+  },
+
   // ===== 请假 =====
 
   async loadLeaves() {
