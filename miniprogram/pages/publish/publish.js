@@ -21,6 +21,17 @@ Page({
     tempSlotEndDate: "",
     tempSlotEndTime: "",
     tempSlotHeadcount: 0, // 0 = 不限
+
+    // 自定义 picker-view 弹窗
+    showPickerSheet: false,
+    pickerType: "", // 'startDate' | 'startTime' | 'endDate' | 'endTime'
+    datePickerYears: [],
+    datePickerMonths: [],
+    datePickerDays: [],
+    datePickerValue: [0, 0, 0],
+    timePickerHours: [],
+    timePickerMinutes: [],
+    timePickerValue: [0, 0],
   },
 
   onLoad() {
@@ -30,15 +41,30 @@ Page({
       wx.navigateBack();
       return;
     }
-    // 默认时间段：从现在开始，24小时后结束
     const now = new Date();
     const end = new Date(now.getTime() + 24 * 60 * 60 * 1000);
     const pad = (n) => String(n).padStart(2, "0");
+    // 生成年份列表（当前年 ~ 当前年+3）
+    const years = [];
+    for (let i = 0; i < 4; i++) years.push(now.getFullYear() + i);
+    const months = [];
+    for (let i = 1; i <= 12; i++) months.push(i);
+    const days = [];
+    for (let i = 1; i <= 31; i++) days.push(i);
+    const hours = [];
+    for (let i = 0; i < 24; i++) hours.push(i);
+    const mins = [];
+    for (let i = 0; i < 60; i += 5) mins.push(i);
     this.setData({
       tempSlotStartDate: `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`,
       tempSlotStartTime: `${pad(now.getHours())}:${pad(now.getMinutes())}`,
       tempSlotEndDate: `${end.getFullYear()}-${pad(end.getMonth() + 1)}-${pad(end.getDate())}`,
       tempSlotEndTime: `${pad(end.getHours())}:${pad(end.getMinutes())}`,
+      datePickerYears: years,
+      datePickerMonths: months,
+      datePickerDays: days,
+      timePickerHours: hours,
+      timePickerMinutes: mins,
     });
   },
 
@@ -65,6 +91,67 @@ Page({
   },
 
   // ========== 时间段（日期 + 时间拆分，对齐 Web DatePicker showTime）==========
+
+  // ========== 自定义 Picker 弹窗 ==========
+
+  openPickerSheet(e) {
+    const type = e.currentTarget.dataset.type; // startDate|startTime|endDate|endTime
+    const currentVal = this.data[type === 'startDate' ? 'tempSlotStartDate' : type === 'startTime' ? 'tempSlotStartTime' : type === 'endDate' ? 'tempSlotEndDate' : 'tempSlotEndTime'];
+    if (type === 'startDate' || type === 'endDate') {
+      // 解析日期
+      const [y, m, d] = currentVal ? currentVal.split('-').map(Number) : [new Date().getFullYear(), 1, 1];
+      const yi = this.data.datePickerYears.indexOf(y);
+      this.setData({
+        showPickerSheet: true, pickerType: type,
+        datePickerValue: [Math.max(0, yi), m - 1, d - 1],
+      });
+    } else {
+      // 解析时间
+      const [h, m] = currentVal ? currentVal.split(':').map(Number) : [8, 0];
+      const hi = this.data.timePickerHours.indexOf(h);
+      const mi = this.data.timePickerMinutes.indexOf(m >= 0 ? Math.floor(m / 5) * 5 : 0);
+      this.setData({
+        showPickerSheet: true, pickerType: type,
+        timePickerValue: [Math.max(0, hi), Math.max(0, mi)],
+      });
+    }
+  },
+
+  onDatePickerChange(e) {
+    this.setData({ datePickerValue: e.detail.value });
+  },
+
+  onTimePickerChange(e) {
+    this.setData({ timePickerValue: e.detail.value });
+  },
+
+  confirmPicker() {
+    const type = this.data.pickerType;
+    const pad = (n) => String(n).padStart(2, '0');
+    if (type === 'startDate' || type === 'endDate') {
+      const [yi, mi, di] = this.data.datePickerValue;
+      const y = this.data.datePickerYears[yi] || new Date().getFullYear();
+      const m = (this.data.datePickerMonths[mi] || 1);
+      const d = (this.data.datePickerDays[di] || 1);
+      const val = `${y}-${pad(m)}-${pad(d)}`;
+      if (type === 'startDate') this.setData({ tempSlotStartDate: val });
+      else this.setData({ tempSlotEndDate: val });
+    } else {
+      const [hi, mii] = this.data.timePickerValue;
+      const h = this.data.timePickerHours[hi] || 0;
+      const m = this.data.timePickerMinutes[mii] || 0;
+      const val = `${pad(h)}:${pad(m)}`;
+      if (type === 'startTime') this.setData({ tempSlotStartTime: val });
+      else this.setData({ tempSlotEndTime: val });
+    }
+    this.setData({ showPickerSheet: false });
+  },
+
+  closePickerSheet() {
+    this.setData({ showPickerSheet: false });
+  },
+
+  // ========== 原生 picker 桩（保留兼容） ==========
 
   onSlotStartDateChange(e) { this.setData({ tempSlotStartDate: e.detail.value }); },
   onSlotStartTimeChange(e) { this.setData({ tempSlotStartTime: e.detail.value }); },

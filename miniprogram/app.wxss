@@ -486,3 +486,21 @@ page::before {
 .modal-body-text { font-size: 28rpx; color: var(--color-text-secondary); line-height: 1.6; margin-bottom: 32rpx; }
 .modal-actions { display: flex; gap: 16rpx; }
 .modal-actions .btn { flex: 1; }
+
+/* picker chip（月份/选项按钮） */
+.picker-chip {
+  width: 120rpx; height: 72rpx;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28rpx; font-weight: 500; color: var(--color-text);
+  background: var(--color-bg);
+  border: 2.5px solid var(--color-border-light);
+  border-radius: 100rpx;
+  box-shadow: 0 4rpx 0 0 var(--color-shadow-input);
+  transition: all 0.15s;
+}
+.picker-chip:active {
+  background: var(--color-primary-bg); color: var(--color-primary);
+  border-color: var(--color-primary);
+  box-shadow: 0 1rpx 0 0 #0ea094;
+  transform: translateY(2rpx);
+}

@@ -110,7 +110,7 @@
   width: 72rpx; font-size: 26rpx; font-weight: 700;
   color: var(--color-text); flex-shrink: 0;
 }
-.slot-picker-item {
+.slot-picker-pop {
   flex: 1; height: 64rpx; line-height: 64rpx;
   background: var(--color-bg-input);
   border: 4rpx solid var(--color-border-light);
@@ -120,10 +120,10 @@
   text-align: center;
   box-shadow: 0 5rpx 0 0 var(--color-shadow-input);
 }
-.slot-picker-placeholder {
-  color: var(--color-text-disabled);
+.slot-picker-pop:active {
+  box-shadow: 0 1rpx 0 0 var(--color-shadow-input);
+  transform: translateY(2rpx);
 }
-.btn-sm-inline {
   flex-shrink: 0; padding: 12rpx 24rpx;
   font-size: 24rpx; font-weight: 600;
   border-radius: 100rpx;

@@ -1,10 +1,11 @@
 <view class="card">
-  <picker mode="date" fields="month" value="{{currentMonth}}" bindchange="onMonthChange">
-    <view class="month-picker">{{currentMonth}}</view>
-  </picker>
+  <view class="month-picker" bindtap="openMonthPicker">{{currentMonth}}</view>
 </view>
 
-<view wx:if="{{loading}}" class="load-more">加载中...</view>
+<view wx:if="{{loading}}" class="empty">
+  <view class="leaf-spin">🍃</view>
+  <view class="empty-text">加载中...</view>
+</view>
 
 <block wx:elif="{{stats}}">
   <view wx:if="{{stats.length > 0}}">
@@ -25,3 +26,24 @@
     <view>{{currentMonth}} 暂无数据</view>
   </view>
 </block>
+
+<!-- ====== 月份选择弹窗 ====== -->
+<view wx:if="{{showMonthSheet}}" class="modal-mask" bindtap="closeMonthPicker" catchtouchmove="noop">
+  <view class="modal-card" catchtap="noop" style="width:580rpx;padding:32rpx;">
+    <view class="flex-between" style="padding-bottom:24rpx;">
+      <view class="btn-ghost" bindtap="onPickerYearPrev" style="font-size:36rpx;padding:8rpx 24rpx;">‹</view>
+      <view style="font-size:36rpx;font-weight:700;color:var(--color-text);">{{pickerYear}}年</view>
+      <view class="btn-ghost" bindtap="onPickerYearNext" style="font-size:36rpx;padding:8rpx 24rpx;">›</view>
+    </view>
+    <view style="display:flex;flex-wrap:wrap;gap:16rpx;justify-content:center;">
+      <view wx:for="{{[1,2,3,4,5,6,7,8,9,10,11,12]}}" wx:for-item="m" wx:key="*this"
+        class="picker-chip"
+        data-month="{{m}}"
+        bindtap="onMonthSelect"
+      >{{m}}月</view>
+    </view>
+    <view style="text-align:right;padding-top:24rpx;">
+      <button class="btn-ghost" bindtap="closeMonthPicker">取消</button>
+    </view>
+  </view>
+</view>

@@ -38,33 +38,25 @@
       <view class="slot-remove" data-index="{{index}}" bindtap="onRemoveSlot">✕</view>
     </view>
 
-    <!-- 添加入口 — 拆为日期+时间两个 picker，对齐 Web DatePicker showTime -->
+    <!-- 添加入口 -->
     <view class="slot-add">
       <view class="slot-row">
         <view class="slot-label">开始</view>
-        <picker mode="date" value="{{tempSlotStartDate}}" bindchange="onSlotStartDateChange">
-          <view class="slot-picker-item {{tempSlotStartDate ? '' : 'slot-picker-placeholder'}}">
-            {{tempSlotStartDate || '选择日期'}}
-          </view>
-        </picker>
-        <picker mode="time" value="{{tempSlotStartTime}}" bindchange="onSlotStartTimeChange">
-          <view class="slot-picker-item {{tempSlotStartTime ? '' : 'slot-picker-placeholder'}}">
-            {{tempSlotStartTime || '选择时间'}}
-          </view>
-        </picker>
+        <view class="slot-picker-pop" data-type="startDate" bindtap="openPickerSheet">
+          {{tempSlotStartDate || '选择日期'}}
+        </view>
+        <view class="slot-picker-pop" data-type="startTime" bindtap="openPickerSheet">
+          {{tempSlotStartTime || '选择时间'}}
+        </view>
       </view>
       <view class="slot-row">
         <view class="slot-label">结束</view>
-        <picker mode="date" value="{{tempSlotEndDate}}" bindchange="onSlotEndDateChange">
-          <view class="slot-picker-item {{tempSlotEndDate ? '' : 'slot-picker-placeholder'}}">
-            {{tempSlotEndDate || '选择日期'}}
-          </view>
-        </picker>
-        <picker mode="time" value="{{tempSlotEndTime}}" bindchange="onSlotEndTimeChange">
-          <view class="slot-picker-item {{tempSlotEndTime ? '' : 'slot-picker-placeholder'}}">
-            {{tempSlotEndTime || '选择时间'}}
-          </view>
-        </picker>
+        <view class="slot-picker-pop" data-type="endDate" bindtap="openPickerSheet">
+          {{tempSlotEndDate || '选择日期'}}
+        </view>
+        <view class="slot-picker-pop" data-type="endTime" bindtap="openPickerSheet">
+          {{tempSlotEndTime || '选择时间'}}
+        </view>
       </view>
       <view class="slot-row">
         <input class="form-input-sm" type="number" placeholder="本段限员(不填不限)" value="{{tempSlotHeadcount}}" bindinput="onSlotHeadcountChange" />
@@ -106,6 +98,40 @@
       <view class="share-tip-actions">
         <button class="btn-share" open-type="share">📤 转发到群</button>
         <button class="btn-close-share" bindtap="onCloseShareTip">稍后</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- ====== 日期/时间选择弹窗（picker-view） ====== -->
+  <view wx:if="{{showPickerSheet}}" class="sheet-mask" bindtap="closePickerSheet" catchtouchmove="noop">
+    <view class="sheet" catchtap="noop">
+      <view class="sheet-header">
+        <button class="btn-ghost" bindtap="closePickerSheet">取消</button>
+        <view class="sheet-title">{{pickerType === 'startDate' ? '开始日期' : pickerType === 'startTime' ? '开始时间' : pickerType === 'endDate' ? '结束日期' : '结束时间'}}</view>
+        <button class="btn btn-confirm-yellow" bindtap="confirmPicker" style="height:64rpx;padding:0 24rpx;font-size:28rpx;">确定</button>
+      </view>
+      <view class="sheet-body" style="height:400rpx;">
+        <!-- 日期选择 -->
+        <picker-view wx:if="{{pickerType === 'startDate' || pickerType === 'endDate'}}" value="{{datePickerValue}}" bindchange="onDatePickerChange" indicator-style="height:80rpx;border-top:2rpx solid var(--color-primary);border-bottom:2rpx solid var(--color-primary);" style="width:100%;height:400rpx;">
+          <picker-view-column>
+            <view wx:for="{{datePickerYears}}" wx:key="*this" style="line-height:80rpx;text-align:center;font-size:32rpx;color:var(--color-text);">{{item}}年</view>
+          </picker-view-column>
+          <picker-view-column>
+            <view wx:for="{{datePickerMonths}}" wx:key="*this" style="line-height:80rpx;text-align:center;font-size:32rpx;color:var(--color-text);">{{item}}月</view>
+          </picker-view-column>
+          <picker-view-column>
+            <view wx:for="{{datePickerDays}}" wx:key="*this" style="line-height:80rpx;text-align:center;font-size:32rpx;color:var(--color-text);">{{item}}日</view>
+          </picker-view-column>
+        </picker-view>
+        <!-- 时间选择 -->
+        <picker-view wx:else value="{{timePickerValue}}" bindchange="onTimePickerChange" indicator-style="height:80rpx;border-top:2rpx solid var(--color-primary);border-bottom:2rpx solid var(--color-primary);" style="width:100%;height:400rpx;">
+          <picker-view-column>
+            <view wx:for="{{timePickerHours}}" wx:key="*this" style="line-height:80rpx;text-align:center;font-size:32rpx;color:var(--color-text);">{{item}}时</view>
+          </picker-view-column>
+          <picker-view-column>
+            <view wx:for="{{timePickerMinutes}}" wx:key="*this" style="line-height:80rpx;text-align:center;font-size:32rpx;color:var(--color-text);">{{item < 10 ? '0' + item : item}}分</view>
+          </picker-view-column>
+        </picker-view>
       </view>
     </view>
   </view>
