@@ -1,55 +1,16 @@
-<wxs module="utils">
-  var formatTime = function(s) {
-    if (!s) return '';
-    var d = getDate(s);
-    var M = d.getMonth()+1, D = d.getDate(), h = d.getHours(), m = d.getMinutes();
-    if (M<10) M='0'+M; if (D<10) D='0'+D;
-    if (h<10) h='0'+h; if (m<10) m='0'+m;
-    return M+'-'+D+' '+h+':'+m;
-  };
-  module.exports = { formatTime: formatTime };
-</wxs>
-
-<view wx:if="{{loading}}" class="load-more">加载中...</view>
-
-<block wx:elif="{{meeting}}">
+<block wx:elif="{{!loading}}">
   <view class="card">
     <view class="meeting-title">{{meeting.title}}</view>
-    <view class="flex-between mt-16">
-      <view wx:if="{{meeting.endedAt}}" class="tag tag-gray">已结束</view>
-      <view wx:else class="tag tag-green">进行中</view>
-      <view class="hint">发布者: {{meeting.publisher ? meeting.publisher.displayName : ''}}</view>
+    <view wx:if="{{meeting.place}}" class="hint mt-8">📍 {{meeting.place}}</view>
+    <view class="flex-row gap-16 mt-16">
+      <text class="hint">{{meeting.startTime}}</text>
+      <text class="hint" wx:if="{{meeting.endTime}}">~ {{meeting.endTime}}</text>
+      <view wx:if="{{meeting.endedAt}}" class="tag">已结束</view>
+      <view wx:else class="tag tag-blue">进行中</view>
     </view>
-    <view class="mt-16 hint">🕐 {{utils.formatTime(meeting.startTime)}}</view>
-    <view wx:if="{{meeting.place}}" class="mt-8 hint">📍 {{meeting.place}}</view>
     <view wx:if="{{meeting.description}}" class="mt-16 meeting-desc">{{meeting.description}}</view>
   </view>
 
-  <!-- GPS 签到（部员） -->
-  <view wx:if="{{meeting.checkInPlace && !meeting.endedAt && isMEMBER}}" class="card">
-    <view class="section-title">📍 GPS 签到：{{meeting.checkInPlace}}</view>
-    <view class="hint" style="margin-bottom:16rpx;">需在 {{meeting.checkInRadius || 150}} 米范围内签到</view>
-    <button
-      wx:if="{{!hasCheckedIn}}"
-      class="btn-primary btn-full"
-      bindtap="onCheckIn"
-      loading="{{checkingIn}}"
-      disabled="{{checkingIn}}"
-    >{{checkingIn ? '签到中...' : '签到'}}</button>
-    <view wx:else class="tag tag-green" style="padding:16rpx 32rpx;font-size:28rpx;">✅ 已签到</view>
-  </view>
-
-  <!-- 签到统计（管理员） -->
-  <view wx:if="{{meeting.checkInPlace && isAdminOrMinister}}" class="card">
-    <view class="flex-between">
-      <view class="section-title" style="margin-bottom:0;">📍 签到统计：{{checkIns.length}}/{{members.length}}人</view>
-      <button class="btn-link" bindtap="onViewCheckInList">查看清单</button>
-    </view>
-    <view wx:if="{{checkIns.length > 0}}" style="margin-top:12rpx;">
-      <view wx:for="{{checkIns}}" wx:key="userId" class="tag tag-green" style="margin:4rpx;">{{item.displayName}}</view>
-    </view>
-    <view wx:else class="hint" style="margin-top:12rpx;">暂无人签到</view>
-  </view>
   <view class="card">
     <view class="section-title">参会人员 ({{members.length}}人)</view>
     <view wx:if="{{members.length > 0}}">
@@ -60,35 +21,24 @@
 
   <!-- 关会（管理员/部长，进行中的会议） -->
   <view wx:if="{{!meeting.endedAt && isAdminOrMinister}}" class="card">
-    <!-- GPS 签到模式：自动统计 -->
-    <block wx:if="{{meeting.checkInPlace}}">
-      <view class="section-title">结束会议（自动统计）</view>
-      <view class="hint" style="margin-bottom:16rpx;">
-        已签到 {{checkIns.length}}/{{members.length}} 人。系统将根据 GPS 签到数据自动统计缺勤，未签到且未准假的部员每人扣 1 分。
-      </view>
-      <button class="btn-primary btn-full" bindtap="onOpenEndConfirm">结束会议（自动统计考勤）</button>
-    </block>
-    <!-- 手动勾选模式 -->
-    <block wx:else>
-      <view class="section-title">结束会议并记录考勤</view>
-      <view class="hint" style="margin-bottom:16rpx;">
-        勾选未到场且未准假的部员为「旷会」（每人扣 1 分）。已准假的部员已自动排除，无需勾选。若无人旷会，直接点结束。
-      </view>
-      <view wx:if="{{members.length > 0}}">
-        <view wx:for="{{members}}" wx:key="id" class="flex-between member-check-row">
-          <view class="flex-row gap-8">
-            <text>{{item.displayName}}</text>
-            <text wx:if="{{approvedUserIds.indexOf(item.id) >= 0}}" class="tag tag-gray tag-sm">已准假</text>
-          </view>
-          <view wx:if="{{approvedUserIds.indexOf(item.id) >= 0}}" class="tag tag-gray tag-sm">✔ 免记</view>
-          <view wx:else data-uid="{{item.id}}" bindtap="onToggleAbsent">
-            <view wx:if="{{absentUserIds.indexOf(item.id) >= 0}}" class="checkbox checked">☑</view>
-            <view wx:else class="checkbox">☐</view>
-          </view>
+    <view class="section-title">结束会议并记录考勤</view>
+    <view class="hint" style="margin-bottom:16rpx;">
+      勾选未到场且未准假的部员为「旷会」（每人扣 1 分）。已准假的部员已自动排除，无需勾选。若无人旷会，直接点结束。
+    </view>
+    <view wx:if="{{members.length > 0}}">
+      <view wx:for="{{members}}" wx:key="id" class="flex-between member-check-row">
+        <view class="flex-row gap-8">
+          <text>{{item.displayName}}</text>
+          <text wx:if="{{approvedUserIds.indexOf(item.id) >= 0}}" class="tag tag-gray tag-sm">已准假</text>
+        </view>
+        <view wx:if="{{approvedUserIds.indexOf(item.id) >= 0}}" class="tag tag-gray tag-sm">✔ 免记</view>
+        <view wx:else data-uid="{{item.id}}" bindtap="onToggleAbsent">
+          <view wx:if="{{absentUserIds.indexOf(item.id) >= 0}}" class="checkbox checked">☑</view>
+          <view wx:else class="checkbox">☐</view>
         </view>
       </view>
-      <button class="btn-primary btn-full mt-16" bindtap="onOpenEndConfirm">结束会议并记录考勤</button>
-    </block>
+    </view>
+    <button class="btn-primary btn-full mt-16" bindtap="onOpenEndConfirm">结束会议并记录考勤</button>
   </view>
 
   <!-- 旷会已记录（已结束的会议） -->
@@ -127,28 +77,11 @@
   <view class="sheet-content" catchtap="onSheetStop">
     <view class="sheet-title">确认结束会议</view>
     <view class="mt-16">
-      <block wx:if="{{meeting.checkInPlace}}">
-        将自动根据 GPS 签到数据结束会议并记录考勤：未签到且未准假的部员将被记为旷会（每人扣 1 分）。
-      </block>
-      <block wx:else>
-        将记录 <text class="error">{{absentUserIds.length}}</text> 人旷会（每人扣 1 分），其余未准假部员视为到场。已准假部员不扣分。
-      </block>
+      将记录 <text class="error">{{absentUserIds.length}}</text> 人旷会（每人扣 1 分），其余未准假部员视为到场。已准假部员不扣分。
     </view>
     <view class="sheet-actions mt-24">
       <button class="btn-ghost" bindtap="onCloseEndConfirm" style="flex:1">取消</button>
       <button class="btn-confirm-yellow" bindtap="onConfirmEnd" style="flex:2;" loading="{{ending}}">确认结束</button>
-    </view>
-  </view>
-</view>
-
-<!-- ====== GPS 权限弹窗 ====== -->
-<view wx:if="{{showGpsPermModal}}" class="modal-mask" bindtap="cancelGpsPerm" catchtouchmove="noop">
-  <view class="modal-card" catchtap="noop">
-    <view class="modal-title">需要位置权限</view>
-    <view class="modal-body-text">请在设置中允许小程序获取位置信息，用于例会签到验证。</view>
-    <view class="modal-actions">
-      <button class="btn btn-ghost" bindtap="cancelGpsPerm">取消</button>
-      <button class="btn btn-confirm-yellow" bindtap="confirmGpsPerm">去设置</button>
     </view>
   </view>
 </view>

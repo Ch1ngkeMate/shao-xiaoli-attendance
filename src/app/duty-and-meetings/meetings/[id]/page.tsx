@@ -1,7 +1,7 @@
 "use client";
 
 import AppShell from "@/components/AppShell";
-import { Button, Card, Checkbox, Descriptions, Form, Input, Space, Tag, Typography, message } from "antd";
+import { Button, Card, Checkbox, Descriptions, Space, Tag, Typography, message } from "antd";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import dayjs from "dayjs";
@@ -16,10 +16,6 @@ type Meeting = {
   description: string | null;
   status: "OPEN" | "ENDED";
   publisher: { displayName: string };
-  checkInPlace: string | null;
-  checkInLat: number | null;
-  checkInLng: number | null;
-  checkInRadius: number | null;
 };
 
 type LeaveI = { id: string; userId: string; status: string; user?: { displayName: string } | null };
@@ -34,7 +30,6 @@ export default function MeetingDetailPage() {
   const [leaves, setLeaves] = useState<LeaveI[]>([]);
   const [abs, setAbs] = useState<{ userId: string; amount: number; reason: string }[]>([]);
   const [absent, setAbsent] = useState<string[]>([]);
-  const [checkIns, setCheckIns] = useState<{ userId: string; createdAt: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -54,7 +49,6 @@ export default function MeetingDetailPage() {
         members?: Member[];
         leaves?: { id: string; userId: string; status: string; user: { displayName: string } }[];
         absences?: { userId: string; amount: number; reason: string }[];
-        checkIns?: { userId: string; createdAt: string }[];
       };
       if (!r.ok) {
         message.error(d.message || "加载失败");
@@ -65,7 +59,6 @@ export default function MeetingDetailPage() {
         setMembers(d.members ?? []);
         setLeaves((d.leaves as LeaveI[]) ?? []);
         setAbs(d.absences ?? []);
-        setCheckIns(d.checkIns ?? []);
         // 部长勾选「旷会」者；未勾选表示默认到场/准假/不论（仅勾选者扣 -1 且已准假禁选）
         if (d.meeting.status === "OPEN") {
           setAbsent([]);
@@ -82,22 +75,7 @@ export default function MeetingDetailPage() {
     if (id) load();
   }, [id, load]);
 
-  // 进行中的会议每 30s 自动刷新签到数据
-  useEffect(() => {
-    if (!m || m.status !== "OPEN") return;
-    const t = setInterval(() => {
-      fetch(`/api/meetings/${id}`)
-        .then((r) => r.json().catch(() => ({})))
-        .then((d: { checkIns?: { userId: string; createdAt: string }[] }) => {
-          if (d.checkIns) setCheckIns(d.checkIns);
-        })
-        .catch(() => {});
-    }, 30_000);
-    return () => clearInterval(t);
-  }, [id, m]);
-
   // 必须在所有 early return 之前调用，避免 Hook 顺序变化
-  const checkedInIds = useMemo(() => new Set(checkIns.map((c) => c.userId)), [checkIns]);
   const approved = useMemo(
     () => new Set(leaves.filter((l) => l.status === "APPROVED").map((l) => l.userId)),
     [leaves],
@@ -154,163 +132,41 @@ export default function MeetingDetailPage() {
         </Card>
 
         {m.status === "OPEN" && isMgr && (
-          <Card title={m.checkInPlace ? `GPS 签到配置：${m.checkInPlace}` : "GPS 签到配置"} size="small"
-            extra={(
-              <details style={{ cursor: "pointer", fontSize: 12, color: "#999" }}>
-                <summary>展开</summary>
-                <Form
-                  layout="inline"
-                  style={{ marginTop: 8 }}
-                  initialValues={{
-                    checkInPlace: m.checkInPlace ?? "",
-                    checkInLat: m.checkInLat ?? "",
-                    checkInLng: m.checkInLng ?? "",
-                    checkInRadius: m.checkInRadius ?? 150,
-                  }}
-                  onFinish={async (v) => {
+          <Card title="关会前：勾选未到场、且未准假的部员为「旷会」" size="small">
+            <p style={{ marginTop: 0, color: "#666" }}>
+              部员中已准假的不必勾选（已禁选）。结束后每人扣 1 分，记入当月其他分。若无人旷会，请勿勾选，直接点结束会议。
+            </p>
+            <Checkbox.Group
+              value={absent}
+              onChange={(v) => setAbsent(v as string[])}
+              options={options}
+            />
+            <div style={{ marginTop: 16 }}>
+              <Button
+                type="primary"
+                loading={saving}
+                onClick={async () => {
+                  setSaving(true);
+                  try {
+                    const realAbsent = absent.filter((uid) => !approved.has(uid));
                     const res = await fetch(`/api/meetings/${id}`, {
                       method: "POST",
                       headers: { "content-type": "application/json" },
-                      body: JSON.stringify({
-                        action: "updateCheckIn",
-                        checkInPlace: (v.checkInPlace as string)?.trim() || undefined,
-                        checkInLat: v.checkInLat ? Number(v.checkInLat) : undefined,
-                        checkInLng: v.checkInLng ? Number(v.checkInLng) : undefined,
-                        checkInRadius: v.checkInRadius ? Number(v.checkInRadius) : undefined,
-                      }),
+                      body: JSON.stringify({ action: "end", absentUserIds: realAbsent }),
                     });
-                    if (!res.ok) { message.error("保存失败"); return; }
-                    message.success("签到配置已保存");
+                    const d = (await res.json().catch(() => ({}))) as { message?: string };
+                    if (!res.ok) return message.error(d.message || "操作失败");
+                    message.success("会议已结束，已记录旷会扣分");
                     load();
-                  }}
-                >
-                  <Form.Item name="checkInPlace" label="地点">
-                    <Input placeholder="例如 3413教室" style={{ width: 140 }} />
-                  </Form.Item>
-                  <Form.Item name="checkInLat" label="纬度">
-                    <Input placeholder="例如 34.3456" style={{ width: 100 }} />
-                  </Form.Item>
-                  <Form.Item name="checkInLng" label="经度">
-                    <Input placeholder="例如 108.9400" style={{ width: 100 }} />
-                  </Form.Item>
-                  <Form.Item name="checkInRadius" label="半径(m)">
-                    <Input placeholder="150" style={{ width: 70 }} />
-                  </Form.Item>
-                  <Form.Item>
-                    <Button type="primary" htmlType="submit" size="small">保存</Button>
-                  </Form.Item>
-                </Form>
-              </details>
-            )}
-          >
-            {m.checkInPlace ? (
-              <>
-                <Typography.Text type="secondary">
-                  已签到 {checkIns.length} / {members.length} 人 · 半径 {m.checkInRadius ?? 150}m
-                  {m.status === "OPEN" && " · 每 30s 自动刷新"}
-                </Typography.Text>
-                {checkIns.length > 0 && (
-                  <div style={{ marginTop: 8 }}>
-                    {checkIns.map((c) => (
-                      <Tag key={c.userId} color="green" style={{ marginBottom: 4 }}>
-                        {nameBy.get(c.userId) ?? c.userId}
-                      </Tag>
-                    ))}
-                  </div>
-                )}
-                {members.filter((u) => !checkedInIds.has(u.id)).length > 0 && (
-                  <div style={{ marginTop: 4 }}>
-                    <Typography.Text type="secondary">未签到：</Typography.Text>
-                    {members
-                      .filter((u) => !checkedInIds.has(u.id))
-                      .map((u) => (
-                        <Tag key={u.id} style={{ marginBottom: 4 }}>
-                          {u.displayName}
-                          {approved.has(u.id) ? "（已准假）" : ""}
-                        </Tag>
-                      ))}
-                  </div>
-                )}
-              </>
-            ) : (
-              <Typography.Text type="secondary">点击右侧「展开」设置签到地点与坐标，开启 GPS 签到功能。</Typography.Text>
-            )}
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+              >
+                结束会议并记录考勤
+              </Button>
+            </div>
           </Card>
-        )}
-
-        {m.status === "OPEN" && isMgr && (
-          <>
-            {/* GPS 签到模式：自动统计 */}
-            {m.checkInPlace ? (
-              <Card title={`关会：${m.checkInPlace}`} size="small">
-                <p style={{ marginTop: 0, color: "#666" }}>
-                  已签到 {checkIns.length} / {members.length} 人。
-                  系统将自动根据 GPS 签到数据统计缺勤：未签到且未准假的部员每人扣 1 分。
-                </p>
-                <div style={{ marginTop: 16 }}>
-                  <Button
-                    type="primary"
-                    loading={saving}
-                    onClick={async () => {
-                      setSaving(true);
-                      try {
-                        const res = await fetch(`/api/meetings/${id}`, {
-                          method: "POST",
-                          headers: { "content-type": "application/json" },
-                          body: JSON.stringify({ action: "end" }),
-                        });
-                        const d = (await res.json().catch(() => ({}))) as { message?: string };
-                        if (!res.ok) return message.error(d.message || "操作失败");
-                        message.success("会议已结束，已根据签到数据自动记录旷会扣分");
-                        load();
-                      } finally {
-                        setSaving(false);
-                      }
-                    }}
-                  >
-                    结束会议（自动统计考勤）
-                  </Button>
-                </div>
-              </Card>
-            ) : (
-              /* 手动勾选模式 */
-              <Card title="关会前：勾选未到场、且未准假的部员为「旷会」" size="small">
-                <p style={{ marginTop: 0, color: "#666" }}>
-                  部员中已准假的不必勾选（已禁选）。结束后每人扣 1 分，记入当月其他分。若无人旷会，请勿勾选，直接点结束会议。
-                </p>
-                <Checkbox.Group
-                  value={absent}
-                  onChange={(v) => setAbsent(v as string[])}
-                  options={options}
-                />
-                <div style={{ marginTop: 16 }}>
-                  <Button
-                    type="primary"
-                    loading={saving}
-                    onClick={async () => {
-                      setSaving(true);
-                      try {
-                        const realAbsent = absent.filter((uid) => !approved.has(uid));
-                        const res = await fetch(`/api/meetings/${id}`, {
-                          method: "POST",
-                          headers: { "content-type": "application/json" },
-                          body: JSON.stringify({ action: "end", absentUserIds: realAbsent }),
-                        });
-                        const d = (await res.json().catch(() => ({}))) as { message?: string };
-                        if (!res.ok) return message.error(d.message || "操作失败");
-                        message.success("会议已结束，已记录旷会扣分");
-                        load();
-                      } finally {
-                        setSaving(false);
-                      }
-                    }}
-                  >
-                    结束会议并记录考勤
-                  </Button>
-                </div>
-              </Card>
-            )}
-          </>
         )}
 
         {m.status === "ENDED" && abs.length > 0 && (
