@@ -154,10 +154,13 @@ Page({
   async onConfirmEnd() {
     this.setData({ ending: true });
     try {
-      const { absentUserIds, approvedUserIds } = this.data;
-      const realAbsent = absentUserIds.filter((uid) => approvedUserIds.indexOf(uid) < 0);
+      const { absentUserIds, approvedUserIds, meeting } = this.data;
+      // GPS 签到模式：不传 absentUserIds，服务端自动从签到数据计算
+      const realAbsent = meeting && meeting.checkInPlace
+        ? []
+        : absentUserIds.filter((uid) => approvedUserIds.indexOf(uid) < 0);
       await api.endMeeting(this.meetingId, realAbsent);
-      wx.showToast({ title: "会议已结束，已记录旷会扣分", icon: "success" });
+      wx.showToast({ title: "会议已结束", icon: "success" });
       this.setData({ showEndConfirm: false, ending: false });
       this.loadDetail();
     } catch (err) {
