@@ -438,3 +438,51 @@ page::before {
 .form-page,
 .profile > view,
 .duty-table { animation: anisland-fadeup 0.25s ease; }
+
+/* ===========================================
+ * 通用弹窗（替换 wx.showModal）
+ * =========================================== */
+.sheet-mask, .modal-mask {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.35);
+  z-index: 100; display: flex; align-items: flex-end; justify-content: center;
+  animation: anisland-fadein 0.25s ease;
+}
+.sheet, .modal-card {
+  width: 100%; max-width: 640rpx;
+  background: var(--color-bg-content);
+  border-radius: 48rpx 48rpx 24rpx 24rpx;
+  padding: 0 32rpx 40rpx;
+  animation: anisland-slideup 0.28s ease;
+  box-shadow: 0 -8rpx 24rpx rgba(107,92,67,0.15);
+}
+.sheet-header, .modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 32rpx 0 24rpx;
+  border-bottom: 2rpx dashed var(--color-border-light);
+}
+.sheet-title, .modal-title {
+  font-size: 32rpx; font-weight: 700; color: var(--color-text);
+  letter-spacing: 0.02em;
+}
+.sheet-close, .modal-close {
+  width: 56rpx; height: 56rpx;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36rpx; color: var(--color-text-secondary);
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+.sheet-body, .modal-body {
+  padding-top: 24rpx;
+}
+
+/* 小型确认弹窗（居中卡片） */
+.modal-mask { align-items: center; }
+.modal-card {
+  width: 560rpx; border-radius: 48rpx;
+  padding: 40rpx 32rpx 32rpx;
+  text-align: center;
+}
+.modal-card .modal-title { border-bottom: none; padding: 0 0 16rpx; }
+.modal-body-text { font-size: 28rpx; color: var(--color-text-secondary); line-height: 1.6; margin-bottom: 32rpx; }
+.modal-actions { display: flex; gap: 16rpx; }
+.modal-actions .btn { flex: 1; }

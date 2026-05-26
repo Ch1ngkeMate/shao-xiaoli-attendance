@@ -36,6 +36,10 @@ Page({
     rejectReason: "",
     leaveSubmitting: false,
 
+    // 移除值班确认弹窗
+    showDutyRemoveConfirm: false,
+    dutyRemoveAid: null,
+
     // 统计（MINISTER/ADMIN）
     stats: null,
     statsLoading: false,
@@ -165,22 +169,19 @@ Page({
 
   async onRemoveTap(e) {
     const aid = e.currentTarget.dataset.aid;
-    const that = this;
-    wx.showModal({
-      title: "移除值班",
-      content: "确定移除该干事的值班安排吗？",
-      success(res) {
-        if (res.confirm) {
-          that.confirmRemoveDuty(aid);
-        }
-      },
-    });
+    this.setData({ showDutyRemoveConfirm: true, dutyRemoveAid: aid });
   },
 
-  async confirmRemoveDuty(aid) {
+  cancelDutyRemove() {
+    this.setData({ showDutyRemoveConfirm: false, dutyRemoveAid: null });
+  },
+
+  async confirmRemoveDuty(e) {
+    const aid = (e && e.currentTarget && e.currentTarget.dataset.aid) || this.data.dutyRemoveAid;
     try {
       await api.removeDuty(aid);
       wx.showToast({ title: "已移除", icon: "success" });
+      this.setData({ showDutyRemoveConfirm: false, dutyRemoveAid: null });
       this.loadDuty();
     } catch (err) {
       wx.showToast({ title: err.message || "移除失败", icon: "none" });

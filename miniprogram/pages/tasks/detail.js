@@ -23,6 +23,9 @@ Page({
     reviewSubmissionId: "",
     reviewResult: "APPROVED",
     reviewReason: "",
+
+    showRemoveClaimConfirm: false,
+    removeClaimId: "",
   },
 
   onLoad(options) {
@@ -109,22 +112,20 @@ Page({
   onRemoveTap(e) {
     const claimId = e.currentTarget.dataset.claimId;
     if (!claimId) return;
-    const that = this;
-    wx.showModal({
-      title: "移出接取人员",
-      content: "确定移除此人的接取记录吗？",
-      success(res) {
-        if (res.confirm) {
-          that.confirmRemove(claimId);
-        }
-      },
-    });
+    this.setData({ showRemoveClaimConfirm: true, removeClaimId: claimId });
   },
 
-  async confirmRemove(claimId) {
+  cancelRemoveClaim() {
+    this.setData({ showRemoveClaimConfirm: false, removeClaimId: "" });
+  },
+
+  async confirmRemove() {
+    const claimId = this.data.removeClaimId;
+    if (!claimId) return;
     try {
       await api.removeClaim(this.taskId, undefined, claimId);
       wx.showToast({ title: "已移出", icon: "success" });
+      this.setData({ showRemoveClaimConfirm: false, removeClaimId: "" });
       this.loadDetail();
     } catch (err) {
       wx.showToast({ title: err.message || "操作失败", icon: "none" });

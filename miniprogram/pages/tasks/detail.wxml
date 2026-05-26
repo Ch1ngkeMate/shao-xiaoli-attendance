@@ -255,3 +255,15 @@
     </view>
   </view>
 </view>
+
+<!-- ====== 移出接取确认弹窗 ====== -->
+<view wx:if="{{showRemoveClaimConfirm}}" class="modal-mask" bindtap="cancelRemoveClaim" catchtouchmove="noop">
+  <view class="modal-card" catchtap="noop">
+    <view class="modal-title">移出接取人员</view>
+    <view class="modal-body-text">确定移除此人的接取记录吗？</view>
+    <view class="modal-actions">
+      <button class="btn btn-ghost" bindtap="cancelRemoveClaim">取消</button>
+      <button class="btn btn-confirm-yellow" bindtap="confirmRemove">确定移除</button>
+    </view>
+  </view>
+</view>

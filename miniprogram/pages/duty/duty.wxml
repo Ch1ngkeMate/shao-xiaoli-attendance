@@ -253,3 +253,15 @@
 
   <footer-sea />
 </view>
+
+<!-- ====== 移除值班确认弹窗 ====== -->
+<view wx:if="{{showDutyRemoveConfirm}}" class="modal-mask" bindtap="cancelDutyRemove" catchtouchmove="noop">
+  <view class="modal-card" catchtap="noop">
+    <view class="modal-title">移除值班</view>
+    <view class="modal-body-text">确定移除该干事的值班安排吗？</view>
+    <view class="modal-actions">
+      <button class="btn btn-ghost" bindtap="cancelDutyRemove">取消</button>
+      <button class="btn btn-confirm-yellow" bindtap="confirmRemoveDuty" data-aid="{{dutyRemoveAid}}">确定移除</button>
+    </view>
+  </view>
+</view>

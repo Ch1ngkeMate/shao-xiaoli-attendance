@@ -8,6 +8,7 @@ Page({
     loading: true,
     isAdminOrMinister: false,
     currentMonth: "",
+    showLogoutModal: false,
   },
 
   onLoad() {
@@ -60,16 +61,16 @@ Page({
   },
 
   onLogout() {
-    wx.showModal({
-      title: "退出登录",
-      content: "确定要退出当前账号吗？",
-      success: (res) => {
-        if (res.confirm) {
-          getApp().clearSession();
-          wx.reLaunch({ url: "/pages/login/login" });
-        }
-      },
-    });
+    this.setData({ showLogoutModal: true });
+  },
+
+  cancelLogout() {
+    this.setData({ showLogoutModal: false });
+  },
+
+  confirmLogout() {
+    getApp().clearSession();
+    wx.reLaunch({ url: "/pages/login/login" });
   },
 
   roleLabel(role) {

@@ -61,3 +61,15 @@
   <view wx:if="{{loading}}" class="leaf-spin">🍃</view>
   <view wx:if="{{loading}}" class="empty-text">加载中...</view>
 </view>
+
+<!-- ====== 退出登录确认弹窗 ====== -->
+<view wx:if="{{showLogoutModal}}" class="modal-mask" bindtap="cancelLogout" catchtouchmove="noop">
+  <view class="modal-card" catchtap="noop">
+    <view class="modal-title">退出登录</view>
+    <view class="modal-body-text">确定要退出当前账号吗？</view>
+    <view class="modal-actions">
+      <button class="btn btn-ghost" bindtap="cancelLogout">取消</button>
+      <button class="btn btn-danger" bindtap="confirmLogout">确定退出</button>
+    </view>
+  </view>
+</view>
