@@ -25,7 +25,31 @@
     <view wx:if="{{meeting.description}}" class="mt-16 meeting-desc">{{meeting.description}}</view>
   </view>
 
-  <!-- 参会人员 -->
+  <!-- GPS 签到（部员） -->
+  <view wx:if="{{meeting.checkInPlace && !meeting.endedAt && isMEMBER}}" class="card">
+    <view class="section-title">📍 GPS 签到：{{meeting.checkInPlace}}</view>
+    <view class="hint" style="margin-bottom:16rpx;">需在 {{meeting.checkInRadius || 150}} 米范围内签到</view>
+    <button
+      wx:if="{{!hasCheckedIn}}"
+      class="btn-primary btn-full"
+      bindtap="onCheckIn"
+      loading="{{checkingIn}}"
+      disabled="{{checkingIn}}"
+    >{{checkingIn ? '签到中...' : '签到'}}</button>
+    <view wx:else class="tag tag-green" style="padding:16rpx 32rpx;font-size:28rpx;">✅ 已签到</view>
+  </view>
+
+  <!-- 签到统计（管理员） -->
+  <view wx:if="{{meeting.checkInPlace && isAdminOrMinister}}" class="card">
+    <view class="flex-between">
+      <view class="section-title" style="margin-bottom:0;">📍 签到统计：{{checkIns.length}}/{{members.length}}人</view>
+      <button class="btn-link" bindtap="onViewCheckInList">查看清单</button>
+    </view>
+    <view wx:if="{{checkIns.length > 0}}" style="margin-top:12rpx;">
+      <view wx:for="{{checkIns}}" wx:key="userId" class="tag tag-green" style="margin:4rpx;">{{item.displayName}}</view>
+    </view>
+    <view wx:else class="hint" style="margin-top:12rpx;">暂无人签到</view>
+  </view>
   <view class="card">
     <view class="section-title">参会人员 ({{members.length}}人)</view>
     <view wx:if="{{members.length > 0}}">
@@ -97,6 +121,18 @@
     <view class="sheet-actions mt-24">
       <button class="btn-ghost" bindtap="onCloseEndConfirm" style="flex:1">取消</button>
       <button class="btn-confirm-yellow" bindtap="onConfirmEnd" style="flex:2;" loading="{{ending}}">确认结束</button>
+    </view>
+  </view>
+</view>
+
+<!-- ====== GPS 权限弹窗 ====== -->
+<view wx:if="{{showGpsPermModal}}" class="modal-mask" bindtap="cancelGpsPerm" catchtouchmove="noop">
+  <view class="modal-card" catchtap="noop">
+    <view class="modal-title">需要位置权限</view>
+    <view class="modal-body-text">请在设置中允许小程序获取位置信息，用于例会签到验证。</view>
+    <view class="modal-actions">
+      <button class="btn btn-ghost" bindtap="cancelGpsPerm">取消</button>
+      <button class="btn btn-confirm-yellow" bindtap="confirmGpsPerm">去设置</button>
     </view>
   </view>
 </view>

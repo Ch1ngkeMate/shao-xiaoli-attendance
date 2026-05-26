@@ -7,39 +7,61 @@ Page({
     members: [],
     leaves: [],
     absences: [],
+    checkIns: [],
     loading: true,
     isAdminOrMinister: false,
+    isMEMBER: false,
 
     // 关会
     absentUserIds: [],
     showEndConfirm: false,
     ending: false,
     approvedUserIds: [],
+
+    // 签到
+    checkingIn: false,
+    checkInResult: null, // { success, distance, message }
+    showGpsPermModal: false,
   },
 
   onLoad(options) {
     if (!getApp().checkLogin()) return;
     this.meetingId = options.id;
-    this.setData({ isAdminOrMinister: getApp().hasRole("ADMIN", "MINISTER") });
+    const app = getApp();
+    this.setData({
+      isAdminOrMinister: app.hasRole("ADMIN", "MINISTER"),
+      isMEMBER: app.hasRole("MEMBER"),
+    });
     this.loadDetail();
   },
 
   async loadDetail() {
     try {
       const res = await api.getMeetingDetail(this.meetingId);
-      // 已准假的用户 ID 集合
       const approvedUserIds = (res.leaves || [])
         .filter((l) => l.status === "APPROVED")
         .map((l) => l.userId);
+
+      const me = getApp().globalData.user;
+      const myCheckIn = (res.checkIns || []).find((c) => c.userId === (me && me.id));
+
+      // 将 userId 映射为 displayName
+      const memberNameMap = {};
+      (res.members || []).forEach((m) => { memberNameMap[m.id] = m.displayName; });
+      const checkIns = (res.checkIns || []).map((c) => ({
+        ...c,
+        displayName: memberNameMap[c.userId] || c.userId,
+      }));
 
       this.setData({
         meeting: res.meeting,
         members: res.members || [],
         leaves: res.leaves || [],
         absences: res.absences || [],
+        checkIns,
         approvedUserIds,
         loading: false,
-        // 重置关会状态
+        hasCheckedIn: !!myCheckIn,
         absentUserIds: res.meeting && res.meeting.status === "OPEN" ? [] : this.data.absentUserIds,
       });
     } catch (err) {
@@ -54,12 +76,61 @@ Page({
     });
   },
 
+  // ========== GPS 签到 ==========
+
+  onCheckIn() {
+    const that = this;
+    wx.getLocation({
+      type: "gcj02",
+      timeout: 10000,
+      success(res) {
+        that.doCheckIn(res.latitude, res.longitude);
+      },
+      fail(err) {
+        if (err.errMsg && err.errMsg.indexOf("auth deny") >= 0) {
+          that.setData({ showGpsPermModal: true });
+        } else {
+          wx.showToast({ title: "获取位置失败，请重试", icon: "none" });
+        }
+      },
+    });
+  },
+
+  confirmGpsPerm() {
+    this.setData({ showGpsPermModal: false });
+    wx.openSetting();
+  },
+
+  cancelGpsPerm() {
+    this.setData({ showGpsPermModal: false });
+  },
+
+  async doCheckIn(lat, lng) {
+    this.setData({ checkingIn: true, checkInResult: null });
+    try {
+      const res = await api.checkInMeeting(this.meetingId, lat, lng);
+      if (res.success) {
+        wx.showToast({ title: `签到成功（${res.distance}m）`, icon: "success" });
+      } else {
+        wx.showToast({ title: res.message || "签到失败", icon: "none", duration: 3000 });
+      }
+      this.setData({ checkInResult: res, checkingIn: false });
+      this.loadDetail();
+    } catch (err) {
+      this.setData({ checkingIn: false });
+      wx.showToast({ title: err.message || "签到失败", icon: "none" });
+    }
+  },
+
+  onViewCheckInList() {
+    wx.navigateTo({ url: `/pages/meetings/checkin-list?id=${this.meetingId}` });
+  },
+
   // ========== 关会 ==========
 
   onToggleAbsent(e) {
     const userId = e.currentTarget.dataset.uid;
     const { approvedUserIds } = this.data;
-    // 已准假的不可选
     if (approvedUserIds.indexOf(userId) >= 0) return;
 
     const absent = [...this.data.absentUserIds];
@@ -83,7 +154,6 @@ Page({
   async onConfirmEnd() {
     this.setData({ ending: true });
     try {
-      // 过滤掉已准假的人员（后端也会校验，但前端提前过滤）
       const { absentUserIds, approvedUserIds } = this.data;
       const realAbsent = absentUserIds.filter((uid) => approvedUserIds.indexOf(uid) < 0);
       await api.endMeeting(this.meetingId, realAbsent);
@@ -95,8 +165,6 @@ Page({
       wx.showToast({ title: err.message || "操作失败", icon: "none" });
     }
   },
-
-  // formatTime 从 utils/format.js 引用
 
   onShareAppMessage() {
     const m = this.data.meeting;
