@@ -106,6 +106,16 @@ function getMeetingDetail(id) {
   return request({ url: `/api/meetings/${id}` });
 }
 
+/** GPS 签到 */
+function checkInMeeting(meetingId, lat, lng) {
+  return request({ url: `/api/meetings/${meetingId}/check-in`, method: "POST", data: { lat, lng } });
+}
+
+/** 获取签到清单（管理员） */
+function getCheckInList(meetingId) {
+  return request({ url: `/api/meetings/${meetingId}/check-in` });
+}
+
 /** 结束会议（记旷会） */
 function endMeeting(id, absentUserIds) {
   return request({ url: `/api/meetings/${id}`, method: "POST", data: { action: "end", absentUserIds } });
@@ -262,7 +272,7 @@ module.exports = {
   reviewSubmission,
   getTaskSubmissions,
   // 会议
-  getMeetings, createMeeting, getMeetingDetail, endMeeting,
+  getMeetings, createMeeting, getMeetingDetail, endMeeting, checkInMeeting, getCheckInList,
   // 值班
   getDuty, addDuty, removeDuty,
   // 请假

@@ -1,7 +1,7 @@
 "use client";
 
 import AppShell from "@/components/AppShell";
-import { Button, Card, Checkbox, Descriptions, Space, Tag, Typography, message } from "antd";
+import { Button, Card, Checkbox, Descriptions, Form, Input, Space, Tag, Typography, message } from "antd";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import dayjs from "dayjs";
@@ -16,6 +16,10 @@ type Meeting = {
   description: string | null;
   status: "OPEN" | "ENDED";
   publisher: { displayName: string };
+  checkInPlace: string | null;
+  checkInLat: number | null;
+  checkInLng: number | null;
+  checkInRadius: number | null;
 };
 
 type LeaveI = { id: string; userId: string; status: string; user?: { displayName: string } | null };

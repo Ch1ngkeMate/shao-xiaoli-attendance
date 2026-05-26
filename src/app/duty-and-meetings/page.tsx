@@ -85,7 +85,7 @@ function DutyAndMeetingsPageInner() {
   const [pick, setPick] = useState<{ w: number; p: number } | null>(null);
   const [aForm] = Form.useForm<{ userId: string; deptLabel: string }>();
   const [meetings, setMeetings] = useState<MeetingRow[]>([]);
-  const [mForm] = Form.useForm<{ title: string; startTime: Dayjs; endTime: Dayjs; place: string; description: string }>();
+  const [mForm] = Form.useForm<{ title: string; startTime: Dayjs; endTime: Dayjs; place: string; description: string; checkInPlace: string; checkInLat: string; checkInLng: string; checkInRadius: number }>();
   const [mOpen, setMOpen] = useState(false);
   const [leaveList, setLeaveList] = useState<LeaveR[]>([]);
   /** 管理人员打开的请假条弹窗（待批记录） */
@@ -394,6 +394,8 @@ function DutyAndMeetingsPageInner() {
                 endTime: dayjs().add(1, "day").hour(14).minute(0),
                 place: "",
                 description: "",
+                checkInPlace: "",
+                checkInRadius: 150,
               });
             }
           }}
@@ -411,6 +413,10 @@ function DutyAndMeetingsPageInner() {
                   endTime: v.endTime ? v.endTime.toISOString() : undefined,
                   place: v.place,
                   description: v.description,
+                  checkInPlace: v.checkInPlace?.trim() || undefined,
+                  checkInLat: typeof v.checkInLat === "number" ? v.checkInLat : undefined,
+                  checkInLng: typeof v.checkInLng === "number" ? v.checkInLng : undefined,
+                  checkInRadius: v.checkInRadius ? Number(v.checkInRadius) : undefined,
                 }),
               });
               const d = (await r.json().catch(() => ({}))) as { message?: string };
@@ -434,6 +440,25 @@ function DutyAndMeetingsPageInner() {
             </Form.Item>
             <Form.Item name="description" label="说明">
               <Input.TextArea rows={2} />
+            </Form.Item>
+            <Form.Item
+              name="checkInPlace"
+              label="签到地点名称（可空，填后开启 GPS 签到）"
+            >
+              <Input placeholder="如 102 教室 / 图书馆门口" />
+            </Form.Item>
+            <Form.Item style={{ marginBottom: 0 }}>
+              <Space>
+                <Form.Item name="checkInLat" label="签到纬度" style={{ marginBottom: 0 }}>
+                  <Input placeholder="如 34.1234" style={{ width: 160 }} />
+                </Form.Item>
+                <Form.Item name="checkInLng" label="签到经度" style={{ marginBottom: 0 }}>
+                  <Input placeholder="如 108.5678" style={{ width: 160 }} />
+                </Form.Item>
+              </Space>
+            </Form.Item>
+            <Form.Item name="checkInRadius" label="允许半径（米）">
+              <Input placeholder="默认 150 米" style={{ width: 200 }} />
             </Form.Item>
           </Form>
         </Modal>

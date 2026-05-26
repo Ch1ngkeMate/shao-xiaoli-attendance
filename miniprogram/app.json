@@ -9,6 +9,7 @@
     "pages/announcements/detail",
     "pages/duty/duty",
     "pages/meetings/detail",
+    "pages/meetings/checkin-list",
     "pages/leave/apply",
     "pages/profile/profile",
     "pages/settings/settings",
@@ -56,6 +57,12 @@
   "style": "v2",
   "lazyCodeLoading": "requiredComponents",
   "sitemapLocation": "sitemap.json",
+  "permission": {
+    "scope.userLocation": {
+      "desc": "用于例会签到时验证您是否在会议地点附近"
+    }
+  },
+  "requiredPrivateInfos": ["getLocation"],
   "usingComponents": {
     "icon": "/components/icon/icon",
     "divider": "/components/divider/divider",

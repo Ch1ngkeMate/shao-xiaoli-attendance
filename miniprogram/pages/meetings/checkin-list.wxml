@@ -1,0 +1,38 @@
+<view wx:if="{{loading}}" class="load-more">加载中...</view>
+
+<block wx:elif="{{meeting}}">
+  <view class="card">
+    <view class="meeting-title">{{meeting.title}}</view>
+    <view wx:if="{{meeting.checkInPlace}}" class="hint mt-8">📍 {{meeting.checkInPlace}} · 半径 {{meeting.checkInRadius || 150}}m</view>
+  </view>
+
+  <!-- 已签到 -->
+  <view class="card">
+    <view class="section-title">✅ 已签到 {{checkIns.length}}/{{totalMembers}} 人</view>
+    <view wx:if="{{checkIns.length > 0}}">
+      <view wx:for="{{checkIns}}" wx:key="userId" class="flex-between" style="padding:12rpx 0;border-bottom:1rpx solid var(--color-split);">
+        <view class="flex-row gap-8">
+          <text class="tag tag-green">{{item.displayName}}</text>
+        </view>
+        <text class="hint">{{item.createdAt}}</text>
+      </view>
+    </view>
+    <view wx:else class="hint">暂无</view>
+  </view>
+
+  <!-- 未签到 -->
+  <view wx:if="{{notCheckedIn.length > 0}}" class="card">
+    <view class="section-title">❌ 未签到 {{notCheckedIn.length}} 人</view>
+    <view wx:for="{{notCheckedIn}}" wx:key="id" class="flex-between" style="padding:12rpx 0;border-bottom:1rpx solid var(--color-split);">
+      <view class="flex-row gap-8">
+        <text>{{item.displayName}}</text>
+        <text wx:if="{{item.onLeave}}" class="tag tag-gray">已准假</text>
+      </view>
+    </view>
+  </view>
+</block>
+
+<view wx:elif="{{!loading}}" class="empty">
+  <view class="empty-icon">📋</view>
+  <view>未找到会议</view>
+</view>

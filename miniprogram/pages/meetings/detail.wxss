@@ -5,6 +5,8 @@
 .leave-item { padding: 12rpx 0; border-bottom: 1rpx solid var(--color-bg-secondary); }
 .leave-item:last-child { border-bottom: none; }
 .btn-full { width: 100%; }
+.meeting-title { font-size: 34rpx; font-weight: 700; color: var(--color-text); }
+.checkin-stats { display: flex; flex-wrap: wrap; gap: 8rpx; margin-top: 12rpx; }
 
 /* 关会成员勾选 */
 .member-check-row {

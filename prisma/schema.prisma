@@ -63,6 +63,7 @@ model User {
   meetingAbsencesRecorded Meeting[]         @relation("MeetingRecorder")
   announcementsCreated   Announcement[]
   announcementPopupsShown AnnouncementPopupShown[]
+  meetingCheckIns       MeetingCheckIn[]
 }
 
 // --- 值班表：周一=0..周五=4，第一节=0..第五节=4，每个格子可安排多人 ---
@@ -104,12 +105,34 @@ model Meeting {
   endedBy     String?
   endRecorder User?         @relation("MeetingRecorder", fields: [endedBy], references: [id], onDelete: SetNull)
 
+  // GPS 签到配置
+  checkInPlace  String?
+  checkInLat    Float?
+  checkInLng    Float?
+  checkInRadius Int?         @default(150)
+
   leaves         LeaveRequest[]
   adjusts        AttendanceAdjust[]
   inAppMessages  InAppMessage[]
+  checkIns       MeetingCheckIn[]
 
   @@index([status, startTime])
   @@index([startTime])
+}
+
+model MeetingCheckIn {
+  id        String   @id @default(cuid())
+  meetingId String
+  meeting   Meeting  @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lat       Float?
+  lng       Float?
+  createdAt DateTime @default(now())
+
+  @@unique([meetingId, userId])
+  @@index([meetingId, createdAt])
+  @@index([userId])
 }
 
 enum LeaveCategory {

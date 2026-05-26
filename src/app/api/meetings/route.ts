@@ -11,6 +11,11 @@ const CreateSchema = z.object({
   endTime: z.string().optional(),
   place: z.string().optional(),
   description: z.string().optional(),
+  // GPS 签到
+  checkInPlace: z.string().optional(),
+  checkInLat: z.number().min(-90).max(90).optional(),
+  checkInLng: z.number().min(-180).max(180).optional(),
+  checkInRadius: z.number().int().min(10).max(5000).optional(),
 });
 
 export async function GET() {
@@ -51,6 +56,10 @@ export async function POST(req: Request) {
       place: p.data.place?.trim() || null,
       description: p.data.description?.trim() || null,
       publishedBy: session.sub,
+      checkInPlace: p.data.checkInPlace?.trim() || null,
+      checkInLat: p.data.checkInLat ?? null,
+      checkInLng: p.data.checkInLng ?? null,
+      checkInRadius: p.data.checkInRadius ?? null,
     },
     include: { publisher: { select: { displayName: true } } },
   });

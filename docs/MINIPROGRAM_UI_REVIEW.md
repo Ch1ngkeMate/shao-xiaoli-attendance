@@ -911,3 +911,81 @@ Phase 3（锦上添花）
   ├── §12.6 TabBar 自定义图标
   └── §12.7 空状态/加载态插图
 ```
+
+---
+
+## 十三、第四轮审查（2026-05-25 第三次修改后）
+
+### 13.1 变更摘要
+
+| 类别 | 变更 | 状态 |
+|------|------|:--:|
+| btn-confirm-yellow | 4 处弹窗确认全部改用 | ✅ |
+| 搜索栏 3D pill | tasks.wxml `class="input"` + WXSS 更新 | ✅ |
+| @import 清理 | leave/apply, settings 全部删除 | ✅ |
+| 硬编码清理 | `#e8e8e8`/`#666`/`#333`/`#f0f0f0`/`#222` → theme 变量 | ✅ |
+| login btn-ghost | `#fff` → `var(--color-bg-content)` | ✅ |
+| Loading 动画 | `.btn-primary.loading` 斜纹 + `.leaf-spin` 叶片旋转 | ✅ |
+| **SVG 素材** | 10 个 icon + 4 个 divider + footer-sea.svg **已到位** | ✅ |
+| **组件封装** | `icon`、`divider`、`footer-sea` 三个全局组件 + app.json 注册 | ✅ |
+| TabBar 配色 | 同步为 AC 暖色 `#9f927d` / `#19c8b9` / `#f8f8f0` | ✅ |
+| 组件使用 | icon 在 3 个页面、divider 在 4 个页面、footer-sea 在 1 个页面 | ⚠️ |
+| 空状态插图 | 引用 `/assets/empty-*.png` 但**文件不存在** | ❌ |
+| Tab 图标 | `images/tab-*.png` **仍未生成** | ❌ |
+| FAB 阴影 | `rgba(22,119,255,0.3)` 蓝色光晕**未改** | ❌ |
+| filter-tag | `background: #fff` **未改** | ❌ |
+
+### 13.2 素材到位但绑定不完整
+
+SVG 素材全部已就位（`miniprogram/assets/icons/`），但代码中引用有三类问题：
+
+| 问题 | 影响 |
+|------|------|
+| divider/footer-sea 组件路径写 `/miniprogram/assets/icons/` | **路径错误**，小程序 root 是 `miniprogram/`，正确路径应为 `/assets/icons/` |
+| `empty-*.png` 空状态插图引用但文件不存在 | 空状态 `<image>` 裂图 |
+| `tab-*.png` TabBar 图标文件不存在 | Tab 图标空白 |
+
+### 13.3 逐维度评分
+
+| 维度 | 上轮 | 本轮 | 变化 |
+|------|:--:|:--:|:--:|
+| CSS 收尾（6 项）| 待做 | **9** | 全部完成 |
+| btn-confirm-yellow | 4 | **9** | 4 处全部换上 |
+| Loading 动画 | 2 | **7** | 斜纹 + 叶片旋转 |
+| SVG 素材 | 0 | **8** | 10 icon + divider + footer |
+| 组件封装 | 0 | **7** | icon/divider/footer 三组件 |
+| 素材→代码绑定 | 0 | **4** | 部分使用，部分路径错误 |
+| Tab 图标 | 0 | **2** | Tab color 已改，icon 未生成 |
+| FAB 阴影残留 | 待做 | **0** | 未动 |
+
+**总评：6.5 → 7.5/10**
+
+### 13.4 冲刺 8.5/10 的剩余工作
+
+**P0 — 修复素材路径（3 项，会影响运行）**
+
+| # | 文件 | 问题 | 正确值 |
+|:--:|------|------|--------|
+| 1 | `divider/divider.wxml` `footer-sea/footer-sea.wxml` | `src="/miniprogram/assets/icons/..."`  | `src="/assets/icons/..."` |
+| 2 | `images/tab-*.png` × 8 | 文件不存在 | 用 SVG icon 导出为 81×81 PNG |
+| 3 | `assets/empty-*.png` × 5 | 引用但文件不存在 | AI 生图或 CSS 降级 |
+
+**P1 — 补完组件使用面（让图标覆盖所有页面）**
+
+| # | 场景 | 当前 | 改为 |
+|:--:|------|------|------|
+| 4 | 任务空状态 | emoji 📋 | `<icon name="design" size="80" />` 或保留空状态插图 |
+| 5 | 消息空状态 | emoji 💬 | `<icon name="chat" size="80" />` |
+| 6 | 请假空状态 | emoji 📝 | `<icon name="design" size="80" />` |
+| 7 | 统计空状态 | emoji 📊 | `<icon name="miles" size="80" />` |
+| 8 | 首页/各页底部 | 无 | 添加 `<footer-sea />` |
+
+**P2 — CSS 残余（3 行）**
+
+| # | 文件 | 内容 |
+|:--:|------|------|
+| 9 | `tasks.wxss:75` `messages.wxss:32` | FAB 阴影改 `rgba(107,92,67,0.35)` |
+| 10 | `tasks.wxss:26` | filter-tag `background: #fff` → `var(--color-bg-content)` |
+| 11 | `meetings/detail.wxss:18` | checkbox `color: #ccc` → `var(--color-text-disabled)` |
+
+**全部 11 项，P0 修复 3 项路径问题即可上线，P1+P2 锦上添花。**
