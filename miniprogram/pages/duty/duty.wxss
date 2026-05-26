@@ -505,6 +505,26 @@
   to { transform: translateY(0); }
 }
 
+/* picker-view 内嵌标签 */
+.duty-select {
+  display: flex; align-items: center;
+  min-height: 72rpx; padding: 0 28rpx;
+  color: var(--color-text-disabled);
+  font-size: 26rpx;
+  background: var(--color-bg-content);
+  border-radius: 100rpx;
+  border: 2.5px solid var(--color-border-light);
+}
+.duty-picker-label {
+  display: flex; align-items: center;
+  min-height: 72rpx; padding: 0 28rpx;
+  color: var(--color-text);
+  font-size: 28rpx; font-weight: 600;
+  background: var(--color-primary-bg);
+  border-radius: 100rpx;
+  border: 2.5px solid var(--color-primary);
+}
+
 /* ===== 工具间距 ===== */
 .mt-8 { margin-top: 8rpx; }
 .mt-16 { margin-top: 24rpx; }

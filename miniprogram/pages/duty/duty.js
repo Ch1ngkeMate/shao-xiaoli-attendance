@@ -221,6 +221,20 @@ Page({
   onMeetingTitleInput(e) { this.setData({ meetingTitle: e.detail.value }); },
   onMeetingPlaceInput(e) { this.setData({ meetingPlace: e.detail.value }); },
   onMeetingDescInput(e) { this.setData({ meetingDesc: e.detail.value }); },
+
+  _meetingLabel(idx) {
+    if (!this.data.dateTimeRange) return '';
+    const [dates, hours, mins] = this.data.dateTimeRange;
+    return (dates[idx[0]] || '') + ' ' + (hours[idx[1]] || '') + (mins[idx[2]] || '');
+  },
+  onMeetingStartViewChange(e) {
+    const idx = e.detail.value;
+    this.setData({ meetingStartIdx: idx, meetingStartLabel: this._meetingLabel(idx) });
+  },
+  onMeetingEndViewChange(e) {
+    const idx = e.detail.value;
+    this.setData({ meetingEndIdx: idx, meetingEndLabel: this._meetingLabel(idx) });
+  },
   onMeetingStartChange(e) { this.setData({ meetingStartIdx: e.detail.value }); },
   onMeetingEndChange(e) { this.setData({ meetingEndIdx: e.detail.value }); },
   onCloseMeetingSheet() { this.setData({ showMeetingSheet: false }); },

@@ -236,13 +236,21 @@
       <view class="form-label">会议主题</view>
       <input class="form-input" placeholder="请输入会议主题" value="{{meetingTitle}}" bindinput="onMeetingTitleInput" maxlength="200" />
       <view class="form-label mt-16">开始时间</view>
-      <picker mode="multiSelector" range="{{dateTimeRange}}" value="{{meetingStartIdx}}" bindchange="onMeetingStartChange">
-        <view class="form-input duty-select">{{meetingStartLabel || '请选择开始时间'}}</view>
-      </picker>
+      <view class="form-input duty-select" wx:if="{{!meetingStartLabel}}">请选择开始时间</view>
+      <view class="duty-picker-label" wx:else>{{meetingStartLabel}}</view>
+      <picker-view value="{{meetingStartIdx}}" bindchange="onMeetingStartViewChange" indicator-style="height:64rpx;border-top:2rpx solid var(--color-primary);border-bottom:2rpx solid var(--color-primary);" style="width:100%;height:180rpx;">
+        <picker-view-column wx:for="{{dateTimeRange}}" wx:for-item="col" wx:key="*this">
+          <view wx:for="{{col}}" wx:for-item="opt" wx:key="*this" style="line-height:64rpx;text-align:center;font-size:26rpx;color:var(--color-text);">{{opt}}</view>
+        </picker-view-column>
+      </picker-view>
       <view class="form-label mt-16">结束时间（选填）</view>
-      <picker mode="multiSelector" range="{{dateTimeRange}}" value="{{meetingEndIdx}}" bindchange="onMeetingEndChange">
-        <view class="form-input duty-select">{{meetingEndLabel || '请选择结束时间'}}</view>
-      </picker>
+      <view class="form-input duty-select" wx:if="{{!meetingEndLabel}}">请选择结束时间</view>
+      <view class="duty-picker-label" wx:else>{{meetingEndLabel}}</view>
+      <picker-view value="{{meetingEndIdx}}" bindchange="onMeetingEndViewChange" indicator-style="height:64rpx;border-top:2rpx solid var(--color-primary);border-bottom:2rpx solid var(--color-primary);" style="width:100%;height:180rpx;">
+        <picker-view-column wx:for="{{dateTimeRange}}" wx:for-item="col" wx:key="*this">
+          <view wx:for="{{col}}" wx:for-item="opt" wx:key="*this" style="line-height:64rpx;text-align:center;font-size:26rpx;color:var(--color-text);">{{opt}}</view>
+        </picker-view-column>
+      </picker-view>
       <view class="form-label mt-16">地点（选填）</view>
       <input class="form-input" placeholder="如 会议室A" value="{{meetingPlace}}" bindinput="onMeetingPlaceInput" maxlength="100" />
       <view class="form-label mt-16">说明（选填）</view>
