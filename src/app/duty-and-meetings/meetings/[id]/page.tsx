@@ -149,33 +149,87 @@ export default function MeetingDetailPage() {
           </Descriptions>
         </Card>
 
-        {m.checkInPlace && (
-          <Card title={`GPS 签到：${m.checkInPlace}`} size="small">
-            <Typography.Text type="secondary">
-              已签到 {checkIns.length} / {members.length} 人 · 半径 {m.checkInRadius ?? 150}m
-              {m.status === "OPEN" && " · 每 30s 自动刷新"}
-            </Typography.Text>
-            {checkIns.length > 0 && (
-              <div style={{ marginTop: 12 }}>
-                {checkIns.map((c) => (
-                  <Tag key={c.userId} color="green" style={{ marginBottom: 4 }}>
-                    {nameBy.get(c.userId) ?? c.userId}
-                  </Tag>
-                ))}
-              </div>
+        {m.status === "OPEN" && isMgr && (
+          <Card title={m.checkInPlace ? `GPS 签到配置：${m.checkInPlace}` : "GPS 签到配置"} size="small"
+            extra={(
+              <details style={{ cursor: "pointer", fontSize: 12, color: "#999" }}>
+                <summary>展开</summary>
+                <Form
+                  layout="inline"
+                  style={{ marginTop: 8 }}
+                  initialValues={{
+                    checkInPlace: m.checkInPlace ?? "",
+                    checkInLat: m.checkInLat ?? "",
+                    checkInLng: m.checkInLng ?? "",
+                    checkInRadius: m.checkInRadius ?? 150,
+                  }}
+                  onFinish={async (v) => {
+                    const res = await fetch(`/api/meetings/${id}`, {
+                      method: "POST",
+                      headers: { "content-type": "application/json" },
+                      body: JSON.stringify({
+                        action: "updateCheckIn",
+                        checkInPlace: (v.checkInPlace as string)?.trim() || undefined,
+                        checkInLat: v.checkInLat ? Number(v.checkInLat) : undefined,
+                        checkInLng: v.checkInLng ? Number(v.checkInLng) : undefined,
+                        checkInRadius: v.checkInRadius ? Number(v.checkInRadius) : undefined,
+                      }),
+                    });
+                    if (!res.ok) { message.error("保存失败"); return; }
+                    message.success("签到配置已保存");
+                    load();
+                  }}
+                >
+                  <Form.Item name="checkInPlace" label="地点">
+                    <Input placeholder="例如 3413教室" style={{ width: 140 }} />
+                  </Form.Item>
+                  <Form.Item name="checkInLat" label="纬度">
+                    <Input placeholder="例如 34.3456" style={{ width: 100 }} />
+                  </Form.Item>
+                  <Form.Item name="checkInLng" label="经度">
+                    <Input placeholder="例如 108.9400" style={{ width: 100 }} />
+                  </Form.Item>
+                  <Form.Item name="checkInRadius" label="半径(m)">
+                    <Input placeholder="150" style={{ width: 70 }} />
+                  </Form.Item>
+                  <Form.Item>
+                    <Button type="primary" htmlType="submit" size="small">保存</Button>
+                  </Form.Item>
+                </Form>
+              </details>
             )}
-            {members.filter((u) => !checkedInIds.has(u.id)).length > 0 && (
-              <div style={{ marginTop: 8 }}>
-                <Typography.Text type="secondary">未签到：</Typography.Text>
-                {members
-                  .filter((u) => !checkedInIds.has(u.id))
-                  .map((u) => (
-                    <Tag key={u.id} style={{ marginBottom: 4 }}>
-                      {u.displayName}
-                      {approved.has(u.id) ? "（已准假）" : ""}
-                    </Tag>
-                  ))}
-              </div>
+          >
+            {m.checkInPlace ? (
+              <>
+                <Typography.Text type="secondary">
+                  已签到 {checkIns.length} / {members.length} 人 · 半径 {m.checkInRadius ?? 150}m
+                  {m.status === "OPEN" && " · 每 30s 自动刷新"}
+                </Typography.Text>
+                {checkIns.length > 0 && (
+                  <div style={{ marginTop: 8 }}>
+                    {checkIns.map((c) => (
+                      <Tag key={c.userId} color="green" style={{ marginBottom: 4 }}>
+                        {nameBy.get(c.userId) ?? c.userId}
+                      </Tag>
+                    ))}
+                  </div>
+                )}
+                {members.filter((u) => !checkedInIds.has(u.id)).length > 0 && (
+                  <div style={{ marginTop: 4 }}>
+                    <Typography.Text type="secondary">未签到：</Typography.Text>
+                    {members
+                      .filter((u) => !checkedInIds.has(u.id))
+                      .map((u) => (
+                        <Tag key={u.id} style={{ marginBottom: 4 }}>
+                          {u.displayName}
+                          {approved.has(u.id) ? "（已准假）" : ""}
+                        </Tag>
+                      ))}
+                  </div>
+                )}
+              </>
+            ) : (
+              <Typography.Text type="secondary">点击右侧「展开」设置签到地点与坐标，开启 GPS 签到功能。</Typography.Text>
             )}
           </Card>
         )}
