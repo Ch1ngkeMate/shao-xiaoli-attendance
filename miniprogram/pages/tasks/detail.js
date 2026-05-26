@@ -46,7 +46,6 @@ Page({
       if (task.images) task.images.forEach((img) => { img.url = fixUrl(img.url); });
       task.imageUrls = (task.images || []).map((img) => img.url);
       if (task.claims) task.claims.forEach((c) => { if (c.user) c.user.avatarUrl = fixUrl(c.user.avatarUrl); });
-      if (task.claims) task.claims.forEach((c) => { if (c.user) c.user.avatarUrl = fixUrl(c.user.avatarUrl); });
 
       // 我接取了哪些时段（支持一人接多段）
       const myClaimedSlotIds = [];
@@ -77,10 +76,13 @@ Page({
         } catch { /* 忽略 */ }
       }
 
-      // 补全 submissionsForReview 中的图片 URL
+      // 补全 submissionsForReview 中的图片 URL + 用户头像
       submissionsForReview.forEach((s) => {
         if (s.evidenceImages) {
           s.evidenceImages.forEach((img) => { img.url = fixUrl(img.url); });
+        }
+        if (s.user && s.user.avatarUrl) {
+          s.user.avatarUrl = fixUrl(s.user.avatarUrl);
         }
       });
       // 补全 mySubmission 中的图片 URL
