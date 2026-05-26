@@ -212,6 +212,8 @@
 }
 .duty-sheet-body {
   padding-bottom: 24rpx;
+  max-height: 60vh;
+  overflow-y: auto;
 }
 
 /* 表单标签 */
@@ -523,6 +525,7 @@
   background: var(--color-primary-bg);
   border-radius: 100rpx;
   border: 2.5px solid var(--color-primary);
+  white-space: nowrap;
 }
 
 /* ===== 工具间距 ===== */
