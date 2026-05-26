@@ -124,6 +124,7 @@
   box-shadow: 0 1rpx 0 0 var(--color-shadow-input);
   transform: translateY(2rpx);
 }
+.btn-sm-inline {
   flex-shrink: 0; padding: 12rpx 24rpx;
   font-size: 24rpx; font-weight: 600;
   border-radius: 100rpx;
