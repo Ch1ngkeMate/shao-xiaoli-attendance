@@ -81,6 +81,7 @@
   width: 40rpx; height: 40rpx;
   border-radius: 50%;
   background: var(--color-border-secondary);
+  overflow: hidden;
 }
 .avatar-placeholder-xs {
   display: flex; align-items: center; justify-content: center;
@@ -129,6 +130,8 @@
   width: 44rpx; height: 44rpx;
   border-radius: 50%;
   flex-shrink: 0;
+  background: var(--color-border-light);
+  overflow: hidden;
 }
 .review-avatar-placeholder {
   background: var(--color-border-light);

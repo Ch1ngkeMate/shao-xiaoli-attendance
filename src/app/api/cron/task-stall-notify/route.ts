@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { runTaskStallNotifications } from "@/lib/task-stall-notify";
+import { autoCloseExpiredTasks } from "@/lib/task-expire-close";
 
 /**
  * 计划任务调用：在环境变量 CRON_SECRET 非空时，请求头需携带
@@ -19,8 +20,11 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { notifiedTasks } = await runTaskStallNotifications();
-    return NextResponse.json({ ok: true, notifiedTasks });
+    const [stall, expired] = await Promise.all([
+      runTaskStallNotifications(),
+      autoCloseExpiredTasks(),
+    ]);
+    return NextResponse.json({ ok: true, notifiedTasks: stall.notifiedTasks, closedExpired: expired });
   } catch (e) {
     void console.error("[cron/task-stall-notify]", e);
     return NextResponse.json({ message: "执行失败" }, { status: 500 });

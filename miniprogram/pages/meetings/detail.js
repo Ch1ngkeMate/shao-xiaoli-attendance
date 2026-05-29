@@ -61,17 +61,17 @@ Page({
 
   onToggleAbsent(e) {
     const userId = e.currentTarget.dataset.uid;
-    const { approvedUserIds } = this.data;
+    const idx = e.currentTarget.dataset.index;
+    const { members, approvedUserIds } = this.data;
     if (approvedUserIds.indexOf(userId) >= 0) return;
 
-    const absent = [...this.data.absentUserIds];
-    const idx = absent.indexOf(userId);
-    if (idx >= 0) {
-      absent.splice(idx, 1);
-    } else {
-      absent.push(userId);
-    }
-    this.setData({ absentUserIds: absent });
+    const key = `members[${idx}].checked`;
+    this.setData({
+      [key]: !members[idx].checked,
+      absentUserIds: this.data.absentUserIds.includes(userId)
+        ? this.data.absentUserIds.filter((id) => id !== userId)
+        : [...this.data.absentUserIds, userId],
+    });
   },
 
   onOpenEndConfirm() {

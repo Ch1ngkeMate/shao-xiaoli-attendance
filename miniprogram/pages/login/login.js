@@ -1,19 +1,23 @@
-const api = require("../../utils/api");
-const { getApiBase } = require("../../utils/config");
+const app = getApp();
 
 Page({
   data: {
     realName: "",
     loading: false,
-    logoUrl: getApiBase() + "/dept-logo.png",
+    logoUrl: "/assets/dept-logo.png",
     logoFailed: false,
-    autoLogin: false,
+    showForm: false,
   },
 
   onLoad() {
-    if (wx.getStorageSync("sxl_bound")) {
-      this.setData({ autoLogin: true });
+    // 已有 token 则自动登录，不展示表单
+    const token = wx.getStorageSync("sxl_token");
+    if (token) {
+      app.globalData.token = token;
+      app.globalData.user = wx.getStorageSync("sxl_user");
       this.onWxLogin();
+    } else {
+      this.setData({ showForm: true });
     }
   },
 
@@ -21,71 +25,40 @@ Page({
     this.setData({ logoFailed: true });
   },
 
-  onNameInput(e) {
-    this.setData({ realName: (e.detail.value || "").trim() });
-  },
-
-  wxLoginCode() {
-    return new Promise((resolve, reject) => {
-      wx.login({
-        success: (res) => {
-          if (res.code) resolve(res.code);
-          else reject(new Error("获取微信 code 失败"));
-        },
-        fail: reject,
-      });
-    });
-  },
+  onNameInput(e) { this.setData({ realName: e.detail.value }); },
 
   async onBind() {
-    const realName = this.data.realName;
-    if (!realName) {
-      wx.showToast({ title: "请输入姓名", icon: "none" });
-      return;
-    }
+    const realName = this.data.realName.trim();
+    if (!realName) { wx.showToast({ title: "请输入真实姓名", icon: "none" }); return; }
     this.setData({ loading: true });
     try {
-      const code = await this.wxLoginCode();
-      const data = await api.bindLogin(code, realName);
-      if (!data.success) throw new Error(data.message || "绑定失败");
-      getApp().setSession(data.token, data.user);
-      wx.setStorageSync("sxl_bound", true);
-      wx.showToast({ title: "绑定成功", icon: "success" });
-      wx.reLaunch({ url: "/pages/tasks/tasks" });
-    } catch (e) {
-      wx.showToast({
-        title: e.message || "绑定失败",
-        icon: "none",
-        duration: 2500,
-      });
-    } finally {
+      const res = await wx.login();
+      if (!res.code) throw new Error("微信登录失败");
+      const api = require("../../utils/api");
+      const result = await api.bindLogin(res.code, realName);
+      app.setSession(result.token, result.user);
+      wx.switchTab({ url: "/pages/tasks/tasks" });
+    } catch (err) {
       this.setData({ loading: false });
+      wx.showToast({ title: err.message || "绑定失败", icon: "none" });
     }
   },
 
   async onWxLogin() {
     this.setData({ loading: true });
     try {
-      const code = await this.wxLoginCode();
-      const data = await api.wxLogin(code);
-      if (!data.success) throw new Error(data.message || "登录失败");
-      getApp().setSession(data.token, data.user);
-      wx.setStorageSync("sxl_bound", true);
-      wx.reLaunch({ url: "/pages/tasks/tasks" });
-    } catch (e) {
-      if (this.data.autoLogin) {
-        wx.removeStorageSync("sxl_bound");
-        this.setData({ autoLogin: false, loading: false });
-        return;
-      }
-      wx.showToast({
-        title: e.message || "请先完成姓名绑定",
-        icon: "none",
-        duration: 2500,
-      });
+      const res = await wx.login();
+      if (!res.code) throw new Error("微信登录失败");
+      const api = require("../../utils/api");
+      const result = await api.wxLogin(res.code);
+      app.setSession(result.token, result.user);
+      wx.switchTab({ url: "/pages/tasks/tasks" });
+    } catch (err) {
       this.setData({ loading: false });
-      return;
+      wx.showToast({ title: err.message || "登录失败", icon: "none" });
+      // 自动登录失败（如后台解绑了 openid），清除旧凭据并展示表单
+      app.clearSession();
+      this.setData({ showForm: true, realName: "" });
     }
-    this.setData({ loading: false });
   },
 });

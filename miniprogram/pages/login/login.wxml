@@ -8,7 +8,7 @@
   <view class="brand-subtitle">宣传部</view>
 </view>
 
-<view class="card">
+<view wx:if="{{showForm}}" class="card">
   <view class="title">首次使用请绑定</view>
   <view class="hint">请输入与系统一致的「显示姓名」，绑定后可微信一键登录。</view>
   <input

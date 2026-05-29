@@ -7,8 +7,16 @@ import { isAllClaimantsSubmittedAndApproved } from "./task-all-claimants-state";
  * 与列表/详情中 allClaimantsApproved 判定一致
  */
 export async function tryAutoCloseTaskIfAllClaimantsApproved(taskId: string) {
-  const task = await prisma.task.findUnique({ where: { id: taskId } });
+  const task = await prisma.task.findUnique({
+    where: { id: taskId },
+    include: { timeSlots: { select: { headcountHint: true } } },
+  });
   if (!task || task.status === "CLOSED") return;
+
+  // 有无限无上限的时段，不自动关（新人随时可接）
+  const hasUnlimited = task.timeSlots.some((s) => s.headcountHint == null || s.headcountHint === 0);
+  if (hasUnlimited) return;
+
   const ok = await isAllClaimantsSubmittedAndApproved(taskId);
   if (!ok) return;
   await prisma.task.update({ where: { id: taskId }, data: { status: "CLOSED" } });

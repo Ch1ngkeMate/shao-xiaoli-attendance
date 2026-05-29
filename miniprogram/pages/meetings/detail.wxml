@@ -1,4 +1,6 @@
-<block wx:elif="{{!loading}}">
+<view wx:if="{{loading}}" class="load-more">加载中...</view>
+
+<block wx:if="{{!loading}}">
   <view class="card">
     <view class="meeting-title">{{meeting.title}}</view>
     <view wx:if="{{meeting.place}}" class="hint mt-8">📍 {{meeting.place}}</view>
@@ -26,14 +28,14 @@
       勾选未到场且未准假的部员为「旷会」（每人扣 1 分）。已准假的部员已自动排除，无需勾选。若无人旷会，直接点结束。
     </view>
     <view wx:if="{{members.length > 0}}">
-      <view wx:for="{{members}}" wx:key="id" class="flex-between member-check-row">
+      <view wx:for="{{members}}" wx:key="id" class="flex-between member-check-row" data-uid="{{item.id}}" data-index="{{index}}" bindtap="onToggleAbsent">
         <view class="flex-row gap-8">
           <text>{{item.displayName}}</text>
           <text wx:if="{{approvedUserIds.indexOf(item.id) >= 0}}" class="tag tag-gray tag-sm">已准假</text>
         </view>
         <view wx:if="{{approvedUserIds.indexOf(item.id) >= 0}}" class="tag tag-gray tag-sm">✔ 免记</view>
-        <view wx:else data-uid="{{item.id}}" bindtap="onToggleAbsent">
-          <view wx:if="{{absentUserIds.indexOf(item.id) >= 0}}" class="checkbox checked">☑</view>
+        <view wx:else>
+          <view wx:if="{{item.checked}}" class="checkbox checked">☑</view>
           <view wx:else class="checkbox">☐</view>
         </view>
       </view>
