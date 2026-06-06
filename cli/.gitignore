@@ -1,0 +1,4 @@
+# 考勤CLI工具 — 忽略文件
+.kaoqin_session.json
+__pycache__/
+*.pyc

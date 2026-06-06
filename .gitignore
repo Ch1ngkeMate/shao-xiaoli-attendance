@@ -45,3 +45,25 @@ next-env.d.ts
 # 本地数据库与上传文件（勿提交）
 /dev.db
 /public/uploads/
+
+# 构建产物
+*.tar.gz
+*.tgz
+
+# 临时文件
+*~
+~$*
+C:Users*
+test-screenshots/
+CODE_REVIEW_REPORT.md
+CHANGES_REPORT.md
+
+# Python
+__pycache__/
+*.pyc
+.kaoqin_session.json
+
+# IDE / 工具
+.agents/
+.obsidian/
+skills-lock.json
