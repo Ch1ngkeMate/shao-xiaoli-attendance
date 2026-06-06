@@ -18,14 +18,16 @@ def get_user(client: KaoqinClient, user_id: str) -> dict:
 
 
 def create_user(client: KaoqinClient, username: str, display_name: str,
-                role: str = "MEMBER", password: str = "123456") -> dict:
-    """创建新用户"""
-    data = client._post("/api/admin/users", {
+                role: str = "MEMBER", password: str = None) -> dict:
+    """创建新用户（password 不传则使用服务端默认密码）"""
+    body = {
         "username": username,
         "displayName": display_name,
         "role": role,
-        "password": password,
-    })
+    }
+    if password:
+        body["password"] = password
+    data = client._post("/api/admin/users", body)
     return data.get("user", data)
 
 
@@ -42,11 +44,9 @@ def delete_user(client: KaoqinClient, user_id: str) -> dict:
     return client._delete(f"/api/admin/users/{user_id}")
 
 
-def reset_all_passwords(client: KaoqinClient, new_password: str = "123456") -> dict:
-    """重置所有用户密码"""
-    return client._post("/api/admin/users/reset-all-passwords", {
-        "password": new_password,
-    })
+def reset_all_passwords(client: KaoqinClient) -> dict:
+    """重置所有用户密码（使用服务端 ADMIN_RESET_PASSWORD 环境变量配置的密码）"""
+    return client._post("/api/admin/users/reset-all-passwords")
 
 
 def import_users(client: KaoqinClient, users: list[dict]) -> dict:

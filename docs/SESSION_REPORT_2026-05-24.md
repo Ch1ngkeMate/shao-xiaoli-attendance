@@ -146,7 +146,7 @@ WX_MEETING_TMPL_ID="JgaEBpufJ3JJx-LJYXh-01PPTjVzEUL4JeIpCe-zTT4"
 
 ### 6.1 部署脚本
 - 新建 `scripts/deploy.sh`，实现一键部署：备份 → 拉代码 → 装依赖 → 数据库迁移 → 构建 → 重启 PM2
-- 项目服务器路径：`/www/wwwroot/nextjs-app`，PM2 进程名：`nextjs-app`
+- 项目服务器路径：`<项目目录>`，PM2 进程名：`attendance-app`
 
 ---
 
@@ -166,7 +166,7 @@ WX_MEETING_TMPL_ID="JgaEBpufJ3JJx-LJYXh-01PPTjVzEUL4JeIpCe-zTT4"
 
 ## 八、待用户操作
 
-1. 服务器执行部署：`cd /www/wwwroot/nextjs-app && git pull && bash scripts/deploy.sh`
+1. 服务器执行部署：`cd <项目目录> && git pull && bash scripts/deploy.sh`
 2. 服务器环境变量确认已配置：`WX_APPID`、`WX_SECRET`、`WX_TASK_TMPL_ID`、`WX_MEETING_TMPL_ID`
 3. 微信开发者工具重新编译上传小程序
 4. （可选）准备 `public/dept-logo.png` 替换默认 Logo

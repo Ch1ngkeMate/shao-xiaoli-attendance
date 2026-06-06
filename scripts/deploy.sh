@@ -1,11 +1,12 @@
 #!/bin/bash
 # 部署脚本 - 在服务器上执行
-# 用法: cd /www/wwwroot/nextjs-app && bash scripts/deploy.sh
+# 用法: cd <项目目录> && bash scripts/deploy.sh
 
 set -e
 
-PROJECT_DIR="/www/wwwroot/nextjs-app"
-BACKUP_DIR="/www/backup/nextjs-app-$(date +%Y%m%d-%H%M%S)"
+# 项目目录（根据实际部署路径修改）
+PROJECT_DIR="${PROJECT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
+BACKUP_DIR="/tmp/attendance-backup-$(date +%Y%m%d-%H%M%S)"
 
 echo "=== 1. 备份当前版本 ==="
 mkdir -p "$BACKUP_DIR"
@@ -26,6 +27,6 @@ echo "=== 5. 构建项目 ==="
 npm run build
 
 echo "=== 6. 重启服务 ==="
-pm2 restart nextjs-app
+pm2 restart "${PM2_NAME:-attendance-app}"
 
 echo "=== 部署完成 ==="

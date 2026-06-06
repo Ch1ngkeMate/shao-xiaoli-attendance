@@ -13,7 +13,7 @@
 npx prisma migrate deploy
 npx prisma generate
 npm run build
-pm2 restart nextjs-app --update-env
+pm2 restart attendance-app --update-env
 ```
 
 本地自检：`npm run deploy:check`

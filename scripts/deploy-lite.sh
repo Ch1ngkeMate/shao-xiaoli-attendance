@@ -4,8 +4,9 @@
 
 set -e
 
-PROJECT_DIR="/www/wwwroot/nextjs-app"
-BACKUP_DIR="/www/backup/nextjs-app-$(date +%Y%m%d-%H%M%S)"
+# 项目目录（根据实际部署路径修改）
+PROJECT_DIR="${PROJECT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
+BACKUP_DIR="/tmp/attendance-backup-$(date +%Y%m%d-%H%M%S)"
 
 echo "=== 1. 备份当前版本 ==="
 mkdir -p "$BACKUP_DIR"
@@ -26,6 +27,6 @@ echo "=== 5. 生成 Prisma Client ==="
 npx prisma generate
 
 echo "=== 6. 重启服务 ==="
-pm2 restart nextjs-app
+pm2 restart "${PM2_NAME:-attendance-app}"
 
 echo "=== 部署完成（代码已更新，需确保 .next 已构建）==="

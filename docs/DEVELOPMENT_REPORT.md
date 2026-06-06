@@ -544,10 +544,11 @@ git diff --cached --name-only
 
 ### 11.5 服务器端：拉代码并部署
 
-推送成功后，**SSH 登录生产服务器**，进入项目目录（路径以你宝塔实际为准，下文用占位 `/www/wwwroot/shao-xiaoli-attendance`）：
+推送成功后，**SSH 登录生产服务器**，进入项目目录：
 
 ```bash
-cd /www/wwwroot/shao-xiaoli-attendance
+cd <项目目录>
+# 例如：/www/wwwroot/your-project
 
 # 可选：查看当前版本
 git log --oneline -1
@@ -565,7 +566,7 @@ bash deploy.sh
 | 3 | `npm ci` 安装依赖（可用 `NODE_HEAP_MB` 调大 Node 内存） |
 | 4 | `npx prisma migrate deploy` + `prisma generate` |
 | 5 | `npm run build` |
-| 6 | `pm2 restart nextjs-app`（名称可由环境变量 `PM2_NAME` 覆盖） |
+| 6 | `pm2 restart attendance-app`（名称可由环境变量 `PM2_NAME` 覆盖） |
 | 7 | `curl` 探测 `/api/version`、`/api/me` |
 
 **环境变量**仅在服务器配置（宝塔「环境变量」或项目根 `.env`），**不要**从 Git 拉取。首次或变更后建议：
