@@ -4,8 +4,14 @@ import { prisma } from "../src/lib/prisma";
 
 async function main() {
   const username = process.env.INIT_ADMIN_USERNAME || "admin";
-  const password = process.env.INIT_ADMIN_PASSWORD || "admin123456";
+  const password = process.env.INIT_ADMIN_PASSWORD;
   const displayName = process.env.INIT_ADMIN_DISPLAY_NAME || "系统管理员";
+
+  if (!password) {
+    console.error("错误：缺少环境变量 INIT_ADMIN_PASSWORD，请在 .env 或命令行中设置");
+    console.error("示例：INIT_ADMIN_PASSWORD=你的密码 npx tsx scripts/init-admin.ts");
+    process.exit(1);
+  }
 
   const existed = await prisma.user.findUnique({ where: { username } });
   if (existed) {

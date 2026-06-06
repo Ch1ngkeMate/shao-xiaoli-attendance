@@ -16,7 +16,6 @@ import {
   Upload,
   message,
 } from "antd";
-import { ADMIN_BULK_RESET_PASSWORD } from "@/lib/admin-default-password";
 import type { ColumnsType } from "antd/es/table";
 import { useEffect, useMemo, useState } from "react";
 import AppShell from "@/components/AppShell";
@@ -307,14 +306,14 @@ export default function AdminUsersPage() {
             </Button>
             <Popconfirm
               title="确认全员重置密码？"
-              description={`所有账号（含管理员）密码将变为：${ADMIN_BULK_RESET_PASSWORD}，操作不可撤销。`}
+              description="所有账号（含管理员）密码将重置为环境变量 ADMIN_RESET_PASSWORD 中配置的密码，操作不可撤销。"
               okText="确认重置"
               cancelText="取消"
               okButtonProps={{ danger: true }}
               onConfirm={resetAllPasswords}
             >
               <Button danger loading={bulkResetting}>
-                全员密码重置为 {ADMIN_BULK_RESET_PASSWORD}
+                全员密码重置
               </Button>
             </Popconfirm>
             <Upload
