@@ -283,13 +283,15 @@ export default async function TaskDetailPage({ params }: PageProps) {
         }
         submissionsForReview={submissionsForReview}
       />
+      <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 16px 16px" }}>
       <TaskOutcomeArchive
         taskId={task.id}
-        outcome={task.outcome ? { id: task.outcome.id, summary: task.outcome.summary, externalUrl: task.outcome.externalUrl, externalLabel: task.outcome.externalLabel, updatedAt: task.outcome.updatedAt.toISOString(), updatedBy: task.outcome.updatedBy, assets: task.outcome.assets.map((a) => ({ id: a.id, kind: a.kind, url: a.url, filename: a.filename, mimeType: a.mimeType, sizeBytes: a.sizeBytes, createdAt: a.createdAt.toISOString(), uploadedBy: a.uploadedBy })) } : null}
+        outcome={task.outcome ? { id: task.outcome.id, title: task.outcome.title, submittedAt: task.outcome.createdAt.toISOString(), summary: task.outcome.summary, externalUrl: task.outcome.externalUrl, externalLabel: task.outcome.externalLabel, updatedAt: task.outcome.updatedAt.toISOString(), updatedBy: task.outcome.updatedBy, assets: task.outcome.assets.map((a) => ({ id: a.id, kind: a.kind, url: a.url, filename: a.filename, mimeType: a.mimeType, sizeBytes: a.sizeBytes, createdAt: a.createdAt.toISOString(), uploadedBy: a.uploadedBy })) } : null}
         canUpload={isMgr || hasAnyClaim}
         canManage={isMgr}
         currentUserId={userId}
       />
+      </div>
     </AppShell>
   );
 }

@@ -5,6 +5,7 @@ import {
   BellOutlined,
   CalendarOutlined,
   DashboardOutlined,
+  FolderOpenOutlined,
   LogoutOutlined,
   MenuOutlined,
   SettingOutlined,
@@ -52,6 +53,11 @@ export default function AppShell({ title, initialMe, children }: Props) {
         key: "/tasks",
         icon: <DashboardOutlined />,
         label: <Link href="/tasks">任务大厅</Link>,
+      },
+      {
+        key: "/outcomes",
+        icon: <FolderOpenOutlined />,
+        label: <Link href="/outcomes">成果档案</Link>,
       },
       {
         key: "/duty-and-meetings",
@@ -112,6 +118,7 @@ export default function AppShell({ title, initialMe, children }: Props) {
   const selectedKeys = useMemo(() => {
     if (pathname.startsWith("/admin/users")) return ["/admin/users"];
     if (pathname.startsWith("/tasks")) return ["/tasks"];
+    if (pathname.startsWith("/outcomes")) return ["/outcomes"];
     if (pathname.startsWith("/duty-and-meetings")) return ["/duty-and-meetings"];
     if (pathname.startsWith("/messages")) return ["/messages"];
     if (pathname.startsWith("/publish")) return ["/publish"];
@@ -388,4 +395,3 @@ export default function AppShell({ title, initialMe, children }: Props) {
     </Layout>
   );
 }
-

@@ -415,6 +415,8 @@ model TaskOutcome {
   updatedAt     DateTime @updatedAt
   taskId        String   @unique
   task          Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  /** 命名规范：姓名+活动名称+内容（微推/海报/视频/其他） */
+  title         String?
   summary       String?  @db.Text
   externalUrl   String?
   externalLabel String?

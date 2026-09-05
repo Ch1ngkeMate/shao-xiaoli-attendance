@@ -1,0 +1,1 @@
+ALTER TABLE `TaskOutcome` ADD COLUMN `title` VARCHAR(191) NULL;

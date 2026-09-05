@@ -84,6 +84,8 @@ export async function GET(_req: Request, ctx: { params: Promise<Params> }) {
     claimedCount: task.claims.length,
     outcome: task.outcome
       ? {
+          title: task.outcome.title,
+          submittedAt: task.outcome.createdAt.toISOString(),
           summary: task.outcome.summary,
           externalUrl: task.outcome.externalUrl,
           externalLabel: task.outcome.externalLabel,
