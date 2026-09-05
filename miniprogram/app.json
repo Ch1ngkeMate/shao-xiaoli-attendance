@@ -2,6 +2,7 @@
   "pages": [
     "pages/login/login",
     "pages/tasks/tasks",
+    "pages/outcomes/outcomes",
     "pages/tasks/detail",
     "pages/publish/publish",
     "pages/messages/messages",

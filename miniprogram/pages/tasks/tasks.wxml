@@ -53,6 +53,16 @@
   />
 </view>
 
+<!-- 成果档案入口：让用户无需进入某一任务也可查询全部已归档成果 -->
+<view class="archive-entry" bindtap="onOpenOutcomes">
+  <view class="archive-entry-icon"><icon name="camera" size="44" /></view>
+  <view class="archive-entry-copy">
+    <view class="archive-entry-title">成果档案</view>
+    <view class="archive-entry-desc">查询照片、视频与成品链接</view>
+  </view>
+  <view class="archive-entry-arrow">›</view>
+</view>
+
 <!-- 筛选标签 -->
 <scroll-view scroll-x class="filter-scroll">
   <view class="filter-row">

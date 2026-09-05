@@ -50,6 +50,11 @@ function getTaskDetail(id) {
   return request({ url: `/api/tasks/${id}` });
 }
 
+/** 全员可见的成果档案目录 */
+function getOutcomes() {
+  return request({ url: "/api/outcomes" });
+}
+
 /** 接取任务 */
 function claimTask(taskId, timeSlotId) {
   return request({ url: `/api/tasks/${taskId}/claim`, method: "POST", data: { timeSlotId } });
@@ -267,7 +272,7 @@ module.exports = {
   // 用户
   getMe, updateMe, getMyAttendance,
   // 任务
-  getTasks, createTask, getTaskDetail, claimTask, removeClaim, submitTask, closeTask,
+  getTasks, createTask, getTaskDetail, getOutcomes, claimTask, removeClaim, submitTask, closeTask,
   // 审核
   reviewSubmission,
   getTaskSubmissions,

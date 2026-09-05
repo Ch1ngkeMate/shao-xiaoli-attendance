@@ -82,6 +82,10 @@ Page({
     wx.navigateTo({ url: `/pages/tasks/detail?id=${id}` });
   },
 
+  onOpenOutcomes() {
+    wx.navigateTo({ url: "/pages/outcomes/outcomes" });
+  },
+
   onPublish() {
     wx.navigateTo({ url: "/pages/publish/publish" });
   },

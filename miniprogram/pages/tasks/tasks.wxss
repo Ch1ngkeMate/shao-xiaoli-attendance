@@ -14,6 +14,25 @@
   box-shadow: 0 6rpx 0 0 var(--color-focus-yellow-dark), 0 0 0 6rpx rgba(255,204,0,0.15);
 }
 
+/* 成果档案入口 */
+.archive-entry {
+  display: flex; align-items: center; gap: 18rpx;
+  margin: 4rpx var(--spacing-md) var(--spacing-sm); padding: 22rpx 24rpx;
+  background: linear-gradient(135deg, #ecfffb, #fffdf5);
+  border: 1rpx solid #a7eadf; border-radius: var(--border-radius-lg);
+  box-shadow: 0 5rpx 0 rgba(25, 200, 185, 0.12);
+}
+.archive-entry:active { background: #dff9f4; }
+.archive-entry-icon {
+  display: flex; align-items: center; justify-content: center;
+  width: 64rpx; height: 64rpx; border-radius: 22rpx;
+  background: var(--color-primary); color: #fff;
+}
+.archive-entry-copy { flex: 1; min-width: 0; }
+.archive-entry-title { color: var(--color-text); font-size: var(--font-size-base); font-weight: 700; }
+.archive-entry-desc { margin-top: 4rpx; color: var(--color-text-secondary); font-size: var(--font-size-xs); }
+.archive-entry-arrow { color: var(--color-primary); font-size: 44rpx; line-height: 1; }
+
 /* 筛选标签 */
 .filter-scroll {
   white-space: nowrap;

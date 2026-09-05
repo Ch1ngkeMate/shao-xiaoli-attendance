@@ -1,0 +1,36 @@
+<view class="page-shell">
+  <view class="archive-hero">
+    <view class="archive-hero-title">成果档案</view>
+    <view class="archive-hero-desc">所有成员均可查看已归档的照片、视频与成品链接</view>
+  </view>
+
+  <view class="search-wrap">
+    <input class="input" placeholder="搜索姓名、活动名称或内容" value="{{searchText}}" bindinput="onSearchInput" />
+  </view>
+
+  <view wx:if="{{shownOutcomes.length}}" class="outcome-list">
+    <view wx:for="{{shownOutcomes}}" wx:key="id" class="card outcome-card" data-task-id="{{item.task.id}}" bindtap="onOutcomeTap">
+      <view class="outcome-top">
+        <view class="outcome-title ellipsis">{{item.displayTitle}}</view>
+        <view class="tag tag-green">{{item.assetCount}} 项</view>
+      </view>
+      <view class="outcome-task ellipsis">任务：{{item.task.title}}</view>
+      <view wx:if="{{item.summary}}" class="outcome-summary ellipsis-2">{{item.summary}}</view>
+      <view class="outcome-meta">
+        <view class="tag tag-blue">{{item.typeText}}</view>
+        <view class="outcome-time">提交于 {{item.submittedText}}</view>
+      </view>
+      <view class="outcome-hint">点击查看任务与全部材料 ›</view>
+    </view>
+  </view>
+
+  <view wx:elif="{{!loading}}" class="empty">
+    <view class="empty-icon">📁</view>
+    <view class="empty-text">暂无符合条件的成果档案</view>
+  </view>
+
+  <view wx:if="{{loading}}" class="empty">
+    <view class="leaf-spin">🍃</view>
+    <view class="empty-text">正在整理档案...</view>
+  </view>
+</view>
