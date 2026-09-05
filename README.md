@@ -170,3 +170,7 @@ npx prisma migrate deploy
 ## License
 
 MIT
+
+## 开发交接
+
+后续开发或交接给 AI 前，请先阅读 [AI 开发交接说明](docs/AI_HANDOFF.md)。其中以当前代码和生产拓扑为准，包含数据库迁移、Web/小程序对齐、SSH 运维与上线验收流程。
