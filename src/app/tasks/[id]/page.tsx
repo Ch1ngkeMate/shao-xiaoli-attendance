@@ -7,6 +7,7 @@ import { notFound, redirect } from "next/navigation";
 import { getTaskTimeBoundsFromSlots } from "@/lib/task-time-bounds";
 import AppShell from "@/components/AppShell";
 import TaskDetailView from "./task-detail-view";
+import TaskOutcomeArchive from "./task-outcome-archive";
 
 type PageProps = {
   /** Next 各版本对动态段可能为 string 或 string[]，统一归一化 */
@@ -64,6 +65,12 @@ export default async function TaskDetailPage({ params }: PageProps) {
             review: true,
           },
         },
+    outcome: {
+      include: {
+        updatedBy: { select: { id: true, displayName: true } },
+        assets: { orderBy: [{ sort: "asc" }, { createdAt: "asc" }], include: { uploadedBy: { select: { id: true, displayName: true } } } },
+      },
+    },
   } satisfies Prisma.TaskInclude;
 
   const includeWithSlots = {
@@ -275,6 +282,13 @@ export default async function TaskDetailPage({ params }: PageProps) {
             : []
         }
         submissionsForReview={submissionsForReview}
+      />
+      <TaskOutcomeArchive
+        taskId={task.id}
+        outcome={task.outcome ? { id: task.outcome.id, summary: task.outcome.summary, externalUrl: task.outcome.externalUrl, externalLabel: task.outcome.externalLabel, updatedAt: task.outcome.updatedAt.toISOString(), updatedBy: task.outcome.updatedBy, assets: task.outcome.assets.map((a) => ({ id: a.id, kind: a.kind, url: a.url, filename: a.filename, mimeType: a.mimeType, sizeBytes: a.sizeBytes, createdAt: a.createdAt.toISOString(), uploadedBy: a.uploadedBy })) } : null}
+        canUpload={isMgr || hasAnyClaim}
+        canManage={isMgr}
+        currentUserId={userId}
       />
     </AppShell>
   );

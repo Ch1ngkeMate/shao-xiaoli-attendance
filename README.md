@@ -157,6 +157,16 @@ npm run build
 npm start
 ```
 
+### 成果档案上传
+
+任务成果档案支持图片、MP4/WebM/MOV 视频和 PDF，单个文件上限为 50 MB。部署该功能时先执行数据库迁移：
+
+```bash
+npx prisma migrate deploy
+```
+
+若 Nginx 位于应用前面，请在对应 `server` 块设置 `client_max_body_size 50m;` 后重载 Nginx；否则视频上传可能会在到达应用前被拒绝。生产环境仍建议配置 `LOCAL_UPLOADS_DIR` 到项目目录之外，避免发布覆盖本地材料。
+
 ## License
 
 MIT

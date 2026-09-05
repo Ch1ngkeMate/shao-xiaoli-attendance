@@ -33,6 +33,13 @@ enum ReviewResult {
   REJECTED
 }
 
+/** 任务成果附件的归档类型。成果与个人审核凭证分开，面向全体成员展示。 */
+enum OutcomeAssetKind {
+  IMAGE
+  VIDEO
+  DOCUMENT
+}
+
 model User {
   id           String   @id @default(cuid())
   createdAt    DateTime @default(now())
@@ -53,6 +60,8 @@ model User {
   tasksPublished       Task[]             @relation("TaskPublisher")
   claims                 TaskClaim[]
   submissions          TaskSubmission[]
+  outcomesUpdated      TaskOutcome[]       @relation("TaskOutcomeUpdatedBy")
+  outcomeAssetsUploaded TaskOutcomeAsset[] @relation("TaskOutcomeAssetUploadedBy")
   reviews                TaskReview[]       @relation("TaskReviewer")
   dutyAssignments        DutyAssignment[]
   leaveRequests          LeaveRequest[]     @relation("LeaveUser")
@@ -302,6 +311,7 @@ model Task {
   timeSlots   TaskTimeSlot[]
   claims      TaskClaim[]
   submissions   TaskSubmission[]
+  outcome       TaskOutcome?
   inAppMessages   InAppMessage[]
 
   @@index([startTime, endTime])
@@ -396,6 +406,42 @@ model EvidenceImage {
   sort Int @default(0)
 
   @@index([submissionId, sort])
+}
+
+/** 任务级成果档案：全员可查看，不会覆盖用于考勤审核的个人提交。 */
+model TaskOutcome {
+  id            String   @id @default(cuid())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  taskId        String   @unique
+  task          Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  summary       String?  @db.Text
+  externalUrl   String?
+  externalLabel String?
+  updatedById   String
+  updatedBy     User     @relation("TaskOutcomeUpdatedBy", fields: [updatedById], references: [id])
+  assets        TaskOutcomeAsset[]
+
+  @@index([updatedAt])
+  @@index([updatedById])
+}
+
+model TaskOutcomeAsset {
+  id           String           @id @default(cuid())
+  createdAt    DateTime         @default(now())
+  outcomeId    String
+  outcome      TaskOutcome      @relation(fields: [outcomeId], references: [id], onDelete: Cascade)
+  kind         OutcomeAssetKind
+  url          String
+  filename     String
+  mimeType     String
+  sizeBytes    Int?
+  sort         Int              @default(0)
+  uploadedById String
+  uploadedBy   User             @relation("TaskOutcomeAssetUploadedBy", fields: [uploadedById], references: [id])
+
+  @@index([outcomeId, sort])
+  @@index([uploadedById])
 }
 
 model TaskReview {

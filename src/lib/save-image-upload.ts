@@ -20,11 +20,16 @@ function mimeFromExt(ext: string): string {
     ".jpeg": "image/jpeg",
     ".webp": "image/webp",
     ".gif": "image/gif",
+    ".mp4": "video/mp4",
+    ".webm": "video/webm",
+    ".mov": "video/quicktime",
+    ".pdf": "application/pdf",
   };
   return m[ext] ?? "application/octet-stream";
 }
 
 export type ImageUploadKind = "task" | "evidence" | "avatar";
+export type OutcomeUploadKind = "IMAGE" | "VIDEO" | "DOCUMENT";
 
 /**
  * 本地上传根目录：未设置 LOCAL_UPLOADS_DIR 时为项目内 public/uploads（发版易被覆盖）；
@@ -78,4 +83,20 @@ export async function saveImageUpload(
   await mkdir(base, { recursive: true });
   await writeFile(path.join(base, filename), buffer);
   return `/uploads/${filename}`;
+}
+
+/** 保存任务成果库材料。与图片上传分开，允许视频和 PDF，并按类型分目录归档。 */
+export async function saveOutcomeUpload(kind: OutcomeUploadKind, buffer: Buffer, ext: string): Promise<string> {
+  const filename = `${crypto.randomUUID()}${ext}`;
+  const folder = `outcomes/${kind.toLowerCase()}`;
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    const { url } = await put(`shao-xiaoli-attendance/${folder}/${filename}`, buffer, {
+      access: "public", addRandomSuffix: false, contentType: mimeFromExt(ext), token: process.env.BLOB_READ_WRITE_TOKEN,
+    });
+    return url;
+  }
+  const uploadDir = path.join(getLocalUploadsRoot(), folder);
+  await mkdir(uploadDir, { recursive: true });
+  await writeFile(path.join(uploadDir, filename), buffer);
+  return `/uploads/${folder}/${filename}`;
 }

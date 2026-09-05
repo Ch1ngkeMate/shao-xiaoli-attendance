@@ -73,6 +73,22 @@
     </view>
   </view>
 
+  <!-- 任务成果：所有登录用户可见；上传与维护在网页端由参与者/管理人员完成 -->
+  <view wx:if="{{task.outcome}}" class="card">
+    <view class="card-title">成果档案</view>
+    <view wx:if="{{task.outcome.summary}}" class="outcome-summary">{{task.outcome.summary}}</view>
+    <view wx:if="{{task.outcome.externalUrl}}" class="hint mt-8">对外成果：{{task.outcome.externalLabel || task.outcome.externalUrl}}</view>
+    <view wx:if="{{task.outcomeImages.length}}" class="outcome-assets mt-12">
+      <image wx:for="{{task.outcomeImages}}" wx:key="id" src="{{item.url}}" mode="aspectFill" class="evidence-img-sm" data-url="{{item.url}}" bindtap="onPreviewOutcomeImage" />
+    </view>
+    <view wx:if="{{task.outcomeVideos.length}}" class="mt-12">
+      <video wx:for="{{task.outcomeVideos}}" wx:key="id" src="{{item.url}}" controls class="outcome-video" />
+    </view>
+    <view wx:if="{{task.outcomeDocuments.length}}" class="mt-12">
+      <view wx:for="{{task.outcomeDocuments}}" wx:key="id" class="outcome-document" data-url="{{item.url}}" bindtap="onOpenOutcomeDocument">📄 {{item.filename}}</view>
+    </view>
+  </view>
+
   <!-- 已接取人员 — task.claims -->
   <view class="card">
     <view class="card-title">已接取人员</view>

@@ -45,6 +45,12 @@ Page({
       // 补全图片 URL
       if (task.images) task.images.forEach((img) => { img.url = fixUrl(img.url); });
       task.imageUrls = (task.images || []).map((img) => img.url);
+      if (task.outcome && task.outcome.assets) {
+        task.outcome.assets.forEach((asset) => { asset.url = fixUrl(asset.url); });
+      }
+      task.outcomeImages = task.outcome ? (task.outcome.assets || []).filter((asset) => asset.kind === "IMAGE") : [];
+      task.outcomeVideos = task.outcome ? (task.outcome.assets || []).filter((asset) => asset.kind === "VIDEO") : [];
+      task.outcomeDocuments = task.outcome ? (task.outcome.assets || []).filter((asset) => asset.kind === "DOCUMENT") : [];
       if (task.claims) task.claims.forEach((c) => { if (c.user) c.user.avatarUrl = fixUrl(c.user.avatarUrl); });
 
       // 我接取了哪些时段（支持一人接多段）
@@ -231,6 +237,24 @@ Page({
     const urls = this.data.task.imageUrls || [];
     const current = e.currentTarget.dataset.current || (urls[0] || '');
     wx.previewImage({ current: current, urls: urls });
+  },
+
+  onPreviewOutcomeImage(e) {
+    const current = e.currentTarget.dataset.url;
+    const urls = (this.data.task.outcomeImages || []).map((item) => item.url);
+    if (current) wx.previewImage({ current, urls });
+  },
+
+  onOpenOutcomeDocument(e) {
+    const url = e.currentTarget.dataset.url;
+    if (!url) return;
+    wx.showLoading({ title: "下载中" });
+    wx.downloadFile({
+      url,
+      success(res) { if (res.statusCode === 200) wx.openDocument({ filePath: res.tempFilePath, showMenu: true }); else wx.showToast({ title: "文档打开失败", icon: "none" }); },
+      fail() { wx.showToast({ title: "文档下载失败", icon: "none" }); },
+      complete() { wx.hideLoading(); },
+    });
   },
 
   // ========== 分享 ==========

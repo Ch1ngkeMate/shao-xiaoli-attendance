@@ -34,6 +34,12 @@ export async function GET(_req: Request, ctx: { params: Promise<Params> }) {
           review: true,
         },
       },
+      outcome: {
+        include: {
+          updatedBy: { select: { id: true, displayName: true } },
+          assets: { orderBy: [{ sort: "asc" as const }, { createdAt: "asc" as const }], include: { uploadedBy: { select: { id: true, displayName: true } } } },
+        },
+      },
     },
   });
 
@@ -76,6 +82,16 @@ export async function GET(_req: Request, ctx: { params: Promise<Params> }) {
         : null,
     })),
     claimedCount: task.claims.length,
+    outcome: task.outcome
+      ? {
+          summary: task.outcome.summary,
+          externalUrl: task.outcome.externalUrl,
+          externalLabel: task.outcome.externalLabel,
+          updatedAt: task.outcome.updatedAt.toISOString(),
+          updatedBy: task.outcome.updatedBy,
+          assets: task.outcome.assets.map((a) => ({ id: a.id, kind: a.kind, url: a.url, filename: a.filename, mimeType: a.mimeType, sizeBytes: a.sizeBytes, uploadedBy: a.uploadedBy })),
+        }
+      : null,
   };
 
   // 如果没有 userId，仅返回基础任务信息
