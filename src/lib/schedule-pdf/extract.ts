@@ -26,10 +26,29 @@
  * ---------------------------------------------------------------------------
  * Node 环境的一个坑
  * ---------------------------------------------------------------------------
- * pdf.js v6 在 Node 下用全局 `fetch` 去取 cmaps / 标准字体，而 **Node 的 fetch
- * 不支持 `file://` 协议** → 报 `Unable to load CMap data`。若不处理，
- * UniGB-UCS2-H 这类中文会全部解不出来（观察到 item 数直接变 0）。
+ * pdf.js（v5 / v6 都是）在 Node 下用全局 `fetch` 去取 cmaps / 标准字体，而
+ * **Node 的 fetch 不支持 `file://` 协议** → 报 `Unable to load CMap data`。
+ * 若不处理，UniGB-UCS2-H 这类中文会全部解不出来（观察到 item 数直接变 0）。
  * 对策：注入自定义的 CMapReaderFactory / StandardFontDataFactory，改用 fs 读盘。
+ *
+ * ---------------------------------------------------------------------------
+ * 🔴 版本被锁死在 5.6.205（不是最新版，别手贱升）
+ * ---------------------------------------------------------------------------
+ * **生产服务器是 Node v20.20.2**，而 pdfjs-dist 的 engines 要求：
+ *
+ *     v6.x / v5.7+   →  node >= 22.13.0 || >= 24     ← 装不上
+ *     v5.5 / v5.6    →  node >= 20.19.0 || >= 22.13  ← 可用
+ *     v4.x           →  node >= 18 / 20
+ *
+ * 所以停在 **5.6.205**（Node 20 能用的最高版本）。`package.json` 里写的是
+ * **精确版本**，不是 `^` —— 一旦被升到 v5.7/v6，服务器 `npm install` 会
+ * EBADENGINE，接口直接崩。
+ *
+ * 什么时候可以升到 v6：先把服务器 Node 升到 ≥ 22.13。
+ * v5 → v6 的入口与工厂 API 完全一致（都是 `legacy/build/pdf.mjs` +
+ * `CMapReaderFactory` / `StandardFontDataFactory`），所以升级只需改版本号再跑
+ * `npm run test:schedule:all` 回归（5.6.205 已实测：结构 132 / 内容 404 /
+ * 服务端 404 / 端到端 13 全绿，13 门课、置信度 98%，与 v6.3.289 结果一致）。
  */
 import fs from "node:fs";
 import path from "node:path";
