@@ -45,6 +45,10 @@ export function middleware(req: NextRequest) {
   }
 
   if (!token) {
+    // API 客户端（小程序/curl/脚本）需要可读 JSON，而非 HTML 跳转
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ message: "未登录" }, { status: 401 });
+    }
     const url = req.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("next", pathname);
@@ -53,6 +57,11 @@ export function middleware(req: NextRequest) {
 
   const role = decodeJwtPayloadRole(token);
   if (!role) {
+    if (pathname.startsWith("/api/")) {
+      const res = NextResponse.json({ message: "登录已失效，请重新登录" }, { status: 401 });
+      res.cookies.set(SESSION_COOKIE, "", { path: "/", maxAge: 0 });
+      return res;
+    }
     const res = NextResponse.redirect(new URL("/login", req.url));
     res.cookies.set(SESSION_COOKIE, "", { path: "/", maxAge: 0 });
     return res;

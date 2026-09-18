@@ -2,6 +2,9 @@
  * 考勤页 — Animal Island 动森主题
  * ============================================ */
 
+/* 课程表视图样式（与课程表页共用） */
+@import "../../styles/course-schedule.wxss";
+
 /* ===== Tab 切换 ===== */
 .tab-bar {
   display: flex;

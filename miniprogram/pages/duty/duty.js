@@ -1,13 +1,28 @@
 const api = require("../../utils/api");
 const { formatTime, formatDate } = require("../../utils/format");
+const scheduleView = require("../../utils/schedule-view");
 
 const WEEKDAYS = ["周一", "周二", "周三", "周四", "周五"];
 const PERIODS = ["第1节", "第2节", "第3节", "第4节", "第5节"];
 
 Page({
+  // 课程表视图的状态与交互（周次、起始日、回到本周、自动滚动）来自 utils/schedule-view.js，
+  // 与课程表页共用同一套逻辑（见 templates/course-schedule.wxml）
+  ...scheduleView.methods,
+
   data: {
     activeTab: 0,
     tabs: [],
+
+    // 课程表（默认 Tab）
+    courses: [],
+    weekIndex: 0,
+    startDate: "",
+    view: scheduleView.buildView({ courses: [], weekIndex: 0, startDate: "" }),
+    /** 考勤页不提供导入/编辑，只给一个跳转课程表页的入口 */
+    showManage: true,
+    /** 吸顶 Tab 栏高度，滚动到今天时留出余量（px） */
+    stickyHeaderOffset: 76,
 
     // 值班
     dutyGrid: [[],[],[],[],[]].map(() => [[],[],[],[],[]]),
@@ -60,10 +75,23 @@ Page({
     const app = getApp();
     const isAdminOrMinister = app.hasRole("ADMIN", "MINISTER");
     const tabs = isAdminOrMinister
-      ? ["值班表", "会议", "请假", "统计"]
-      : ["值班表", "会议", "请假"];
+      ? ["课程表", "值班表", "会议", "请假", "统计"]
+      : ["课程表", "值班表", "会议", "请假"];
     this.setData({ tabs, showStats: isAdminOrMinister, isAdmin: isAdminOrMinister });
-    this.loadTab(this.data.activeTab);
+    // 登录后若设置起始页为「课程表」或「值班表」，切到对应子页
+    // 用局部变量承接，不依赖 setData 的同步时序
+    let activeTab = this.data.activeTab;
+    const pendingTab = app.globalData.pendingDutyTab;
+    if (typeof pendingTab === "number") {
+      app.globalData.pendingDutyTab = null;
+      if (pendingTab !== activeTab) {
+        activeTab = pendingTab;
+        this.setData({ activeTab });
+      }
+    }
+    this.loadTab(activeTab);
+    // 每次进入考勤页且停在课程表时都滚到今天，避免手滑后找不到当天的课
+    if (activeTab === 0) this.autoScrollToToday(true);
     if (isAdminOrMinister) this.loadAssignable();
   },
 
@@ -75,18 +103,30 @@ Page({
   },
 
   onTabChange(e) {
-    const idx = e.currentTarget.dataset.index;
+    const idx = Number(e.currentTarget.dataset.index);
     this.setData({ activeTab: idx });
+    if (idx === 0) {
+      // 切回课程表时重新读缓存并滚到今天（在课程表页改完课程回来能立刻看到）
+      this.courseAutoScrolled = false;
+      this.loadCourseView();
+      return;
+    }
     this.loadTab(idx);
   },
 
   loadTab(idx) {
     switch (idx) {
-      case 0: this.loadDuty(); break;
-      case 1: this.loadMeetings(); break;
-      case 2: this.loadLeaves(); break;
-      case 3: if (this.data.showStats) this.loadStats(); break;
+      case 0: this.loadCourseView(); break;
+      case 1: this.loadDuty(); break;
+      case 2: this.loadMeetings(); break;
+      case 3: this.loadLeaves(); break;
+      case 4: if (this.data.showStats) this.loadStats(); break;
     }
+  },
+
+  /** 课程表里点课程：去课程表页做编辑 */
+  onCourseTap() {
+    wx.navigateTo({ url: "/pages/schedule/schedule" });
   },
 
   onPullDownRefresh() {

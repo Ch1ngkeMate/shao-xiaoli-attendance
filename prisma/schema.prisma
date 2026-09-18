@@ -33,11 +33,12 @@ enum ReviewResult {
   REJECTED
 }
 
-/** 任务成果附件的归档类型。成果与个人审核凭证分开，面向全体成员展示。 */
+/** 任务成果附件的归档类型。成果与个人审核凭证分开，面向全体成员展示。LINK 为网盘等外链材料（大文件不入库）。 */
 enum OutcomeAssetKind {
   IMAGE
   VIDEO
   DOCUMENT
+  LINK
 }
 
 model User {

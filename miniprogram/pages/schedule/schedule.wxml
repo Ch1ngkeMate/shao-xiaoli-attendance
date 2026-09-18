@@ -1,0 +1,141 @@
+<import src="../../templates/course-schedule.wxml" />
+
+<view class="schedule-page">
+  <view wx:if="{{isStandalone}}" class="standalone-bar">
+    <view class="standalone-back" bindtap="goHome">‹ 返回任务大厅</view>
+  </view>
+
+  <view class="card schedule-head">
+    <view class="flex-between">
+      <view>
+        <view class="card-title">{{semesterLabel}}</view>
+        <view class="hint">按周查看课程，点击课程卡片可编辑或删除</view>
+      </view>
+      <view class="schedule-count">{{courses.length}} 门</view>
+    </view>
+    <view class="schedule-actions">
+      <button class="btn-ghost action-btn" bindtap="onImport">导入课表</button>
+      <button class="btn-ghost action-btn" bindtap="onPasteImport">粘贴 JSON</button>
+      <button class="btn-primary action-btn" bindtap="onAdd">手动添加</button>
+    </view>
+    <view class="hint schedule-import-tip">支持教务系统导出的课表 PDF 和 JSON 文件，自动识别课程、节次、周次、教师与教室。</view>
+  </view>
+
+  <template is="courseSchedule" data="{{...view}}" />
+</view>
+
+<view wx:if="{{showEditor}}" class="modal-mask" bindtap="onEditorClose" catchtouchmove="noop">
+  <view class="modal-card schedule-editor" catchtap="noop">
+    <view class="modal-header">
+      <view class="modal-title">{{editorTitle}}</view>
+      <view class="modal-close" bindtap="onEditorClose">×</view>
+    </view>
+    <view class="editor-body">
+      <view class="form-label">课程名称 <text class="required">*</text></view>
+      <input class="input" data-field="courseName" value="{{form.courseName}}" bindinput="onInput" placeholder="例如：医用电子学" />
+      <view class="form-label editor-label">教师</view>
+      <input class="input" data-field="teacher" value="{{form.teacher}}" bindinput="onInput" placeholder="可选" />
+      <view class="form-label editor-label">教室</view>
+      <input class="input" data-field="room" value="{{form.room}}" bindinput="onInput" placeholder="可选" />
+      <view class="editor-grid editor-label">
+        <view>
+          <view class="form-label">星期</view>
+          <picker mode="selector" range="{{dayOptions}}" value="{{form.weekdayIndex}}" data-field="weekdayIndex" bindchange="onPickerChange">
+            <view class="picker-value small-picker">{{dayOptions[form.weekdayIndex]}} <text class="picker-arrow">⌄</text></view>
+          </picker>
+        </view>
+        <view>
+          <view class="form-label">开始节</view>
+          <picker mode="selector" range="{{sectionOptions}}" value="{{form.startSectionIndex}}" data-field="startSectionIndex" bindchange="onPickerChange">
+            <view class="picker-value small-picker">{{sectionOptions[form.startSectionIndex]}}</view>
+          </picker>
+        </view>
+        <view>
+          <view class="form-label">结束节</view>
+          <picker mode="selector" range="{{sectionOptions}}" value="{{form.endSectionIndex}}" data-field="endSectionIndex" bindchange="onPickerChange">
+            <view class="picker-value small-picker">{{sectionOptions[form.endSectionIndex]}}</view>
+          </picker>
+        </view>
+      </view>
+      <view class="form-label editor-label">上课周次</view>
+      <input class="input" data-field="weeks" value="{{form.weeks}}" bindinput="onInput" placeholder="例如：1-5周,7-14周；单双周写 1-16周(单)；留空表示每周" />
+      <view class="form-label editor-label">备注</view>
+      <input class="input" data-field="note" value="{{form.note}}" bindinput="onInput" placeholder="可选" />
+      <button class="btn-primary editor-submit" bindtap="onSaveCourse">保存课程</button>
+    </view>
+  </view>
+</view>
+
+<!-- ==========================================================================
+     识别预览：服务端解析结果先摊开给用户看，确认后才写入本地课表。
+     缺教师 / 缺教室 / 缺周次的课程会高亮标出，不允许静默导入。
+     ========================================================================== -->
+<view wx:if="{{showPreview}}" class="modal-mask preview-mask" bindtap="onPreviewCancel" catchtouchmove="noop">
+  <view class="modal-card recognize-preview" catchtap="noop">
+    <view class="modal-header">
+      <view class="modal-title">识别预览</view>
+      <view class="modal-close" bindtap="onPreviewCancel">×</view>
+    </view>
+
+    <view class="preview-summary">
+      <view class="preview-source">{{preview.sourceLabel}}</view>
+      <view class="preview-metrics">
+        <view class="preview-metric">
+          <view class="preview-metric-value">{{preview.count}}</view>
+          <view class="preview-metric-label">门课程</view>
+        </view>
+        <view class="preview-metric">
+          <view class="preview-metric-value {{preview.lowConfidence ? 'is-warn' : ''}}">{{preview.confidence}}%</view>
+          <view class="preview-metric-label">置信度</view>
+        </view>
+        <view class="preview-metric">
+          <view class="preview-metric-value {{preview.missingCount ? 'is-warn' : ''}}">{{preview.missingCount}}</view>
+          <view class="preview-metric-label">待确认</view>
+        </view>
+      </view>
+      <view class="preview-engine">识别引擎：{{preview.engine}}</view>
+    </view>
+
+    <view wx:if="{{preview.warnings.length}}" class="preview-warnings">
+      <view
+        wx:for="{{preview.warnings}}"
+        wx:key="text"
+        class="preview-warning preview-warning-{{item.level}}"
+      >
+        <view class="preview-warning-text">{{item.text}}</view>
+        <view wx:if="{{item.samples.length}}" class="preview-warning-samples">{{item.samples}}</view>
+      </view>
+    </view>
+
+    <view wx:if="{{preview.repeatedCount}}" class="preview-note">
+      有 {{preview.repeatedCount}} 组「同名 + 同节次」的课程，通常是不同周次段的分段排课，属正常。
+    </view>
+
+    <scroll-view class="preview-list" scroll-y>
+      <view
+        wx:for="{{preview.courses}}"
+        wx:key="key"
+        class="preview-item {{item.hasIssues ? 'has-issues' : ''}}"
+      >
+        <view class="preview-item-head">
+          <text class="preview-item-when">{{item.dayText}} 第{{item.sectionText}}</text>
+          <text wx:if="{{item.hasIssues}}" class="preview-item-flag">{{item.issues}}</text>
+        </view>
+        <view class="preview-item-name">{{item.courseName}}</view>
+        <view class="preview-item-meta">
+          <text>{{item.teacher || "教师未识别"}}</text>
+          <text class="preview-dot">·</text>
+          <text>{{item.room || "教室未识别"}}</text>
+          <text class="preview-dot">·</text>
+          <text>{{item.weeks}}</text>
+        </view>
+      </view>
+    </scroll-view>
+
+    <view class="preview-actions">
+      <button class="btn-ghost preview-btn" bindtap="onPreviewCancel">取消</button>
+      <button class="btn-primary preview-btn" bindtap="onPreviewConfirm">确认导入</button>
+    </view>
+    <view class="preview-tip">导入会替换当前课程表（学期起始日保留）。识别有误可导入后手动编辑。</view>
+  </view>
+</view>

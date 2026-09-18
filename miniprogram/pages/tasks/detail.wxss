@@ -76,8 +76,27 @@
   border: 1rpx solid var(--color-border-secondary);
   border-radius: 32rpx;
   font-size: 24rpx;
+  transition: transform var(--motion-fast) var(--motion-ease),
+              background var(--motion-fast) var(--motion-ease);
+}
+/* 可点击提示：头像描边 + 尾部箭头 + 按压反馈 */
+.claimant-tag .avatar-xs {
+  border: 2rpx solid var(--color-primary);
+  box-sizing: border-box;
+}
+.claimant-tag-hover {
+  background: var(--color-primary-bg);
+  border-color: var(--color-primary);
+  transform: scale(0.96);
 }
 .claimant-tag-name { max-width: 120rpx; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.claimant-tag-arrow {
+  font-size: 26rpx;
+  line-height: 1;
+  color: var(--color-primary);
+  font-weight: 700;
+  margin-left: -2rpx;
+}
 
 .remove-claimant {
   margin-left: 4rpx;
@@ -135,6 +154,18 @@
   gap: 10rpx;
   flex: 1;
   min-width: 0;
+  padding: 4rpx 12rpx 4rpx 4rpx;
+  border-radius: 32rpx;
+  transition: background var(--motion-fast) var(--motion-ease),
+              transform var(--motion-fast) var(--motion-ease);
+}
+.review-user-info .review-avatar {
+  border: 2rpx solid var(--color-primary);
+  box-sizing: border-box;
+}
+.review-user-hover {
+  background: var(--color-primary-bg);
+  transform: scale(0.97);
 }
 .review-avatar {
   width: 44rpx; height: 44rpx;

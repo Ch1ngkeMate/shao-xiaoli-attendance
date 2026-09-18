@@ -40,7 +40,7 @@ Page({
   },
 
   typeText(types) {
-    const labels = { IMAGE: "图片", VIDEO: "视频", DOCUMENT: "文件" };
+    const labels = { IMAGE: "图片", VIDEO: "视频", DOCUMENT: "文件", LINK: "链接" };
     return types.map((type) => labels[type] || type).join("、") || "说明";
   },
 

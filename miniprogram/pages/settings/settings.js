@@ -9,6 +9,10 @@ Page({
     submitting: false,
     bgPreviewUrl: "",
     buildVersion: "",
+    startPage: "tasks",
+    startPageIndex: 0,
+    startPageOptions: ["任务大厅", "消息", "值班表", "我的", "课程表"],
+    startPageValues: ["tasks", "messages", "duty", "profile", "schedule"],
   },
 
   onShow() {
@@ -19,6 +23,9 @@ Page({
         bgPreviewUrl: fixUrl(user.profileBgUrl) || "",
       });
     }
+    const startPage = getApp().getStartPage();
+    const startPageIndex = this.data.startPageValues.indexOf(startPage);
+    this.setData({ startPage, startPageIndex: startPageIndex >= 0 ? startPageIndex : 0 });
     // 获取版本号
     this.loadVersion();
   },
@@ -36,6 +43,14 @@ Page({
   onCurrentPwdInput(e) { this.setData({ currentPassword: e.detail.value }); },
   onNewPwdInput(e) { this.setData({ newPassword: e.detail.value }); },
 
+  onStartPageChange(e) {
+    const index = Number(e.detail.value);
+    const startPage = this.data.startPageValues[index] || "tasks";
+    getApp().setStartPage(startPage);
+    this.setData({ startPage, startPageIndex: index });
+    wx.showToast({ title: "起始页已设置", icon: "success" });
+  },
+
   async onChangeAvatar() {
     const that = this;
     wx.chooseImage({ count: 1, sizeType: ["compressed"], sourceType: ["album", "camera"],
@@ -45,10 +60,18 @@ Page({
   async uploadAvatar(filePath) {
     try {
       const res = await api.uploadFile(filePath, "avatar");
-      await api.updateMe({ avatarUrl: res.url });
+      const saved = await api.updateMe({ avatarUrl: res.url });
       const app = getApp();
-      app.globalData.user.avatarUrl = res.url;
-      wx.setStorageSync("sxl_user", app.globalData.user);
+      // 用服务端回传的 user 覆盖缓存（里面是入库的原始相对路径，交给 fixUrl 统一补全）。
+      // 过去这里直接写 res.url 并把整个 globalData.user 存进 storage，与 /api/me
+      // 的返回结构不一致，换完头像后不同页面读到的 avatarUrl 形态会不一样。
+      if (saved && saved.user) {
+        app.globalData.user = saved.user;
+        wx.setStorageSync("sxl_user", saved.user);
+      } else {
+        app.globalData.user.avatarUrl = res.url;
+        wx.setStorageSync("sxl_user", app.globalData.user);
+      }
       wx.showToast({ title: "头像已更新", icon: "success" });
     } catch (err) {
       wx.showToast({ title: "上传失败", icon: "none" });
@@ -68,9 +91,8 @@ Page({
       const app = getApp();
       app.globalData.user = res.user;
       wx.setStorageSync("sxl_user", res.user);
-      const base = app.globalData.apiBase;
-      const fix = (u) => (u && !u.startsWith('http')) ? base + (u.startsWith('/')?'':'/') + u : u;
-      this.setData({ bgPreviewUrl: fix(res.user.profileBgUrl) || "" });
+      // 统一走 fixUrl，不要在这里手写 base 拼接（重复实现容易漏掉 config 兜底）
+      this.setData({ bgPreviewUrl: fixUrl(res.user.profileBgUrl) || "" });
       wx.showToast({ title: "背景已更新", icon: "success" });
     } catch (err) {
       wx.showToast({ title: "上传失败", icon: "none" });

@@ -14,6 +14,7 @@
     "pages/leave/apply",
     "pages/profile/profile",
     "pages/settings/settings",
+    "pages/schedule/schedule",
     "pages/reports/reports",
     "pages/others/profile"
   ],

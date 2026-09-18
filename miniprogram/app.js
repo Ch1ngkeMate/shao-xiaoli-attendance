@@ -5,6 +5,38 @@ App({
     apiBase: getApiBase(),
     token: "",
     user: null,
+    /** 起始页为课程表/值班表时，提示考勤页切换到哪个子页（0 课程表 / 1 值班表） */
+    pendingDutyTab: null,
+  },
+
+  /** 登录成功后的默认落点；设置只保存在当前设备，不改变底部 TabBar。 */
+  getStartPage() {
+    const allowed = ["tasks", "messages", "duty", "profile", "schedule"];
+    const saved = wx.getStorageSync("sxl_start_page");
+    return allowed.includes(saved) ? saved : "tasks";
+  },
+
+  setStartPage(page) {
+    const allowed = ["tasks", "messages", "duty", "profile", "schedule"];
+    const value = allowed.includes(page) ? page : "tasks";
+    wx.setStorageSync("sxl_start_page", value);
+    return value;
+  },
+
+  openStartPage() {
+    const page = this.getStartPage();
+    const routes = {
+      tasks: "/pages/tasks/tasks",
+      messages: "/pages/messages/messages",
+      profile: "/pages/profile/profile",
+    };
+    // 课程表与值班表都是考勤页里的子页：课程表是第一个，值班表是第二个
+    if (page === "schedule" || page === "duty") {
+      this.globalData.pendingDutyTab = page === "schedule" ? 0 : 1;
+      wx.switchTab({ url: "/pages/duty/duty" });
+      return;
+    }
+    wx.switchTab({ url: routes[page] || routes.tasks });
   },
 
   onLaunch() {

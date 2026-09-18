@@ -1,8 +1,8 @@
 <!-- 品牌区 — 对齐 Web 端 DeptLogo -->
 <view class="brand-area">
-  <image wx:if="{{!logoFailed}}" class="brand-logo" src="{{logoUrl}}" mode="aspectFit" binderror="onLogoError" />
-  <view wx:else class="brand-logo">
-    <text class="brand-logo-heart">♥</text>
+  <view class="brand-mark">
+    <image wx:if="{{!logoFailed}}" class="brand-mark-img" src="{{logoUrl}}" mode="aspectFit" binderror="onLogoError" />
+    <text wx:else class="brand-mark-heart">♥</text>
   </view>
   <view class="brand-title">干事考勤系统</view>
   <view class="brand-subtitle">宣传部</view>
@@ -16,11 +16,17 @@
     placeholder="真实姓名（与系统 displayName 一致）"
     value="{{realName}}"
     bindinput="onNameInput"
+    disabled="{{loading}}"
   />
-  <button class="btn-primary" type="primary" loading="{{loading}}" bindtap="onBind">
+
+  <!-- 失败原因：错误信息可能较长，单独一行展示，避免被 toast 截断后无从排查 -->
+  <view wx:if="{{errMsg}}" class="login-error">{{errMsg}}</view>
+
+  <!-- 请求期间两个按钮一起禁用：避免用户连点造成 code 重复使用（微信会返回 40163） -->
+  <button class="btn-primary" type="primary" loading="{{loading}}" disabled="{{loading}}" bindtap="onBind">
     微信授权并绑定
   </button>
-  <button class="btn-ghost" loading="{{loading}}" bindtap="onWxLogin">
+  <button class="btn-ghost" loading="{{loading}}" disabled="{{loading}}" bindtap="onWxLogin">
     已绑定，直接登录
   </button>
 </view>

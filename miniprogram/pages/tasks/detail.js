@@ -51,6 +51,7 @@ Page({
       task.outcomeImages = task.outcome ? (task.outcome.assets || []).filter((asset) => asset.kind === "IMAGE") : [];
       task.outcomeVideos = task.outcome ? (task.outcome.assets || []).filter((asset) => asset.kind === "VIDEO") : [];
       task.outcomeDocuments = task.outcome ? (task.outcome.assets || []).filter((asset) => asset.kind === "DOCUMENT") : [];
+      task.outcomeLinks = task.outcome ? (task.outcome.assets || []).filter((asset) => asset.kind === "LINK") : [];
       if (task.claims) task.claims.forEach((c) => { if (c.user) c.user.avatarUrl = fixUrl(c.user.avatarUrl); });
 
       // 我接取了哪些时段（支持一人接多段）
@@ -87,8 +88,9 @@ Page({
         if (s.evidenceImages) {
           s.evidenceImages.forEach((img) => { img.url = fixUrl(img.url); });
         }
-        if (s.user && s.user.avatarUrl) {
-          s.user.avatarUrl = fixUrl(s.user.avatarUrl);
+        if (s.user) {
+          if (s.user.avatarUrl) s.user.avatarUrl = fixUrl(s.user.avatarUrl);
+          if (s.user.profileBgUrl) s.user.profileBgUrl = fixUrl(s.user.profileBgUrl);
         }
       });
       // 补全 mySubmission 中的图片 URL
@@ -116,10 +118,27 @@ Page({
     }
   },
 
+  // ========== 点击成员 → 个人主页 ==========
+  onOpenProfile(e) {
+    const userId = e.currentTarget.dataset.userId;
+    if (!userId) return;
+    const me = getApp().globalData.user;
+    // 点自己不重复开同页，直接提示（本人主页在「我的」里）
+    if (me && me.id === userId) {
+      wx.showToast({ title: "这是你本人", icon: "none" });
+      return;
+    }
+    wx.navigateTo({ url: `/pages/others/profile?id=${userId}` });
+  },
+
   // ========== 管理员移除接取 ==========
   onRemoveTap(e) {
-    const claimId = e.currentTarget.dataset.claimId;
-    if (!claimId) return;
+    // 「✕」嵌在可点击的 claimant-tag 里。虽然两者都用 catchtap，
+    // 但渲染层/版本差异下有冒泡风险：点「移除」却弹出别人主页会很难排查。
+    // 这里做一道防御：只要事件源头不是本节点（dataset 缺 claim-id），直接忽略。
+    const ds = e.currentTarget.dataset || {};
+    const claimId = ds.claimId;
+    if (!claimId || ds.userId) return;
     this.setData({ showRemoveClaimConfirm: true, removeClaimId: claimId });
   },
 
@@ -254,6 +273,15 @@ Page({
       success(res) { if (res.statusCode === 200) wx.openDocument({ filePath: res.tempFilePath, showMenu: true }); else wx.showToast({ title: "文档打开失败", icon: "none" }); },
       fail() { wx.showToast({ title: "文档下载失败", icon: "none" }); },
       complete() { wx.hideLoading(); },
+    });
+  },
+
+  onCopyOutcomeLink(e) {
+    const { url, label } = e.currentTarget.dataset;
+    if (!url) return;
+    wx.setClipboardData({
+      data: url,
+      success() { wx.showToast({ title: label ? `已复制「${label}」` : "链接已复制", icon: "none" }); },
     });
   },
 

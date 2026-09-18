@@ -49,15 +49,36 @@ function formatTimeRelative(dateStr) {
 
 /**
  * 补全图片/文件 URL（相对路径 → 绝对路径）
+ *
+ * 后端本地上传返回的是 `/uploads/avatar/xxx.png` 这类相对路径，小程序里必须补成
+ * 完整 https 地址才显示得出来。取 base 的顺序（**不要只依赖 getApp()**）：
+ *   1. app.globalData.apiBase —— 正常路径
+ *   2. 直接 require ./config —— 兜底。getApp() 在部分时机（自定义组件内部、
+ *      某些插件页面）不可用，过去会让 base 静默变成 ''，于是头像/图片全部白屏，
+ *      且不报任何错，极难排查。
+ *   3. 都没有 → 原样返回，让调用方至少能看到请求路径。
+ *
  * @param {string} url 原始 URL
  * @returns {string} 补全后的完整 URL
  */
 function fixUrl(url) {
   if (!url) return url;
-  if (url.startsWith('http')) return url;
-  const app = getApp();
-  const base = app ? (app.globalData.apiBase || '') : '';
-  return base + (url.startsWith('/') ? '' : '/') + url;
+  if (url.startsWith("http")) return url;
+
+  let base = "";
+  try {
+    const app = getApp();
+    base = (app && app.globalData && app.globalData.apiBase) || "";
+  } catch (_) { /* getApp 不可用时走下面的 config 兜底 */ }
+
+  if (!base) {
+    try {
+      base = require("./config").getApiBase();
+    } catch (_) { /* 再失败就只能原样返回 */ }
+  }
+
+  if (!base) return url;
+  return base + (url.startsWith("/") ? "" : "/") + url;
 }
 
 module.exports = {

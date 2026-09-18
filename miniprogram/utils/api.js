@@ -249,6 +249,47 @@ function uploadFile(filePath, type) {
   });
 }
 
+// ============ 课表解析 ============
+
+/**
+ * 上传课表 PDF 到服务端解析。
+ *
+ * 为什么搬去服务端：小程序端手写 PDF 解码器 = 自己实现 PDF 引擎 + 文字布局引擎
+ * + 表格识别，每遇到一份新模板就复发（漏课 / 幽灵记录 / 教师字段污染 /
+ * 单双周丢失）。服务端用成熟引擎（pdfjs-dist），而且**修了解析器不用重新
+ * 发版小程序** —— 这是最实际的好处。
+ *
+ * 返回统一结构：
+ *   { ok, needsOcr, courses, warnings, unmatchedCells, confidence, semesterLabel }
+ */
+function parseSchedule(filePath) {
+  return new Promise((resolve, reject) => {
+    const app = getApp();
+    const base = getApiBase();
+    wx.uploadFile({
+      url: `${base}/api/schedule/parse`,
+      filePath,
+      name: "file",
+      timeout: 60000,
+      header: { Authorization: `Bearer ${app.globalData.token}` },
+      success(res) {
+        let data;
+        try {
+          data = JSON.parse(res.data);
+        } catch (e) {
+          reject(new Error("服务端返回格式异常"));
+          return;
+        }
+        if (res.statusCode >= 200 && res.statusCode < 300) resolve(data);
+        else reject(new Error(data.message || `解析失败 (${res.statusCode})`));
+      },
+      fail(err) {
+        reject(new Error((err && err.errMsg) || "上传失败"));
+      },
+    });
+  });
+}
+
 // ============ 用户 ============
 
 /** 可指派用户列表 */
@@ -256,9 +297,18 @@ function getAssignableUsers() {
   return request({ url: "/api/users/assignable" });
 }
 
-/** 他人主页/考勤 */
+/** 他人主页/考勤（单月，兼容旧调用） */
 function getUserProfile(userId, month) {
   return request({ url: `/api/admin/users/${userId}/profile`, data: { month } });
+}
+
+/**
+ * 他人主页（按月区间）：一次拿多个月的活动明细，供个人主页做「按月折叠」。
+ * @param {string} userId
+ * @param {string[]} months 形如 ["2026-07","2026-08","2026-09"]，最多 24 个
+ */
+function getUserProfileMonths(userId, months) {
+  return request({ url: `/api/admin/users/${userId}/profile`, data: { months: (months || []).join(",") } });
 }
 
 /** 版本号 */
@@ -269,6 +319,8 @@ function getVersion() {
 module.exports = {
   // 认证
   wxLogin, bindLogin,
+  // 课表解析（服务端）
+  parseSchedule,
   // 用户
   getMe, updateMe, getMyAttendance,
   // 任务
@@ -293,5 +345,5 @@ module.exports = {
   // 上传
   uploadFile,
   // 其他
-  getAssignableUsers, getUserProfile, getVersion,
+  getAssignableUsers, getUserProfile, getUserProfileMonths, getVersion,
 };

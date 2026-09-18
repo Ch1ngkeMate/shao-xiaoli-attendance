@@ -1,3 +1,5 @@
+<import src="../../templates/course-schedule.wxml" />
+
 <wxs module="utils">
   var weeks = ['周一','周二','周三','周四','周五'];
   var periods = ['第1节','第2节','第3节','第4节','第5节'];
@@ -34,8 +36,17 @@
   >{{item}}</view>
 </view>
 
-<!-- ====== 值班表 Tab ====== -->
+<!-- ====== 课程表 Tab（默认展示，替代原值班表位置）====== -->
 <view wx:if="{{activeTab === 0}}" class="tab-content">
+  <view class="flex-row" style="padding: 20rpx 32rpx 0;">
+    <view class="leaf-decor">🍃</view>
+    <view class="card-title" style="margin:0 0 0 8rpx;">课程表</view>
+  </view>
+  <template is="courseSchedule" data="{{...view}}" />
+</view>
+
+<!-- ====== 值班表 Tab ====== -->
+<view wx:if="{{activeTab === 1}}" class="tab-content">
   <view class="flex-row" style="padding: 20rpx 32rpx 0;">
     <view class="leaf-decor">🍃</view>
     <view class="card-title" style="margin:0 0 0 8rpx;">值班表</view>
@@ -88,7 +99,7 @@
 </view>
 
 <!-- ====== 会议 Tab ====== -->
-<view wx:if="{{activeTab === 1}}" class="tab-content">
+<view wx:if="{{activeTab === 2}}" class="tab-content">
   <view class="flex-row" style="padding: 20rpx 32rpx 0;justify-content:space-between;">
     <view class="flex-row">
       <view class="leaf-decor">📋</view>
@@ -122,7 +133,7 @@
 </view>
 
 <!-- ====== 请假 Tab ====== -->
-<view wx:if="{{activeTab === 2}}" class="tab-content">
+<view wx:if="{{activeTab === 3}}" class="tab-content">
   <button wx:if="{{!isAdmin}}" class="btn-primary" style="margin:20rpx 32rpx;" bindtap="onApplyLeave">申请请假</button>
   <view wx:if="{{leavesLoading}}" class="empty">
     <view class="leaf-spin">🍃</view>
@@ -148,7 +159,7 @@
 </view>
 
 <!-- ====== 统计 Tab ====== -->
-<view wx:if="{{activeTab === 3 && showStats}}" class="tab-content">
+<view wx:if="{{activeTab === 4 && showStats}}" class="tab-content">
   <view wx:if="{{statsLoading}}" class="empty">
     <view class="leaf-spin">🍃</view>
     <view class="empty-text">加载中...</view>

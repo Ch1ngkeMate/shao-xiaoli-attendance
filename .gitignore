@@ -34,6 +34,14 @@ yarn-error.log*
 .env*
 !.env.example
 
+# 本机私密交接信息（可能包含 SSH 密码、恢复码等，严禁提交）
+docs/*_PRIVATE.local.md
+# 含服务器地址/登录名/密钥指纹 —— 仓库是公开的，不要提交
+docs/SSH_DEPLOY_KEY.md
+
+# 本机 AI 工作记忆与工具缓存（只在本机有意义）
+.workbuddy/
+
 # vercel
 .vercel
 
@@ -51,6 +59,9 @@ next-env.d.ts
 *.tar.gz
 *.tgz
 
+# 本机校验/测试的临时输出（不是交付物）
+/output/
+
 # 临时文件
 *~
 ~$*
@@ -58,6 +69,10 @@ C:Users*
 test-screenshots/
 CODE_REVIEW_REPORT.md
 CHANGES_REPORT.md
+
+# 排查时落盘的临时输出（PowerShell 重定向常被沙箱吞掉，改为写文件中转）
+/_*.txt
+/_*.js
 
 # Python
 __pycache__/

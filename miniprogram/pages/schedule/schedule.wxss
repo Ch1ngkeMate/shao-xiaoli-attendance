@@ -1,0 +1,88 @@
+@import "../../styles/course-schedule.wxss";
+
+/* 课程表页专属样式；课程表视图本身在 styles/course-schedule.wxss */
+.schedule-page { padding-bottom: 48rpx; }
+.standalone-bar { display: flex; margin-bottom: 20rpx; }
+.standalone-back {
+  height: 64rpx; padding: 0 26rpx;
+  display: inline-flex; align-items: center;
+  background: rgb(247,243,223); border: 4rpx solid var(--color-border-light);
+  border-radius: 100rpx; box-shadow: 0 5rpx 0 var(--color-shadow-input);
+  color: var(--color-text-secondary); font-size: 26rpx;
+}
+.schedule-head { padding-bottom: 28rpx; }
+.schedule-count { color: var(--color-primary); font-weight: 700; font-size: 28rpx; }
+.schedule-actions { display: flex; gap: 16rpx; margin-top: 28rpx; }
+.action-btn { flex: 1; padding-left: 8rpx; padding-right: 8rpx; font-size: 26rpx; }
+.schedule-import-tip { margin-top: 16rpx; line-height: 1.5; }
+
+/* 课程编辑弹窗 */
+.form-label { font-size: 26rpx; color: var(--color-text-secondary); margin-bottom: 10rpx; }
+.schedule-editor { max-height: 88vh; overflow: hidden; }
+.editor-body { max-height: calc(88vh - 112rpx); overflow-y: auto; padding-top: 8rpx; }
+.editor-label { margin-top: 22rpx; }
+.editor-grid { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 12rpx; }
+.small-picker { padding-left: 18rpx; padding-right: 14rpx; font-size: 24rpx; }
+.required { color: var(--color-error); }
+.editor-submit { width: 100%; margin-top: 32rpx; }
+
+/* ============================================
+ * 识别预览弹层
+ * 服务端解析结果先给用户过目；缺教师/缺教室/缺周次的课程高亮标出
+ * ============================================ */
+.preview-mask { z-index: 1200; }
+.recognize-preview {
+  width: 660rpx; max-height: 86vh;
+  display: flex; flex-direction: column;
+  padding-bottom: 24rpx;
+}
+.preview-summary { padding-top: 6rpx; }
+.preview-source { font-size: 23rpx; color: var(--color-text-tertiary); line-height: 1.4; }
+.preview-metrics { display: flex; margin-top: 18rpx; }
+.preview-metric { flex: 1; text-align: center; }
+.preview-metric-value {
+  font-size: 40rpx; font-weight: 700; line-height: 1.15;
+  color: var(--color-primary);
+}
+.preview-metric-value.is-warn { color: #d4741f; }
+.preview-metric-label { font-size: 21rpx; color: var(--color-text-tertiary); margin-top: 4rpx; }
+.preview-engine { margin-top: 16rpx; font-size: 20rpx; color: var(--color-text-tertiary); }
+
+.preview-warnings { margin-top: 16rpx; }
+.preview-warning {
+  padding: 14rpx 18rpx; border-radius: 16rpx; margin-bottom: 10rpx;
+  background: var(--color-bg-secondary);
+  font-size: 23rpx; line-height: 1.5; color: var(--color-text-secondary);
+}
+.preview-warning-warn { background: rgb(255, 244, 214); }
+.preview-warning-text { font-weight: 600; }
+.preview-warning-samples { margin-top: 6rpx; font-size: 21rpx; color: var(--color-text-tertiary); }
+
+.preview-note {
+  margin-top: 12rpx; font-size: 22rpx; line-height: 1.5;
+  color: var(--color-text-tertiary);
+}
+
+.preview-list { height: 44vh; margin-top: 18rpx; }
+.preview-item {
+  padding: 16rpx 20rpx; border-radius: 18rpx; margin-bottom: 12rpx;
+  background: rgb(247, 243, 223);
+  border: 3rpx solid var(--color-border-light);
+}
+.preview-item.has-issues { background: rgb(255, 246, 228); border-color: #e0a85c; }
+.preview-item-head { display: flex; align-items: center; justify-content: space-between; }
+.preview-item-when { font-size: 23rpx; font-weight: 700; color: var(--color-primary); }
+.preview-item-flag { font-size: 20rpx; color: #c0503c; }
+.preview-item-name { margin-top: 6rpx; font-size: 28rpx; font-weight: 700; color: var(--color-text); }
+.preview-item-meta {
+  margin-top: 6rpx; font-size: 22rpx;
+  color: var(--color-text-secondary); line-height: 1.5;
+}
+.preview-dot { margin: 0 8rpx; color: var(--color-text-tertiary); }
+
+.preview-actions { display: flex; gap: 16rpx; margin-top: 20rpx; }
+.preview-btn { flex: 1; padding-left: 8rpx; padding-right: 8rpx; font-size: 27rpx; }
+.preview-tip {
+  margin-top: 14rpx; font-size: 21rpx; line-height: 1.5;
+  color: var(--color-text-tertiary);
+}

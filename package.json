@@ -14,7 +14,11 @@
     "init:admin": "tsx scripts/init-admin.ts",
     "report:generate": "tsx scripts/generate-monthly-report.ts",
     "seed:report-demo": "tsx scripts/seed-report-demo.ts",
-    "deploy:check": "tsx scripts/check-deploy-env.ts"
+    "deploy:check": "tsx scripts/check-deploy-env.ts",
+    "test:schedule": "node scripts/test-pdf-schedule.cjs && node scripts/test-pdf-schedule-content.cjs && node scripts/test-week-semantics.cjs",
+    "test:schedule:server": "node scripts/test-schedule-server.cjs",
+    "test:schedule:api": "node scripts/test-schedule-api.cjs",
+    "test:schedule:all": "npm run test:schedule && npm run test:schedule:server && npm run test:schedule:api"
   },
   "dependencies": {
     "@ant-design/icons": "^6.1.1",
@@ -34,6 +38,7 @@
     "jose": "^6.2.2",
     "mariadb": "^3.4.5",
     "next": "16.2.4",
+    "pdfjs-dist": "^6.3.289",
     "prisma": "^7.8.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",

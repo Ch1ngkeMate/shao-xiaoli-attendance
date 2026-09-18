@@ -39,6 +39,10 @@
 
   <!-- 功能菜单 -->
   <view class="card">
+    <view class="menu-row" bindtap="onSchedule">
+      <text>📚 课程表</text>
+      <text class="hint">›</text>
+    </view>
     <view class="menu-row" bindtap="onSettings">
       <text>⚙️ 设置</text>
       <text class="hint">›</text>

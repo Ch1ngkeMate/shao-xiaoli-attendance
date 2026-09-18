@@ -5,26 +5,94 @@
     if (r==='MEMBER') return '部员';
     return r;
   };
-  module.exports = { roleLabel:roleLabel };
+  /** 正分显示 +N，负分原样显示 -N */
+  var signed = function(n) {
+    var v = n || 0;
+    return v > 0 ? '+' + v : '' + v;
+  };
+  module.exports = { roleLabel:roleLabel, signed:signed };
 </wxs>
 
 <view wx:if="{{loading}}" class="load-more">加载中...</view>
 
+<!-- 加载失败（网络/权限/服务端构建过旧等）：显示真实原因，不要伪装成「用户不存在」 -->
+<view wx:elif="{{loadError}}" class="card" style="text-align:center;">
+  <view class="empty-icon">⚠️</view>
+  <view class="section-title mt-16">加载失败</view>
+  <view class="hint mt-8 profile-error-msg">{{loadError}}</view>
+  <button class="btn-primary mt-24" bindtap="onRetry" style="width:100%">重新加载</button>
+</view>
+
 <block wx:elif="{{profileUser}}">
+  <!-- 基本信息 -->
   <view class="card" style="text-align:center;">
     <image wx:if="{{profileUser.avatarUrl}}" src="{{profileUser.avatarUrl}}" class="avatar-lg" mode="aspectFill" />
     <view wx:else class="avatar-lg avatar-placeholder">👤</view>
     <view class="profile-name mt-16">{{profileUser.displayName}}</view>
-    <view class="tag tag-blue mt-8">{{utils.roleLabel(profileUser.role)}}</view>
+    <view class="flex-row gap-8" style="justify-content:center;margin-top:12rpx;">
+      <view class="tag tag-blue">{{utils.roleLabel(profileUser.role)}}</view>
+      <view wx:if="{{!profileUser.isActive}}" class="tag tag-gray">已停用</view>
+    </view>
   </view>
 
+  <!-- 本月考勤概览 -->
   <view wx:if="{{attendance}}" class="card">
     <view class="section-title">{{currentMonth}} 考勤</view>
     <view class="flex-between mt-16">
-      <view class="stat-item">接取 {{attendance.claimedCount || 0}}</view>
-      <view class="stat-item">提交 {{attendance.submittedCount || 0}}</view>
+      <view class="stat-item">接取 {{attendance.claimCount || 0}}</view>
+      <view class="stat-item">提交 {{attendance.submitCount || 0}}</view>
       <view class="stat-item">完成 {{attendance.approvedCount || 0}}</view>
-      <view class="stat-item primary">+{{attendance.approvedPoints || 0}}分</view>
+      <view class="stat-item primary">+{{attendance.totalPoints || 0}}分</view>
     </view>
   </view>
+
+  <!-- 活动记录：按月折叠 -->
+  <view class="card">
+    <view class="section-title">活动记录</view>
+
+    <block wx:if="{{hasAnyRecord}}">
+      <view class="hint month-fold-tip">点击月份查看该月具体活动</view>
+      <view wx:for="{{monthGroups}}" wx:key="month" class="month-group">
+        <!-- 月份标题行（整行可点） -->
+        <view class="month-head" data-index="{{index}}" bindtap="onToggleMonth"
+          hover-class="month-head-hover" hover-stay-time="80">
+          <view class="month-head-left">
+            <view class="month-arrow {{item.expanded ? 'month-arrow-open' : ''}}">›</view>
+            <text class="month-label">{{item.label}}</text>
+          </view>
+          <view class="month-head-right">
+            <text class="month-summary">完成 {{item.approvedCount}} 项</text>
+            <text class="month-points">{{utils.signed(item.totalPoints)}}分</text>
+          </view>
+        </view>
+
+        <!-- 展开后的明细：任务条目可点进详情，旷会/加减分条目为纯展示（不给按压态，避免误以为能点） -->
+        <view wx:if="{{item.expanded}}" class="month-body">
+          <view wx:if="{{item.items.length === 0}}" class="hint" style="padding:16rpx 0;">本月暂无活动记录</view>
+          <block wx:for="{{item.items}}" wx:for-item="rec" wx:key="id">
+            <view wx:if="{{rec.type === 'task'}}" class="record-row record-row-link"
+              data-task-id="{{rec.id}}" bindtap="onOpenTask" hover-class="record-row-hover">
+              <view class="record-main">
+                <view class="record-title record-title-clip">{{rec.title}}</view>
+                <view wx:if="{{rec.time}}" class="record-time">{{rec.time}}</view>
+              </view>
+              <view class="record-points">{{utils.signed(rec.points)}}</view>
+              <view class="record-arrow">›</view>
+            </view>
+            <view wx:else class="record-row {{rec.type === 'absence' ? 'record-row-neg' : ''}}">
+              <view class="record-main">
+                <view class="record-title record-title-clip">{{rec.title}}</view>
+                <view wx:if="{{rec.time}}" class="record-time">{{rec.time}}</view>
+              </view>
+              <view class="record-points {{rec.points < 0 ? 'record-points-neg' : ''}}">{{utils.signed(rec.points)}}</view>
+            </view>
+          </block>
+        </view>
+      </view>
+    </block>
+
+    <view wx:else class="hint" style="padding:24rpx 0;text-align:center;">最近还没有活动记录</view>
+  </view>
 </block>
+
+<view wx:elif="{{!loading}}" class="load-more">用户不存在</view>

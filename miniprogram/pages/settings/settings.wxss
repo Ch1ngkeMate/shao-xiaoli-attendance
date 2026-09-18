@@ -22,3 +22,15 @@
   display: flex; align-items: center; justify-content: center;
   font-size: 28rpx; color: var(--color-text-tertiary);
 }
+
+.start-page-picker {
+  height: 80rpx; padding: 0 28rpx;
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgb(247, 243, 223);
+  border: 5rpx solid var(--color-border-light);
+  border-radius: 100rpx;
+  box-shadow: 0 6rpx 0 var(--color-shadow-input);
+  color: var(--color-text);
+  box-sizing: border-box;
+}
+.start-page-arrow { color: var(--color-primary); font-size: 36rpx; }

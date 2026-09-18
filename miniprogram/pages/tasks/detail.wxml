@@ -92,6 +92,9 @@
     <view wx:if="{{task.outcomeDocuments.length}}" class="mt-12">
       <view wx:for="{{task.outcomeDocuments}}" wx:key="id" class="outcome-document" data-url="{{item.url}}" bindtap="onOpenOutcomeDocument">📄 {{item.filename}}</view>
     </view>
+    <view wx:if="{{task.outcomeLinks.length}}" class="mt-12">
+      <view wx:for="{{task.outcomeLinks}}" wx:key="id" class="outcome-document" data-url="{{item.url}}" data-label="{{item.filename}}" bindtap="onCopyOutcomeLink">🔗 {{item.filename}}（点击复制链接）</view>
+    </view>
   </view>
 
   <!-- 已接取人员 — task.claims -->
@@ -103,22 +106,27 @@
           <view class="slot-label">{{utils.formatTime(item.startTime)}} — {{utils.formatTime(item.endTime)}}</view>
           <view class="claimant-tags">
             <view wx:for="{{task.claims}}" wx:for-item="c" wx:key="id">
-              <view wx:if="{{c.timeSlotId === item.id}}" class="claimant-tag">
+              <!-- 点头像/姓名进个人主页；catchtap 防止冒泡到外层（外层无事件，但保留语义） -->
+              <view wx:if="{{c.timeSlotId === item.id}}" class="claimant-tag"
+                data-user-id="{{c.user.id}}" catchtap="onOpenProfile" hover-class="claimant-tag-hover" hover-stay-time="80">
                 <image wx:if="{{c.user.avatarUrl}}" src="{{c.user.avatarUrl}}" class="avatar-xs" mode="aspectFill" />
                 <view wx:else class="avatar-xs avatar-placeholder-xs">👤</view>
                 <text class="claimant-tag-name">{{c.user.displayName}}</text>
-                <text wx:if="{{isAdminOrMinister && task.status === 'OPEN'}}" class="remove-claimant" data-claim-id="{{c.id}}" bindtap="onRemoveTap">✕</text>
+                <text class="claimant-tag-arrow">›</text>
+                <text wx:if="{{isAdminOrMinister && task.status === 'OPEN'}}" class="remove-claimant" data-claim-id="{{c.id}}" catchtap="onRemoveTap">✕</text>
               </view>
             </view>
           </view>
         </view>
       </view>
       <view wx:else class="claimant-tags">
-        <view wx:for="{{task.claims}}" wx:key="id" class="claimant-tag">
+        <view wx:for="{{task.claims}}" wx:key="id" class="claimant-tag"
+          data-user-id="{{item.user.id}}" catchtap="onOpenProfile" hover-class="claimant-tag-hover" hover-stay-time="80">
           <image wx:if="{{item.user.avatarUrl}}" src="{{item.user.avatarUrl}}" class="avatar-xs" mode="aspectFill" />
           <view wx:else class="avatar-xs avatar-placeholder-xs">👤</view>
           <text class="claimant-tag-name">{{item.user.displayName}}</text>
-          <text wx:if="{{isAdminOrMinister && task.status === 'OPEN'}}" class="remove-claimant" data-claim-id="{{item.id}}" bindtap="onRemoveTap">✕</text>
+          <text class="claimant-tag-arrow">›</text>
+          <text wx:if="{{isAdminOrMinister && task.status === 'OPEN'}}" class="remove-claimant" data-claim-id="{{item.id}}" catchtap="onRemoveTap">✕</text>
         </view>
       </view>
     </view>
@@ -181,7 +189,7 @@
     <view wx:for="{{submissionsForReview}}" wx:key="id" class="review-card">
       <!-- 头部：头像+姓名+状态 -->
       <view class="review-header">
-        <view class="review-user-info">
+        <view class="review-user-info" data-user-id="{{item.user.id}}" catchtap="onOpenProfile" hover-class="review-user-hover" hover-stay-time="80">
           <image wx:if="{{item.user.avatarUrl}}" src="{{item.user.avatarUrl}}" class="review-avatar" mode="aspectFill" />
           <view wx:else class="review-avatar review-avatar-placeholder">👤</view>
           <text class="review-user-name">{{item.user.displayName}}</text>

@@ -1,0 +1,61 @@
+<!--
+  课程表视图模板（课程表页与考勤页共用）
+  使用：<import src="../../templates/course-schedule.wxml" /> 后
+        <template is="courseSchedule" data="{{...view}}" />
+  数据由 utils/schedule-view.js 的 buildView() 生成；模板内的事件在所属页面处理。
+  课程优先：日期列表在最上面，周次/起始日等设置放在页面最下面。
+-->
+<template name="courseSchedule">
+  <view wx:if="{{hasCourses}}" class="day-list">
+    <view wx:for="{{visibleDays}}" wx:key="weekday" id="day-{{item.weekday}}" class="card day-card {{item.isToday ? 'day-card-today' : ''}}">
+      <view class="day-title-row">
+        <view class="day-title">{{item.name}}<text wx:if="{{item.isToday}}" class="today-tag">今天</text></view>
+        <view class="hint">{{item.courses.length}} 节</view>
+      </view>
+      <view wx:if="{{item.courses.length}}" class="course-list">
+        <view wx:for="{{item.courses}}" wx:key="id" class="course-item" data-id="{{item.id}}" bindtap="onCourseTap">
+          <view class="course-time">{{item.sectionText}}</view>
+          <view class="course-copy">
+            <view class="course-name">{{item.courseName}}</view>
+            <view wx:if="{{item.detailText}}" class="course-detail">{{item.detailText}}</view>
+            <view class="course-weeks {{item.needsWeeks ? 'course-weeks-warn' : ''}}">{{item.weekText}}</view>
+            <view wx:if="{{item.note}}" class="course-note">{{item.note}}</view>
+          </view>
+          <view class="course-arrow">›</view>
+        </view>
+      </view>
+      <view wx:else class="day-empty">本周无课</view>
+    </view>
+  </view>
+
+  <view wx:else class="empty">
+    <view class="empty-icon">📚</view>
+    <view class="empty-text">还没有课程</view>
+    <view class="hint empty-hint">可以导入教务系统 JSON，或手动添加第一门课</view>
+  </view>
+
+  <!-- 设置区：放在最下面，不挡课程 -->
+  <view class="card week-picker-card">
+    <view class="week-head">
+      <view class="cs-form-label">当前周次</view>
+      <view wx:if="{{currentWeek}}" class="week-badge {{isCurrentWeek ? 'week-badge-active' : ''}}">第 {{currentWeek}} 周{{isCurrentWeek ? ' · 本周' : ''}}</view>
+    </view>
+    <picker mode="selector" range="{{weekOptions}}" value="{{weekIndex}}" bindchange="onWeekChange">
+      <view class="picker-value">{{selectedWeekLabel}}<text class="picker-sub">{{weekRangeLabel}}</text> <text class="picker-arrow">⌄</text></view>
+    </picker>
+
+    <view class="week-split"></view>
+
+    <view class="cs-form-label">学期起始日（第 1 周周一）</view>
+    <picker mode="date" value="{{startDatePickerValue}}" bindchange="onStartDateChange">
+      <view class="picker-value">{{startDateLabel}} <text class="picker-arrow">⌄</text></view>
+    </picker>
+    <view wx:if="{{!hasStartDate}}" class="hint week-tip">设置后会按日期自动定位当前周，并把页面滚到今天。</view>
+    <button wx:if="{{currentWeek}}" class="btn-ghost week-action" bindtap="onGoCurrentWeek">回到本周（第 {{currentWeek}} 周）</button>
+  </view>
+
+  <view wx:if="{{showManage}}" class="card manage-card" bindtap="onManage">
+    <text>导入 / 编辑课程表</text>
+    <text class="manage-arrow">›</text>
+  </view>
+</template>

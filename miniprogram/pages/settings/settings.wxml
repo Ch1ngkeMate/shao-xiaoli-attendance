@@ -12,6 +12,16 @@
     </view>
   </view>
 
+  <!-- 启动设置 -->
+  <view class="card">
+    <view class="card-title">启动设置</view>
+    <view class="form-label">小程序载入起始页</view>
+    <picker mode="selector" range="{{startPageOptions}}" value="{{startPageIndex}}" bindchange="onStartPageChange">
+      <view class="start-page-picker">{{startPageOptions[startPageIndex]}} <text class="start-page-arrow">⌄</text></view>
+    </picker>
+    <view class="hint mt-12">下次登录成功后将进入所选页面；底部导航保持不变。「课程表」「值班表」打开的是考勤页里的对应子页。</view>
+  </view>
+
   <!-- 账号与安全 -->
   <view class="card">
     <view class="card-title">账号与安全</view>

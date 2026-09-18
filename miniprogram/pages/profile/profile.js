@@ -56,6 +56,10 @@ Page({
     wx.navigateTo({ url: "/pages/settings/settings" });
   },
 
+  onSchedule() {
+    wx.navigateTo({ url: "/pages/schedule/schedule" });
+  },
+
   onReports() {
     wx.navigateTo({ url: "/pages/reports/reports" });
   },

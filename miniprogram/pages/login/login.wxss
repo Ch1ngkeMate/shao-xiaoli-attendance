@@ -3,7 +3,9 @@
   display: flex; flex-direction: column; align-items: center;
   padding: 80rpx 0 40rpx;
 }
-.brand-logo {
+/* 外层只负责居中，内层再决定底色。这样「图片加载失败回落成 ♥」时不会出现
+   白底 + 白字的隐形图标（旧写法给 image.brand-logo 单独改白底就会踩这个坑）。 */
+.brand-mark {
   width: 120rpx; height: 120rpx;
   border-radius: 24rpx;
   background: linear-gradient(135deg, var(--color-primary), var(--color-primary-active));
@@ -13,10 +15,10 @@
   justify-content: center;
   overflow: hidden;
 }
-image.brand-logo {
-  background: #fff;
+.brand-mark-img {
+  width: 100%; height: 100%;
 }
-.brand-logo-heart {
+.brand-mark-heart {
   font-size: 52rpx;
   color: #fff;
   line-height: 1;
@@ -34,6 +36,18 @@ image.brand-logo {
 
 .title {
   font-size: 32rpx; font-weight: 600; margin-bottom: 16rpx;
+}
+
+/* 登录/绑定失败原因 */
+.login-error {
+  margin-top: 20rpx;
+  padding: 16rpx 20rpx;
+  border-radius: 12rpx;
+  background: rgba(196, 78, 82, 0.08);
+  color: var(--color-danger, #c44e52);
+  font-size: 24rpx;
+  line-height: 1.5;
+  word-break: break-all;
 }
 
 .btn-ghost {
