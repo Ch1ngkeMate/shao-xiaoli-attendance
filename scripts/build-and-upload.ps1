@@ -288,7 +288,37 @@ Step "4.5 服务器运行时依赖检查"
 #>
 $runtimeDeps = @("pdfjs-dist")
 $depChecks = ($runtimeDeps | ForEach-Object { "test -f node_modules/$_/package.json" }) -join " && "
-$depOut = ssh $ServerHost "cd $RemotePath && $depChecks && echo DEPS_OK"
+
+# ssh 的 stderr 单独落盘。目的：把「连不上服务器」和「服务器真缺依赖」分开。
+# 不能用 2>&1 —— 脚本顶部设了 $ErrorActionPreference="Stop"，
+# 合并原生命令的 stderr 会抛 NativeCommandError 把脚本直接打断。
+# 文件名带 $stamp，天然避免读到上一轮的旧文件。
+$depErrFile = Join-Path $env:TEMP "sxl-depcheck-$stamp.err"
+$depOut = ssh $ServerHost "cd $RemotePath && $depChecks && echo DEPS_OK" 2>$depErrFile
+
+$depErr = ""
+if (Test-Path -LiteralPath $depErrFile) {
+    $depErr = (Get-Content -LiteralPath $depErrFile -Raw)
+    if (-not $depErr) { $depErr = "" } else { $depErr = $depErr.Trim() }
+}
+
+# 2026-09-19 实际踩过：SSH 被服务器关闭（Connection closed），$depOut 同样是空，
+# 于是被误报成「服务器缺少 pdfjs-dist」，把人骗去 npm install 白折腾一圈。
+$sshPattern = "(?i)connection closed|permission denied|connection timed out|connection refused|could not resolve|host key verification failed|no route to host|operation timed out|connection reset|kex_exchange|broken pipe"
+if ($depErr -ne "" -and $depErr -match $sshPattern) {
+    $depErrLines = @($depErr -split "`n" | Where-Object { $_.Trim() -ne "" })
+    Warn "SSH 连接或认证失败 —— **不是**服务器缺依赖，别去装 pdfjs-dist。"
+    if ($depErrLines.Count -gt 0) {
+        Warn ("ssh 返回：" + $depErrLines[$depErrLines.Count - 1].Trim())
+    }
+    Warn "本次已中止，**生产未做任何改动**。"
+    Write-Host "  本地 .next 已构建好，修好登录后重跑可加 -SkipBuild 省下重新构建的时间。" -ForegroundColor Yellow
+    Write-Host "  一次性装免密公钥（之后 ssh/scp 都不再问密码，刷这一条即可）：" -ForegroundColor Yellow
+    $pubKeyPath = Join-Path $env:USERPROFILE ".ssh\shaoxiaoli_deploy.pub"
+    Write-Host ('      type "' + $pubKeyPath + '" | ssh ' + $ServerHost + ' "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys && echo KEY_INSTALLED"') -ForegroundColor Yellow
+    exit 17
+}
+
 if ($LASTEXITCODE -ne 0 -or (($depOut -join "`n") -notmatch "DEPS_OK")) {
     Warn "服务器缺少运行时依赖：$($runtimeDeps -join ', ')"
     Warn "若不处理，课表识别接口 /api/schedule/parse 会 500。"
